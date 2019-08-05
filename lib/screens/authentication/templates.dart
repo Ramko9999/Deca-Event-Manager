@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/rendering.dart';
 
 //login template
 class LoginTemplate extends StatefulWidget{
@@ -8,16 +9,15 @@ class LoginTemplate extends StatefulWidget{
   
   @override
   State<LoginTemplate> createState(){
-    return LoginTemplateState();
+    return _LoginTemplateState();
   }
 }
 
-class LoginTemplateState extends State<LoginTemplate>{
+class _LoginTemplateState extends State<LoginTemplate>{
   final _loginFormKey = GlobalKey<FormState>();
   String _username;
   String _password;
-
-  LoginTemplateState();
+  _LoginTemplateState();
 
   Widget build(BuildContext context){
     return Form(key: _loginFormKey,
@@ -76,4 +76,17 @@ class LoginTemplateState extends State<LoginTemplate>{
   }
 
   
+}
+
+class RegisterTemplate extends StatefulWidget{
+  @override
+  State<RegisterTemplate> createState(){
+    return _RegisterTemplateState();
+}
+}
+class _RegisterTemplateState extends State<RegisterTemplate>{
+
+  Widget build(BuildContext context){
+      
+  }
 }
