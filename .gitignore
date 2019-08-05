@@ -10,6 +10,7 @@
 .svn/
 *.py
 *.zip
+*.json
 
 # IntelliJ related
 *.iml
