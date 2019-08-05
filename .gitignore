@@ -8,6 +8,8 @@
 .buildlog/
 .history
 .svn/
+*.py
+*.zip
 
 # IntelliJ related
 *.iml
