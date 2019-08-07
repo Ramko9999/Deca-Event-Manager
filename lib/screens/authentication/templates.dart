@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_first_app/screens/profile/profile_screen.dart';
 
 //login template
 class LoginTemplate extends StatefulWidget {
@@ -26,25 +27,26 @@ class _LoginTemplateState extends State<LoginTemplate> {
     }
   }
 
+  //grabs login information from cloud firestore
   void tryToLogin() async {
     try {
+      //grabbing the information from firebase auth
       AuthResult authResult = await FirebaseAuth.instance
           .signInWithEmailAndPassword(email: _username, password: _password);
-      var user = authResult.user;
-      String userIdToken = user.uid;
 
-      //it is adding but not able to grab the auto id and check if user is already there
-      if(await _fireStore.collection("Users").document(userIdToken) != null){
-            await _fireStore.collection("Users").add({'username':_username, 'password': _password, 'uid': userIdToken});
-            print("Succesfully added");
-      }
-      else{
-        print("Already added");
-      }
+      String userId =
+          authResult.user.uid; //used to query for the user data in firestore
 
-      
-      
+      //grabbing user information anf setting it to a variable
+      _fireStore
+          .collection("Users")
+          .where("uid", isEqualTo: userId)
+          .snapshots()
+          .listen((onData) => print(onData.documents[0]['first_name']));
 
+      //changes screen to profile screen
+      Navigator.push(context,
+          MaterialPageRoute(builder: (context) => new ProfileScreen(userId)));
     } catch (error, stackTrace) {
       print(error);
     }
@@ -105,6 +107,7 @@ class _LoginTemplateState extends State<LoginTemplate> {
   }
 }
 
+//Register Template Class
 class RegisterTemplate extends StatefulWidget {
   @override
   State<RegisterTemplate> createState() {
@@ -119,17 +122,36 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
   String _password;
   final _registrationFormKey = GlobalKey<FormState>();
 
-  void tryToRegister() {
+  //handles registration of user
+  void tryToRegister() async {
     if (_registrationFormKey.currentState.validate()) {
       try {
-        FirebaseAuth.instance.createUserWithEmailAndPassword(
-            email: _username, password: _password);
+        //creating a new user in Firebase Auth
+        AuthResult result = await FirebaseAuth.instance
+            .createUserWithEmailAndPassword(
+                email: _username, password: _password);
+
+        String userId = result.user.uid;
+
+        //creating a new user in Firestore
+        await Firestore.instance.collection("Users").add({
+          "first_name": _firstName,
+          "last_name": _lastName,
+          "username": _username,
+          "password": _password,
+          "gold_points": 0,
+          "groups": ['none'],
+          "uid": userId
+        });
+
+        print("Succesfully registered user");
       } catch (error, stackTrace) {
         print(error);
       }
     }
   }
 
+  //checks whether a field in the registration form is empty
   String fieldMustNotBeEmpty(val) {
     if (val == "") {
       return "Field is empty";
