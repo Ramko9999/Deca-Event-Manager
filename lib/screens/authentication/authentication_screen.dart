@@ -82,13 +82,47 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
 
           //handles pulling up the login template
         ])),
+        
         if (_isLoginButtonClicked)
-          Align(
-            alignment: Alignment.center,
-            child: new LoginTemplate(),
-          ),
+          Stack(
+                children: [
+                  GestureDetector(
+                    child:Container(color:Colors.black45),
+                    onTap: (){
+                      setState(() {
+                        _isLoginButtonClicked = false;
+                      });
+                    },
+                  )
+                  ,
+                  SingleChildScrollView(
+                child: Padding(
+                  padding: new EdgeInsets.only(top:100, bottom: 75),
+                  child: Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Container(
+                    child: new LoginTemplate(),
+                    decoration:new BoxDecoration(
+                      borderRadius: BorderRadius.circular(15),
+                      color: Colors.white
+                    ) ,),
+                ),
+              ),
+            ),
+                ]),
         if(_isRegisterButtonClicked)
-          SingleChildScrollView(
+          
+          Stack(children: <Widget>[
+            GestureDetector(
+              child:Container(color: Colors.black45),
+              onTap: (){
+                setState((){
+                  _isRegisterButtonClicked = false;
+                });
+              },
+            )
+            ,
+            SingleChildScrollView(
             child: Padding(
               padding: EdgeInsetsDirectional.only(top: 70),
               child: Align(
@@ -103,6 +137,8 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
                   )),
             ),
           )
+          ],)
+         
       ],
     ));
   }

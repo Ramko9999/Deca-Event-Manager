@@ -25,7 +25,7 @@ class _LoginTemplateState extends State<LoginTemplate> {
 
   _LoginTemplateState() {
     print('created');
-    autoLogin();
+    //autoLogin();
   }
 
   String fieldMustNotBeEmpty(val) {
@@ -103,52 +103,61 @@ class _LoginTemplateState extends State<LoginTemplate> {
         key: _loginFormKey,
         child: Column(
           children: <Widget>[
-            TextFormField(
-              initialValue: _username,
-              validator: (val) {
-                fieldMustNotBeEmpty(val);
-                setState(() {
-                  _username = val;
-                });
-                bool dotIsNotIn = _username.indexOf(".") == -1;
-                bool atIsNotIn = _username.indexOf("@") == -1;
-                if (dotIsNotIn || atIsNotIn) {
-                  return "Invalid Email Type";
-                }
-                return null;
-              },
-              textAlign: TextAlign.center,
-              decoration: new InputDecoration(
-                icon: Icon(Icons.person),
-                labelText: "Username",
+            Container(
+              width: 185,
+              child: TextFormField(
+                initialValue: _username,
+                validator: (val) {
+                  fieldMustNotBeEmpty(val);
+                  setState(() {
+                    _username = val;
+                  });
+                  bool dotIsNotIn = _username.indexOf(".") == -1;
+                  bool atIsNotIn = _username.indexOf("@") == -1;
+                  if (dotIsNotIn || atIsNotIn) {
+                    return "Invalid Email Type";
+                  }
+                  return null;
+                },
+                textAlign: TextAlign.center,
+                decoration: new InputDecoration(
+                  icon: Icon(Icons.person),
+                  labelText: "Username",
+                ),
               ),
             ),
-            TextFormField(
-              initialValue: _password,
-              validator: (val) {
-                fieldMustNotBeEmpty(val);
-                setState(() {
-                  _password = val;
-                });
-                bool hasLengthLessThan8 = _password.length < 8;
-                if (hasLengthLessThan8) {
-                  return "Password less than 8";
-                }
-                return null;
-              },
-              textAlign: TextAlign.center,
-              obscureText: true,
-              decoration: new InputDecoration(
-                  icon: Icon(Icons.lock), labelText: "Password"),
-            ),
-            RaisedButton(
-                child: Text("Login"),
-                onPressed: () {
-                  //logging into firebase test
-                  if (_loginFormKey.currentState.validate()) {
-                    tryToLogin();
+            Container(
+              width: 185,
+              child: TextFormField(
+                initialValue: _password,
+                validator: (val) {
+                  fieldMustNotBeEmpty(val);
+                  setState(() {
+                    _password = val;
+                  });
+                  bool hasLengthLessThan8 = _password.length < 8;
+                  if (hasLengthLessThan8) {
+                    return "Password less than 8";
                   }
-                }),
+                  return null;
+                },
+                textAlign: TextAlign.center,
+                obscureText: true,
+                decoration: new InputDecoration(
+                    icon: Icon(Icons.lock), labelText: "Password"),
+              ),
+            ),
+            Padding(
+              padding: EdgeInsets.only(top: 25),
+              child: RaisedButton(
+                  child: Text("Login"),
+                  onPressed: () {
+                    //logging into firebase test
+                    if (_loginFormKey.currentState.validate()) {
+                      tryToLogin();
+                    }
+                  }),
+            ),
           ],
         ),
       ),
