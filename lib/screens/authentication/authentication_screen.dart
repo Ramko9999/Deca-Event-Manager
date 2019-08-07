@@ -48,35 +48,61 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
               fit: BoxFit.cover,
             ),
           ),
-          if (_isLoginButtonClicked)
-            new LoginTemplate(),
-          if (_isRegisterButtonClicked)
-            new RegisterTemplate(),
-
-          Center(
-            child: Container(
-              width: 200,
-              child: new RaisedButton(
-                child: Text('LOGIN'),
-                textColor: Colors.white,
-                color: Colors.transparent,
-                onPressed: createNewLoginTemplate,
+          Padding(
+            padding: const EdgeInsets.fromLTRB(0, 245, 0, 0),
+            child: Center(
+              child: Container(
+                width: 200,
+                child: new RaisedButton(
+                  child: Text('Sign In'),
+                  textColor: Colors.white,
+                  color: Colors.transparent,
+                  onPressed: createNewLoginTemplate,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30)),
+                ),
               ),
             ),
           ),
-          Center(
-            child: Container(
-                width: 200,
-                child: new RaisedButton(
-                  child: Text('REGISTER'),
-                  textColor: Colors.white,
-                  color: Colors.transparent,
-                  onPressed: createNewRegisterTemplate,
-                )),
+
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Center(
+              child: Container(
+                  width: 200,
+                  child: new RaisedButton(
+                      child: Text('Sign Up'),
+                      textColor: Colors.white,
+                      color: Colors.transparent,
+                      onPressed: createNewRegisterTemplate,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30)))),
+            ),
           ),
 
           //handles pulling up the login template
         ])),
+        if (_isLoginButtonClicked)
+          Align(
+            alignment: Alignment.center,
+            child: new LoginTemplate(),
+          ),
+        if(_isRegisterButtonClicked)
+          SingleChildScrollView(
+            child: Padding(
+              padding: EdgeInsetsDirectional.only(top: 70),
+              child: Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Container(
+                    child: new RegisterTemplate(),
+                    decoration: new BoxDecoration(
+                        borderRadius: BorderRadius.circular(15),
+                        color:Colors.white),
+                        
+                        
+                  )),
+            ),
+          )
       ],
     ));
   }

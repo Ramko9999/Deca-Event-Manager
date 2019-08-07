@@ -9,7 +9,9 @@ class DynamicProfileUI extends StatelessWidget {
   String _memberLevel;
   List _groups;
 
-  DynamicProfileUI(_uid);
+  DynamicProfileUI(uid){
+    this._uid = uid;
+  }
 
   Widget build(BuildContext context) {
     return StreamBuilder(
@@ -27,7 +29,7 @@ class DynamicProfileUI extends StatelessWidget {
             _lastName = userInfo.data['last_name'] as String;
             _goldPoints = userInfo.data['gold_points'];
             //setting memberLevel based on gold points
-            _memberLevel = "Not a Member";
+            _memberLevel = "N/A";
             if (_goldPoints > 75) {
               _memberLevel = "Member";
             }

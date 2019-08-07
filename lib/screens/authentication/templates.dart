@@ -22,8 +22,9 @@ class _LoginTemplateState extends State<LoginTemplate> {
   String _username = "";
   String _password = "";
   Firestore _fireStore = Firestore.instance; //database connection
-  
-  _LoginTemplateState(){
+
+  _LoginTemplateState() {
+    print('created');
     autoLogin();
   }
 
@@ -33,26 +34,27 @@ class _LoginTemplateState extends State<LoginTemplate> {
     }
   }
 
-  void autoLogin() async{
+  void autoLogin() async {
     final appDirectory = await getApplicationDocumentsDirectory();
 
     //check to see if the file for the json object is there
-    if(await File(appDirectory.path + "/user.json").exists()){
-      Map userInfo = json.decode(await File(appDirectory.path+"/user.json").readAsString());
+    if (await File(appDirectory.path + "/user.json").exists()) {
+      Map userInfo = json
+          .decode(await File(appDirectory.path + "/user.json").readAsString());
       _username = userInfo['username'];
       _password = userInfo['password'];
-      
-      try{
-        AuthResult result = await FirebaseAuth.instance.signInWithEmailAndPassword(email:_username, password: _password);
+
+      try {
+        AuthResult result = await FirebaseAuth.instance
+            .signInWithEmailAndPassword(email: _username, password: _password);
         print("Login Successfull");
 
-        Navigator.of(context).push(MaterialPageRoute(builder: (context) => new ProfileScreen(result.user.uid)));
-      }
-      catch (error){
+        Navigator.of(context).push(MaterialPageRoute(
+            builder: (context) => new ProfileScreen(result.user.uid)));
+      } catch (error) {
         print(error);
       }
-    }
-    else{
+    } else {
       print("File doesn't exist");
     }
   }
@@ -72,21 +74,20 @@ class _LoginTemplateState extends State<LoginTemplate> {
           .collection("Users")
           .where("uid", isEqualTo: userId)
           .snapshots()
-          .listen((onData) => print(onData.documents[0]['first_name']));
+          .listen((onData) => print(onData.documents[0]['last_name']));
 
       final appDirectory = await getApplicationDocumentsDirectory();
-      
+
       //check to see if json file exists
-      if (! await File(appDirectory.path + "/user.json").exists()){
-        
+      if (!await File(appDirectory.path + "/user.json").exists()) {
         //write to json file
-        final userStorageFile =  File(appDirectory.path+"/user.json");
+        final userStorageFile = File(appDirectory.path + "/user.json");
         Map jsonInformation = {'username': _username, 'password': _password};
         userStorageFile.writeAsString(json.encode(jsonInformation));
         print("Set the userInfo in local storage");
-
       }
-      
+
+      print(userId);
       //changes screen to profile screen
       Navigator.push(context,
           MaterialPageRoute(builder: (context) => new ProfileScreen(userId)));
@@ -96,63 +97,64 @@ class _LoginTemplateState extends State<LoginTemplate> {
   }
 
   Widget build(BuildContext context) {
-    return Form(
-      key: _loginFormKey,
-      child: Column(
-        children: <Widget>[
-          TextFormField(
-            initialValue: _username,
-            validator: (val) {
-              fieldMustNotBeEmpty(val);
-              setState(() {
-                _username = val;
-              });
-              bool dotIsNotIn = _username.indexOf(".") == -1;
-              bool atIsNotIn = _username.indexOf("@") == -1;
-              if (dotIsNotIn || atIsNotIn) {
-                return "Invalid Email Type";
-              }
-              return null;
-            },
-            textAlign: TextAlign.center,
-            decoration: new InputDecoration(
-              icon: Icon(Icons.person),
-              labelText: "Username",
-            ),
-          ),
-          TextFormField(
-            initialValue: _password,
-            validator: (val) {
-              fieldMustNotBeEmpty(val);
-              setState(() {
-                _password = val;
-              });
-              bool hasLengthLessThan8 = _password.length < 8;
-              if (hasLengthLessThan8) {
-                return "Password less than 8";
-              }
-              return null;
-            },
-            textAlign: TextAlign.center,
-            obscureText: true,
-            decoration: new InputDecoration(
-                icon: Icon(Icons.lock), labelText: "Password"),
-          ),
-          RaisedButton(
-              child: Text("Login"),
-              onPressed: () {
-                //logging into firebase test
-                if (_loginFormKey.currentState.validate()) {
-                  tryToLogin();
+    return Container(
+      width: 250,
+      child: Form(
+        key: _loginFormKey,
+        child: Column(
+          children: <Widget>[
+            TextFormField(
+              initialValue: _username,
+              validator: (val) {
+                fieldMustNotBeEmpty(val);
+                setState(() {
+                  _username = val;
+                });
+                bool dotIsNotIn = _username.indexOf(".") == -1;
+                bool atIsNotIn = _username.indexOf("@") == -1;
+                if (dotIsNotIn || atIsNotIn) {
+                  return "Invalid Email Type";
                 }
-              }),
-        ],
+                return null;
+              },
+              textAlign: TextAlign.center,
+              decoration: new InputDecoration(
+                icon: Icon(Icons.person),
+                labelText: "Username",
+              ),
+            ),
+            TextFormField(
+              initialValue: _password,
+              validator: (val) {
+                fieldMustNotBeEmpty(val);
+                setState(() {
+                  _password = val;
+                });
+                bool hasLengthLessThan8 = _password.length < 8;
+                if (hasLengthLessThan8) {
+                  return "Password less than 8";
+                }
+                return null;
+              },
+              textAlign: TextAlign.center,
+              obscureText: true,
+              decoration: new InputDecoration(
+                  icon: Icon(Icons.lock), labelText: "Password"),
+            ),
+            RaisedButton(
+                child: Text("Login"),
+                onPressed: () {
+                  //logging into firebase test
+                  if (_loginFormKey.currentState.validate()) {
+                    tryToLogin();
+                  }
+                }),
+          ],
+        ),
       ),
     );
   }
 }
-
-
 
 //Register Template Class
 class RegisterTemplate extends StatefulWidget {
@@ -190,7 +192,6 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
           "groups": ['none'],
           "uid": userId
         });
-       
 
         print("Succesfully registered user");
       } catch (error, stackTrace) {
@@ -208,67 +209,93 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
 
   Widget build(BuildContext context) {
     return Container(
+      width: 250,
       child: new Form(
           key: _registrationFormKey,
           child: Column(
             children: <Widget>[
-              TextFormField(
-                textAlign: TextAlign.center,
-                decoration: InputDecoration(labelText: "First Name"),
-                validator: (val) {
-                  fieldMustNotBeEmpty(val);
-                  setState(() => _firstName = val);
-                  return null;
-                },
-              ),
-              TextFormField(
-                textAlign: TextAlign.center,
-                decoration: new InputDecoration(labelText: 'Last Name'),
-                validator: (val) {
-                  fieldMustNotBeEmpty(val);
-                  setState(() => _lastName = val);
-                  return null;
-                },
-              ),
-              TextFormField(
-                validator: (val) {
-                  fieldMustNotBeEmpty(val);
-                  setState(() {
-                    _username = val;
-                  });
-                  bool dotIsNotIn = _username.indexOf(".") == -1;
-                  bool atIsNotIn = _username.indexOf("@") == -1;
-                  if (dotIsNotIn || atIsNotIn) {
-                    return "Invalid Email Type";
-                  }
-                  return null;
-                },
-                textAlign: TextAlign.center,
-                decoration: new InputDecoration(
-                  icon: Icon(Icons.person),
-                  labelText: "Username",
+              Container(
+                width: 185,
+                child: TextFormField(
+                  textAlign: TextAlign.center,
+                  decoration: InputDecoration(labelText: "First Name"),
+                  validator: (val) {
+                    fieldMustNotBeEmpty(val);
+                    setState(() => _firstName = val);
+                    return null;
+                  },
                 ),
               ),
-              TextFormField(
-                validator: (val) {
-                  fieldMustNotBeEmpty(val);
-                  setState(() {
-                    _password = val;
-                  });
-                  bool hasLengthLessThan8 = _password.length < 8;
-                  if (hasLengthLessThan8) {
-                    return "Password less than 8";
-                  }
-                  return null;
-                },
-                textAlign: TextAlign.center,
-                obscureText: true,
-                decoration: new InputDecoration(
-                    icon: Icon(Icons.lock), labelText: "Password"),
+              Container(
+                width: 185,
+                child: TextFormField(
+                  textAlign: TextAlign.center,
+                  decoration: new InputDecoration(labelText: 'Last Name'),
+                  validator: (val) {
+                    fieldMustNotBeEmpty(val);
+                    setState(() => _lastName = val);
+                    return null;
+                  },
+                ),
               ),
-              RaisedButton(
-                child: Text("REGISTER"),
-                onPressed: tryToRegister,
+              Container(
+                width: 185,
+                child: TextFormField(
+                  validator: (val) {
+                    fieldMustNotBeEmpty(val);
+                    setState(() {
+                      _username = val;
+                    });
+                    bool dotIsNotIn = _username.indexOf(".") == -1;
+                    bool atIsNotIn = _username.indexOf("@") == -1;
+                    if (dotIsNotIn || atIsNotIn) {
+                      return "Invalid Email Type";
+                    }
+                    return null;
+                  },
+                  textAlign: TextAlign.center,
+                  decoration: new InputDecoration(
+                    icon: Icon(Icons.person),
+                    labelText: "Username",
+                  ),
+                ),
+              ),
+              Container(
+                width: 185,
+                child: TextFormField(
+                  validator: (val) {
+                    fieldMustNotBeEmpty(val);
+                    setState(() {
+                      _password = val;
+                    });
+                    bool hasLengthLessThan8 = _password.length < 8;
+                    if (hasLengthLessThan8) {
+                      return "Password less than 8";
+                    }
+                    return null;
+                  },
+                  textAlign: TextAlign.center,
+                  obscureText: true,
+                  decoration: new InputDecoration(
+                      icon: Icon(Icons.lock), labelText: "Password"),
+                ),
+              ),
+              Padding(
+                padding: new EdgeInsets.only(top: 25),
+                child: RaisedButton(
+                  textColor: Colors.white,
+                  child: Container(
+                    child: Text("Register"),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Colors.blue, Colors.green]
+                      ),
+                      
+                    ),
+                  ),
+                  onPressed: tryToRegister,
+                  
+                ),
               )
             ],
           )),

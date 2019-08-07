@@ -5,7 +5,10 @@ import 'package:flutter_first_app/screens/profile/templates.dart';
 class ProfileScreen extends StatefulWidget {
   String _uid;
 
-  ProfileScreen(_uid);
+  ProfileScreen(uid){
+    this._uid = uid;
+    print(this._uid);
+  }
 
   @override
   State<ProfileScreen> createState() {
@@ -24,6 +27,7 @@ class ProfileScreenState extends State<ProfileScreen> {
 
   ProfileScreenState(String uid) {
     this._uid = uid;
+    print(this._uid);
   }
 
   Widget build(BuildContext context) {
