@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_first_app/utility/navigation_drawer.dart';
 import 'package:flutter_first_app/screens/profile/templates.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -29,33 +29,7 @@ class ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: new DynamicProfileUI(_uid),
-      drawer: Container(
-          width: MediaQuery.of(context).size.width * 0.6,
-          child: Drawer(
-            child: ListView(
-              children: <Widget>[
-                FlatButton(
-                    child: Text("QR Code"),
-                    onPressed: () async => Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => null))),
-                FlatButton(
-                  child: Text("Chats"),
-                  onPressed: () async => Navigator.push(
-                      context, MaterialPageRoute(builder: (context) => null)),
-                ),
-                FlatButton(
-                    child: Text("Notifications"),
-                    onPressed: () async => Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => null))),
-                FlatButton(
-                    child: Text("Home"),
-                    onPressed: () async => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => new ProfileScreen(_uid))))
-              ],
-            ),
-          )),
+      drawer: new NavigationDrawer(_uid),
       appBar: new AppBar(
         title: Text("View Profile"),
       ),

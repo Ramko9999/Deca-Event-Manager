@@ -3,6 +3,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_first_app/screens/profile/profile_screen.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
+import 'dart:convert';
 
 //login template
 class LoginTemplate extends StatefulWidget {
@@ -16,14 +19,41 @@ class LoginTemplate extends StatefulWidget {
 
 class _LoginTemplateState extends State<LoginTemplate> {
   final _loginFormKey = GlobalKey<FormState>();
-  String _username;
-  String _password;
+  String _username = "";
+  String _password = "";
   Firestore _fireStore = Firestore.instance; //database connection
-  _LoginTemplateState();
+  
+  _LoginTemplateState(){
+    autoLogin();
+  }
 
   String fieldMustNotBeEmpty(val) {
     if (val == "") {
       return "Field is empty";
+    }
+  }
+
+  void autoLogin() async{
+    final appDirectory = await getApplicationDocumentsDirectory();
+
+    //check to see if the file for the json object is there
+    if(await File(appDirectory.path + "/user.json").exists()){
+      Map userInfo = json.decode(await File(appDirectory.path+"/user.json").readAsString());
+      _username = userInfo['username'];
+      _password = userInfo['password'];
+      
+      try{
+        AuthResult result = await FirebaseAuth.instance.signInWithEmailAndPassword(email:_username, password: _password);
+        print("Login Successfull");
+
+        Navigator.of(context).push(MaterialPageRoute(builder: (context) => new ProfileScreen(result.user.uid)));
+      }
+      catch (error){
+        print(error);
+      }
+    }
+    else{
+      print("File doesn't exist");
     }
   }
 
@@ -44,6 +74,19 @@ class _LoginTemplateState extends State<LoginTemplate> {
           .snapshots()
           .listen((onData) => print(onData.documents[0]['first_name']));
 
+      final appDirectory = await getApplicationDocumentsDirectory();
+      
+      //check to see if json file exists
+      if (! await File(appDirectory.path + "/user.json").exists()){
+        
+        //write to json file
+        final userStorageFile =  File(appDirectory.path+"/user.json");
+        Map jsonInformation = {'username': _username, 'password': _password};
+        userStorageFile.writeAsString(json.encode(jsonInformation));
+        print("Set the userInfo in local storage");
+
+      }
+      
       //changes screen to profile screen
       Navigator.push(context,
           MaterialPageRoute(builder: (context) => new ProfileScreen(userId)));
@@ -58,6 +101,7 @@ class _LoginTemplateState extends State<LoginTemplate> {
       child: Column(
         children: <Widget>[
           TextFormField(
+            initialValue: _username,
             validator: (val) {
               fieldMustNotBeEmpty(val);
               setState(() {
@@ -77,6 +121,7 @@ class _LoginTemplateState extends State<LoginTemplate> {
             ),
           ),
           TextFormField(
+            initialValue: _password,
             validator: (val) {
               fieldMustNotBeEmpty(val);
               setState(() {
@@ -106,6 +151,8 @@ class _LoginTemplateState extends State<LoginTemplate> {
     );
   }
 }
+
+
 
 //Register Template Class
 class RegisterTemplate extends StatefulWidget {
@@ -143,6 +190,7 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
           "groups": ['none'],
           "uid": userId
         });
+       
 
         print("Succesfully registered user");
       } catch (error, stackTrace) {

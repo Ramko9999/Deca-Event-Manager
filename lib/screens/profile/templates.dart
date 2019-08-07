@@ -23,11 +23,9 @@ class DynamicProfileUI extends StatelessWidget {
           if (snapshot.hasData) {
             //grab the data and populate the fields as such
             DocumentSnapshot userInfo = snapshot.data.documents[0];
-            print(userInfo.data);
             _firstName = userInfo.data['first_name'] as String;
             _lastName = userInfo.data['last_name'] as String;
             _goldPoints = userInfo.data['gold_points'];
-            print(_goldPoints);
             //setting memberLevel based on gold points
             _memberLevel = "Not a Member";
             if (_goldPoints > 75) {
