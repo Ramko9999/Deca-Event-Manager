@@ -82,63 +82,57 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
 
           //handles pulling up the login template
         ])),
-        
         if (_isLoginButtonClicked)
-          Stack(
-                children: [
-                  GestureDetector(
-                    child:Container(color:Colors.black45),
-                    onTap: (){
-                      setState(() {
-                        _isLoginButtonClicked = false;
-                      });
-                    },
-                  )
-                  ,
-                  SingleChildScrollView(
-                child: Padding(
-                  padding: new EdgeInsets.only(top:100, bottom: 75),
-                  child: Align(
+          Stack(children: [
+            GestureDetector(
+              child: Container(color: Colors.black45),
+              onTap: () {
+                setState(() {
+                  _isLoginButtonClicked = false;
+                });
+              },
+            ),
+            SingleChildScrollView(
+              child: Padding(
+                padding: new EdgeInsets.only(top: 100, bottom: 75),
+                child: Align(
                   alignment: Alignment.bottomCenter,
                   child: Container(
                     child: new LoginTemplate(),
-                    decoration:new BoxDecoration(
-                      borderRadius: BorderRadius.circular(15),
-                      color: Colors.white
-                    ) ,),
+                    decoration: new BoxDecoration(
+                        borderRadius: BorderRadius.circular(15),
+                        color: Colors.white),
+                  ),
                 ),
               ),
             ),
-                ]),
-        if(_isRegisterButtonClicked)
-          
-          Stack(children: <Widget>[
-            GestureDetector(
-              child:Container(color: Colors.black45),
-              onTap: (){
-                setState((){
-                  _isRegisterButtonClicked = false;
-                });
-              },
-            )
-            ,
-            SingleChildScrollView(
-            child: Padding(
-              padding: EdgeInsetsDirectional.only(top: 70),
-              child: Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Container(
-                    child: new RegisterTemplate(),
-                    decoration: new BoxDecoration(
-                        borderRadius: BorderRadius.circular(15),
-                        color:Colors.white),
-                        
-                        
-                  )),
-            ),
+          ]),
+        if (_isRegisterButtonClicked)
+          Stack(
+            children: <Widget>[
+              GestureDetector(
+                child: Container(color: Colors.black45),
+                onTap: () {
+                  setState(() {
+                    _isRegisterButtonClicked = false;
+                  });
+                },
+              ),
+              SingleChildScrollView(
+                child: Padding(
+                  padding: EdgeInsetsDirectional.only(top: 70),
+                  child: Align(
+                      alignment: Alignment.bottomCenter,
+                      child: Container(
+                        child: new RegisterTemplate(),
+                        decoration: new BoxDecoration(
+                            borderRadius: BorderRadius.circular(15),
+                            color: Colors.white),
+                      )),
+                ),
+              )
+            ],
           )
-          ],)
-         
       ],
     ));
   }

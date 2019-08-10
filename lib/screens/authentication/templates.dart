@@ -23,6 +23,7 @@ class _LoginTemplateState extends State<LoginTemplate> {
   TextEditingController _password = new TextEditingController();
   Firestore _fireStore = Firestore.instance; //database connection
   bool _desiresAutoLogin = false;
+  bool _isLogginIn = false;
 
   _LoginTemplateState() {
     autoLogin();
@@ -43,12 +44,12 @@ class _LoginTemplateState extends State<LoginTemplate> {
       print("UserInfo from Json FIle");
       setState(() {
         _desiresAutoLogin = userInfo['auto'];
-        if(_desiresAutoLogin){
-        _username.text = userInfo['username'];
-        _password.text = userInfo['password'];
+        if (_desiresAutoLogin) {
+          _username.text = userInfo['username'];
+          _password.text = userInfo['password'];
         }
       });
-    /*
+      /*
       if(_desiresAutoLogin){
         try {
         AuthResult result = await FirebaseAuth.instance
@@ -64,17 +65,20 @@ class _LoginTemplateState extends State<LoginTemplate> {
       print("Not auto loggin");
     }
     */
-      }
-
-      
+    }
   }
 
   //grabs login information from cloud firestore
   void tryToLogin() async {
     try {
+      setState(() {
+        _isLogginIn = true;
+      });
+     
       //grabbing the information from firebase auth
       AuthResult authResult = await FirebaseAuth.instance
-          .signInWithEmailAndPassword(email: _username.text, password: _password.text);
+          .signInWithEmailAndPassword(
+              email: _username.text, password: _password.text);
 
       String userId =
           authResult.user.uid; //used to query for the user data in firestore
@@ -88,9 +92,13 @@ class _LoginTemplateState extends State<LoginTemplate> {
 
       final appDirectory = await getApplicationDocumentsDirectory();
 
-        //write to json file
+      //write to json file
       final userStorageFile = File(appDirectory.path + "/user.json");
-      Map jsonInformation = {'auto':_desiresAutoLogin, 'username': _username.text, 'password': _password.text};
+      Map jsonInformation = {
+        'auto': _desiresAutoLogin,
+        'username': _username.text,
+        'password': _password.text
+      };
       userStorageFile.writeAsStringSync(json.encode(jsonInformation));
       //changes screen to profile screen
       Navigator.push(context,
@@ -101,94 +109,127 @@ class _LoginTemplateState extends State<LoginTemplate> {
   }
 
   Widget build(BuildContext context) {
-    return Container(
-      width: 250,
-      child: Column(
-        children: <Widget>[
-          Container(child: Text("Login", style: new TextStyle(fontFamily: 'Lato', fontSize: 24,  ),),),
-          Form(
-            key: _loginFormKey,
-            child: Column(
-              children: <Widget>[
-                Padding(
-                    padding: EdgeInsets.only(top: 15),
-                    child: Container(
-                    width: 225,
+    return Stack(
+      children: <Widget>[
+        Container(
+          width: 250,
+          child: Column(
+            children: <Widget>[
+              Padding(
+                padding: const EdgeInsets.only(top: 15.0),
+                child: Container(
+                  child: Text(
+                    "Login",
+                    style: new TextStyle(
+                      fontFamily: 'Lato',
+                      fontSize: 32,
+                    ),
+                  ),
+                ),
+              ),
+              Form(
+                key: _loginFormKey,
+                child: Column(
+                  children: <Widget>[
+                    Padding(
+                      padding: EdgeInsets.only(top: 15),
+                      child: Container(
+                        width: 225,
+                        //make this a TextField if using controller
+                        child: TextFormField(
+                          controller: _username,
+                          style: TextStyle(fontFamily: 'Lato'),
+                          validator: (val) {
+                            if (val != "") {
+                              setState(() {
+                                _username.text = val;
+                              });
+                            }
 
-                    //make this a TextField if using controller
-                    child: TextFormField(
-                      controller: _username,
-                      style: TextStyle(fontFamily: 'Lato'),
-                      validator: (val) {
-                        if(val != ""){
-                          setState(() {
-                            print(val);
-                          _username.text = val;
-                        });
-                        }
-                        
-                        bool dotIsNotIn = _username.text.indexOf(".") == -1;
-                        bool atIsNotIn = _username.text.indexOf("@") == -1;
-                        if (dotIsNotIn || atIsNotIn) {
-                          return "Invalid Email Type";
-                        }
-                        return null;
-                      },
-                      textAlign: TextAlign.center,
-                      decoration: new InputDecoration(
-                        icon: Icon(Icons.person),
-                        labelText: "Username",
+                            bool dotIsNotIn = _username.text.indexOf(".") == -1;
+                            bool atIsNotIn = _username.text.indexOf("@") == -1;
+                            if (dotIsNotIn || atIsNotIn) {
+                              return "Invalid Email Type";
+                            }
+                            return null;
+                          },
+                          textAlign: TextAlign.center,
+                          decoration: new InputDecoration(
+                            icon: Icon(Icons.mail),
+                            labelText: "Username",
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ),
-                Container(
-                  width: 225,
-                  //make this a TextField if using controller
-                  child: TextFormField(
-                    controller: _password,
-                    style: TextStyle(fontFamily: 'Lato'),
-                    validator: (val) {
-                      fieldMustNotBeEmpty(val);
-                      setState(() {
-                        _password.text = val;
-                      });
-                      bool hasLengthLessThan8 = _password.text.length < 8;
-                      if (hasLengthLessThan8) {
-                        return "Password less than 8";
-                      }
-                      return null;
-                    },
-                    textAlign: TextAlign.center,
-                    obscureText: true,
-                    decoration: new InputDecoration(
-                        icon: Icon(Icons.lock), labelText: "Password"),
-                  ),
-                ),
-                
-                Container(
-                  child: FlatButton(
-
-                    child: !_desiresAutoLogin ? Text("Enable Auto-Login", style: TextStyle(fontFamily: 'Lato', color: Colors.blue)) : Text("Disable Auto-Login", style: TextStyle(fontFamily: 'Lato', color: Colors.red)),
-                    onPressed: ()=> setState(() => _desiresAutoLogin = ! _desiresAutoLogin), 
+                    Container(
+                      width: 225,
+                      //make this a TextField if using controller
+                      child: TextFormField(
+                        controller: _password,
+                        style: TextStyle(fontFamily: 'Lato'),
+                        validator: (val) {
+                          fieldMustNotBeEmpty(val);
+                          setState(() {
+                            _password.text = val;
+                          });
+                          bool hasLengthLessThan8 = _password.text.length < 8;
+                          if (hasLengthLessThan8) {
+                            return "Password less than 8";
+                          }
+                          return null;
+                        },
+                        textAlign: TextAlign.center,
+                        obscureText: true,
+                        decoration: new InputDecoration(
+                            icon: Icon(Icons.lock), labelText: "Password"),
+                      ),
                     ),
+                    Container(
+                      child: FlatButton(
+                        child: !_desiresAutoLogin
+                            ? Text("Enable Auto-Login",
+                                style: TextStyle(
+                                    fontFamily: 'Lato', color: Colors.blue))
+                            : Text("Disable Auto-Login",
+                                style: TextStyle(
+                                    fontFamily: 'Lato', color: Colors.red)),
+                        onPressed: () =>
+                            setState(() => _desiresAutoLogin = !_desiresAutoLogin),
+                      ),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.only(top: 25),
+                      child: RaisedButton(
+                          child:
+                              Text("Login", style: TextStyle(fontFamily: 'Lato')),
+                          color: Colors.blue,
+                          textColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8)),
+                          onPressed: () {
+                            //logging into firebase test
+                            if (_loginFormKey.currentState.validate()) {
+                              tryToLogin();
+                            }
+                          }),
+                    ),
+                  ],
                 ),
-                Padding(
-                  padding: EdgeInsets.only(top: 25),
-                  child: RaisedButton(
-                      child: Text("Login"),
-                      onPressed: () {
-                        //logging into firebase test
-                        if (_loginFormKey.currentState.validate()) {
-                          tryToLogin();
-                        }
-                      }),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+      if (_isLogginIn)
+            Container(
+              width: 250,
+              alignment: Alignment.bottomCenter,
+              child: Padding(
+                padding: const EdgeInsets.only(top:120),
+                child: CircularProgressIndicator(),
+              )
+            ),
+      
+      ],
     );
   }
 }
@@ -206,12 +247,17 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
   String _lastName;
   String _username;
   String _password;
+  bool _isTryingToRegister = false;
   final _registrationFormKey = GlobalKey<FormState>();
 
   //handles registration of user
   void tryToRegister() async {
     if (_registrationFormKey.currentState.validate()) {
       try {
+
+        setState(() {
+         _isTryingToRegister = true; 
+        });
         //creating a new user in Firebase Auth
         AuthResult result = await FirebaseAuth.instance
             .createUserWithEmailAndPassword(
@@ -231,6 +277,10 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
         });
 
         print("Succesfully registered user");
+
+        setState(() {
+          _isTryingToRegister = false;
+        });
       } catch (error, stackTrace) {
         print(error);
       }
@@ -245,97 +295,136 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
   }
 
   Widget build(BuildContext context) {
-    return Container(
-      width: 250,
-      child: new Form(
-          key: _registrationFormKey,
+    return Stack(
+      children: <Widget>[
+        Container(
+          width: 250,
           child: Column(
             children: <Widget>[
-              Container(
-                width: 185,
-                child: TextFormField(
-                  textAlign: TextAlign.center,
-                  decoration: InputDecoration(labelText: "First Name"),
-                  validator: (val) {
-                    fieldMustNotBeEmpty(val);
-                    setState(() => _firstName = val);
-                    return null;
-                  },
-                ),
-              ),
-              Container(
-                width: 185,
-                child: TextFormField(
-                  textAlign: TextAlign.center,
-                  decoration: new InputDecoration(labelText: 'Last Name'),
-                  validator: (val) {
-                    fieldMustNotBeEmpty(val);
-                    setState(() => _lastName = val);
-                    return null;
-                  },
-                ),
-              ),
-              Container(
-                width: 185,
-                child: TextFormField(
-                  validator: (val) {
-                    fieldMustNotBeEmpty(val);
-                    setState(() {
-                      _username = val;
-                    });
-                    bool dotIsNotIn = _username.indexOf(".") == -1;
-                    bool atIsNotIn = _username.indexOf("@") == -1;
-                    if (dotIsNotIn || atIsNotIn) {
-                      return "Invalid Email Type";
-                    }
-                    return null;
-                  },
-                  textAlign: TextAlign.center,
-                  decoration: new InputDecoration(
-                    icon: Icon(Icons.person),
-                    labelText: "Username",
-                  ),
-                ),
-              ),
-              Container(
-                width: 185,
-                child: TextFormField(
-                  validator: (val) {
-                    fieldMustNotBeEmpty(val);
-                    setState(() {
-                      _password = val;
-                    });
-                    bool hasLengthLessThan8 = _password.length < 8;
-                    if (hasLengthLessThan8) {
-                      return "Password less than 8";
-                    }
-                    return null;
-                  },
-                  textAlign: TextAlign.center,
-                  obscureText: true,
-                  decoration: new InputDecoration(
-                      icon: Icon(Icons.lock), labelText: "Password"),
-                ),
-              ),
               Padding(
-                padding: new EdgeInsets.only(top: 25),
-                child: RaisedButton(
-                  textColor: Colors.white,
-                  child: Container(
-                    child: Text("Register"),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [Colors.blue, Colors.green]
-                      ),
-                      
-                    ),
+                padding: const EdgeInsets.only(top: 15),
+                child: Container(
+                  child: Text("Register", style:TextStyle(fontFamily: 'Lato', fontSize: 32))          
                   ),
-                  onPressed: tryToRegister,
-                  
-                ),
-              )
+              ),
+              new Form(
+                  key: _registrationFormKey,
+                  child: Column(
+                    children: <Widget>[
+                      Padding(
+                        padding: const EdgeInsets.only(top:15),
+                        child: Container(
+                          width: 185,
+                          child: TextFormField(
+                            style: new TextStyle(
+                              fontFamily: 'Lato'
+                            ),
+                            textAlign: TextAlign.center,
+                            decoration: InputDecoration(labelText: "First Name"),
+                            validator: (val) {
+                              fieldMustNotBeEmpty(val);
+                              setState(() => _firstName = val);
+                              return null;
+                            },
+                          ),
+                        ),
+                      ),
+                      Container(
+                        width: 185,
+                        child: TextFormField(
+                          style: new TextStyle(
+                            fontFamily: 'Lato'
+                          ),
+                          textAlign: TextAlign.center,
+                          decoration: new InputDecoration(labelText: 'Last Name'),
+                          validator: (val) {
+                            fieldMustNotBeEmpty(val);
+                            setState(() => _lastName = val);
+                            return null;
+                          },
+                        ),
+                      ),
+                      Container(
+                        width: 185,
+                        child: TextFormField(
+                          style: new TextStyle(
+                            fontFamily: 'Lato'
+                          ),
+                          validator: (val) {
+                            fieldMustNotBeEmpty(val);
+                            setState(() {
+                              _username = val;
+                            });
+                            bool dotIsNotIn = _username.indexOf(".") == -1;
+                            bool atIsNotIn = _username.indexOf("@") == -1;
+                            if (dotIsNotIn || atIsNotIn) {
+                              return "Invalid Email Type";
+                            }
+                            return null;
+                          },
+                          textAlign: TextAlign.center,
+                          decoration: new InputDecoration(
+                            icon: Icon(Icons.mail),
+                            labelText: "Username",
+                          ),
+                        ),
+                      ),
+                      Container(
+                        width: 185,
+                        child: TextFormField(
+                          style: new TextStyle(
+                            fontFamily: 'Lato'
+                          ),
+                          validator: (val) {
+                            fieldMustNotBeEmpty(val);
+                            setState(() {
+                              _password = val;
+                            });
+                            bool hasLengthLessThan8 = _password.length < 8;
+                            if (hasLengthLessThan8) {
+                              return "Password less than 8";
+                            }
+                            return null;
+                          },
+                          textAlign: TextAlign.center,
+                          obscureText: true,
+                          decoration: new InputDecoration(
+                              icon: Icon(Icons.lock), labelText: "Password"),
+                        ),
+                      ),
+                      Padding(
+                        padding: new EdgeInsets.only(top: 25),
+                        child: RaisedButton(
+                          textColor: Colors.white,
+                          color: Colors.blue,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8)
+                          ),
+                          child: Container(
+                            child: Text("Register", 
+                            style: new TextStyle(
+                            fontFamily: 'Lato'
+                          ),),
+                            
+                          ),
+                          onPressed: tryToRegister,
+                        ),
+                      )
+                    ],
+                  )),
             ],
-          )),
+          ),
+        ),
+      if(_isTryingToRegister)
+        Container(
+          alignment: Alignment.bottomCenter,
+          child:CircularProgressIndicator(
+
+          )
+        )
+      
+      
+      ],
     );
   }
 }

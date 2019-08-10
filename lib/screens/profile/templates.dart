@@ -9,7 +9,7 @@ class DynamicProfileUI extends StatelessWidget {
   String _memberLevel;
   List _groups;
 
-  DynamicProfileUI(uid){
+  DynamicProfileUI(uid) {
     this._uid = uid;
   }
 

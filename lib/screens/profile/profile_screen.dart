@@ -6,7 +6,7 @@ import 'package:flutter_first_app/screens/profile/templates.dart';
 class ProfileScreen extends StatefulWidget {
   String _uid;
 
-  ProfileScreen(uid){
+  ProfileScreen(uid) {
     this._uid = uid;
     print(this._uid);
   }
@@ -37,12 +37,13 @@ class ProfileScreenState extends State<ProfileScreen> {
       drawer: new NavigationDrawer(_uid),
       appBar: new AppBar(
         title: Text("View Profile"),
-        actions: <Widget>[IconButton(
-          icon: Icon(Icons.settings),
-          onPressed: ()=> Navigator.push(
-                      context, MaterialPageRoute(builder: (context) => new SettingScreen())),
-        )],
-        
+        actions: <Widget>[
+          IconButton(
+            icon: Icon(Icons.settings),
+            onPressed: () => Navigator.push(context,
+                MaterialPageRoute(builder: (context) => new SettingScreen())),
+          )
+        ],
       ),
     );
   }
