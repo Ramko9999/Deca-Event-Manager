@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_first_app/screens/settings/setting_screen.dart';
 import 'package:flutter_first_app/utility/navigation_drawer.dart';
 import 'package:flutter_first_app/screens/profile/templates.dart';
 
@@ -36,6 +37,12 @@ class ProfileScreenState extends State<ProfileScreen> {
       drawer: new NavigationDrawer(_uid),
       appBar: new AppBar(
         title: Text("View Profile"),
+        actions: <Widget>[IconButton(
+          icon: Icon(Icons.settings),
+          onPressed: ()=> Navigator.push(
+                      context, MaterialPageRoute(builder: (context) => new SettingScreen())),
+        )],
+        
       ),
     );
   }

@@ -19,13 +19,13 @@ class LoginTemplate extends StatefulWidget {
 
 class _LoginTemplateState extends State<LoginTemplate> {
   final _loginFormKey = GlobalKey<FormState>();
-  String _username = "";
-  String _password = "";
+  TextEditingController _username = new TextEditingController();
+  TextEditingController _password = new TextEditingController();
   Firestore _fireStore = Firestore.instance; //database connection
+  bool _desiresAutoLogin = false;
 
   _LoginTemplateState() {
-    print('created');
-    //autoLogin();
+    autoLogin();
   }
 
   String fieldMustNotBeEmpty(val) {
@@ -36,15 +36,21 @@ class _LoginTemplateState extends State<LoginTemplate> {
 
   void autoLogin() async {
     final appDirectory = await getApplicationDocumentsDirectory();
-
     //check to see if the file for the json object is there
     if (await File(appDirectory.path + "/user.json").exists()) {
       Map userInfo = json
           .decode(await File(appDirectory.path + "/user.json").readAsString());
-      _username = userInfo['username'];
-      _password = userInfo['password'];
-
-      try {
+      print("UserInfo from Json FIle");
+      setState(() {
+        _desiresAutoLogin = userInfo['auto'];
+        if(_desiresAutoLogin){
+        _username.text = userInfo['username'];
+        _password.text = userInfo['password'];
+        }
+      });
+    /*
+      if(_desiresAutoLogin){
+        try {
         AuthResult result = await FirebaseAuth.instance
             .signInWithEmailAndPassword(email: _username, password: _password);
         print("Login Successfull");
@@ -55,8 +61,12 @@ class _LoginTemplateState extends State<LoginTemplate> {
         print(error);
       }
     } else {
-      print("File doesn't exist");
+      print("Not auto loggin");
     }
+    */
+      }
+
+      
   }
 
   //grabs login information from cloud firestore
@@ -64,7 +74,7 @@ class _LoginTemplateState extends State<LoginTemplate> {
     try {
       //grabbing the information from firebase auth
       AuthResult authResult = await FirebaseAuth.instance
-          .signInWithEmailAndPassword(email: _username, password: _password);
+          .signInWithEmailAndPassword(email: _username.text, password: _password.text);
 
       String userId =
           authResult.user.uid; //used to query for the user data in firestore
@@ -78,16 +88,10 @@ class _LoginTemplateState extends State<LoginTemplate> {
 
       final appDirectory = await getApplicationDocumentsDirectory();
 
-      //check to see if json file exists
-      if (!await File(appDirectory.path + "/user.json").exists()) {
         //write to json file
-        final userStorageFile = File(appDirectory.path + "/user.json");
-        Map jsonInformation = {'username': _username, 'password': _password};
-        userStorageFile.writeAsString(json.encode(jsonInformation));
-        print("Set the userInfo in local storage");
-      }
-
-      print(userId);
+      final userStorageFile = File(appDirectory.path + "/user.json");
+      Map jsonInformation = {'auto':_desiresAutoLogin, 'username': _username.text, 'password': _password.text};
+      userStorageFile.writeAsStringSync(json.encode(jsonInformation));
       //changes screen to profile screen
       Navigator.push(context,
           MaterialPageRoute(builder: (context) => new ProfileScreen(userId)));
@@ -99,67 +103,91 @@ class _LoginTemplateState extends State<LoginTemplate> {
   Widget build(BuildContext context) {
     return Container(
       width: 250,
-      child: Form(
-        key: _loginFormKey,
-        child: Column(
-          children: <Widget>[
-            Container(
-              width: 185,
-              child: TextFormField(
-                initialValue: _username,
-                validator: (val) {
-                  fieldMustNotBeEmpty(val);
-                  setState(() {
-                    _username = val;
-                  });
-                  bool dotIsNotIn = _username.indexOf(".") == -1;
-                  bool atIsNotIn = _username.indexOf("@") == -1;
-                  if (dotIsNotIn || atIsNotIn) {
-                    return "Invalid Email Type";
-                  }
-                  return null;
-                },
-                textAlign: TextAlign.center,
-                decoration: new InputDecoration(
-                  icon: Icon(Icons.person),
-                  labelText: "Username",
+      child: Column(
+        children: <Widget>[
+          Container(child: Text("Login", style: new TextStyle(fontFamily: 'Lato', fontSize: 24,  ),),),
+          Form(
+            key: _loginFormKey,
+            child: Column(
+              children: <Widget>[
+                Padding(
+                    padding: EdgeInsets.only(top: 15),
+                    child: Container(
+                    width: 225,
+
+                    //make this a TextField if using controller
+                    child: TextFormField(
+                      controller: _username,
+                      style: TextStyle(fontFamily: 'Lato'),
+                      validator: (val) {
+                        if(val != ""){
+                          setState(() {
+                            print(val);
+                          _username.text = val;
+                        });
+                        }
+                        
+                        bool dotIsNotIn = _username.text.indexOf(".") == -1;
+                        bool atIsNotIn = _username.text.indexOf("@") == -1;
+                        if (dotIsNotIn || atIsNotIn) {
+                          return "Invalid Email Type";
+                        }
+                        return null;
+                      },
+                      textAlign: TextAlign.center,
+                      decoration: new InputDecoration(
+                        icon: Icon(Icons.person),
+                        labelText: "Username",
+                      ),
+                    ),
+                  ),
                 ),
-              ),
+                Container(
+                  width: 225,
+                  //make this a TextField if using controller
+                  child: TextFormField(
+                    controller: _password,
+                    style: TextStyle(fontFamily: 'Lato'),
+                    validator: (val) {
+                      fieldMustNotBeEmpty(val);
+                      setState(() {
+                        _password.text = val;
+                      });
+                      bool hasLengthLessThan8 = _password.text.length < 8;
+                      if (hasLengthLessThan8) {
+                        return "Password less than 8";
+                      }
+                      return null;
+                    },
+                    textAlign: TextAlign.center,
+                    obscureText: true,
+                    decoration: new InputDecoration(
+                        icon: Icon(Icons.lock), labelText: "Password"),
+                  ),
+                ),
+                
+                Container(
+                  child: FlatButton(
+
+                    child: !_desiresAutoLogin ? Text("Enable Auto-Login", style: TextStyle(fontFamily: 'Lato', color: Colors.blue)) : Text("Disable Auto-Login", style: TextStyle(fontFamily: 'Lato', color: Colors.red)),
+                    onPressed: ()=> setState(() => _desiresAutoLogin = ! _desiresAutoLogin), 
+                    ),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(top: 25),
+                  child: RaisedButton(
+                      child: Text("Login"),
+                      onPressed: () {
+                        //logging into firebase test
+                        if (_loginFormKey.currentState.validate()) {
+                          tryToLogin();
+                        }
+                      }),
+                ),
+              ],
             ),
-            Container(
-              width: 185,
-              child: TextFormField(
-                initialValue: _password,
-                validator: (val) {
-                  fieldMustNotBeEmpty(val);
-                  setState(() {
-                    _password = val;
-                  });
-                  bool hasLengthLessThan8 = _password.length < 8;
-                  if (hasLengthLessThan8) {
-                    return "Password less than 8";
-                  }
-                  return null;
-                },
-                textAlign: TextAlign.center,
-                obscureText: true,
-                decoration: new InputDecoration(
-                    icon: Icon(Icons.lock), labelText: "Password"),
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.only(top: 25),
-              child: RaisedButton(
-                  child: Text("Login"),
-                  onPressed: () {
-                    //logging into firebase test
-                    if (_loginFormKey.currentState.validate()) {
-                      tryToLogin();
-                    }
-                  }),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
