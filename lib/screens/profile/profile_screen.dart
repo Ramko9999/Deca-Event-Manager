@@ -8,7 +8,6 @@ class ProfileScreen extends StatefulWidget {
 
   ProfileScreen(uid) {
     this._uid = uid;
-    print(this._uid);
   }
 
   @override
@@ -18,12 +17,6 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class ProfileScreenState extends State<ProfileScreen> {
-  //make an object for these fields
-  String _firstName = "N/A";
-  String _lastName = "N/A";
-  int _goldPoints = -999;
-  String _memberLevel = "N/A";
-  List _groups = ["N/A"];
   String _uid;
 
   ProfileScreenState(String uid) {
@@ -40,8 +33,10 @@ class ProfileScreenState extends State<ProfileScreen> {
         actions: <Widget>[
           IconButton(
             icon: Icon(Icons.settings),
-            onPressed: () => Navigator.push(context,
-                MaterialPageRoute(builder: (context) => new SettingScreen())),
+            onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => new SettingScreen(_uid))),
           )
         ],
       ),

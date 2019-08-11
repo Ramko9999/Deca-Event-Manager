@@ -74,7 +74,7 @@ class _LoginTemplateState extends State<LoginTemplate> {
       setState(() {
         _isLogginIn = true;
       });
-     
+
       //grabbing the information from firebase auth
       AuthResult authResult = await FirebaseAuth.instance
           .signInWithEmailAndPassword(
@@ -82,13 +82,6 @@ class _LoginTemplateState extends State<LoginTemplate> {
 
       String userId =
           authResult.user.uid; //used to query for the user data in firestore
-
-      //grabbing user information anf setting it to a variable
-      _fireStore
-          .collection("Users")
-          .where("uid", isEqualTo: userId)
-          .snapshots()
-          .listen((onData) => print(onData.documents[0]['last_name']));
 
       final appDirectory = await getApplicationDocumentsDirectory();
 
@@ -193,15 +186,15 @@ class _LoginTemplateState extends State<LoginTemplate> {
                             : Text("Disable Auto-Login",
                                 style: TextStyle(
                                     fontFamily: 'Lato', color: Colors.red)),
-                        onPressed: () =>
-                            setState(() => _desiresAutoLogin = !_desiresAutoLogin),
+                        onPressed: () => setState(
+                            () => _desiresAutoLogin = !_desiresAutoLogin),
                       ),
                     ),
                     Padding(
                       padding: EdgeInsets.only(top: 25),
                       child: RaisedButton(
-                          child:
-                              Text("Login", style: TextStyle(fontFamily: 'Lato')),
+                          child: Text("Login",
+                              style: TextStyle(fontFamily: 'Lato')),
                           color: Colors.blue,
                           textColor: Colors.white,
                           shape: RoundedRectangleBorder(
@@ -219,16 +212,14 @@ class _LoginTemplateState extends State<LoginTemplate> {
             ],
           ),
         ),
-      if (_isLogginIn)
-            Container(
+        if (_isLogginIn)
+          Container(
               width: 250,
               alignment: Alignment.bottomCenter,
               child: Padding(
-                padding: const EdgeInsets.only(top:120),
+                padding: const EdgeInsets.only(top: 120),
                 child: CircularProgressIndicator(),
-              )
-            ),
-      
+              )),
       ],
     );
   }
@@ -254,9 +245,8 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
   void tryToRegister() async {
     if (_registrationFormKey.currentState.validate()) {
       try {
-
         setState(() {
-         _isTryingToRegister = true; 
+          _isTryingToRegister = true;
         });
         //creating a new user in Firebase Auth
         AuthResult result = await FirebaseAuth.instance
@@ -266,7 +256,7 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
         String userId = result.user.uid;
 
         //creating a new user in Firestore
-        await Firestore.instance.collection("Users").add({
+        await Firestore.instance.collection("Users").document(userId).setData({
           "first_name": _firstName,
           "last_name": _lastName,
           "username": _username,
@@ -304,23 +294,22 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
               Padding(
                 padding: const EdgeInsets.only(top: 15),
                 child: Container(
-                  child: Text("Register", style:TextStyle(fontFamily: 'Lato', fontSize: 32))          
-                  ),
+                    child: Text("Register",
+                        style: TextStyle(fontFamily: 'Lato', fontSize: 32))),
               ),
               new Form(
                   key: _registrationFormKey,
                   child: Column(
                     children: <Widget>[
                       Padding(
-                        padding: const EdgeInsets.only(top:15),
+                        padding: const EdgeInsets.only(top: 15),
                         child: Container(
                           width: 185,
                           child: TextFormField(
-                            style: new TextStyle(
-                              fontFamily: 'Lato'
-                            ),
+                            style: new TextStyle(fontFamily: 'Lato'),
                             textAlign: TextAlign.center,
-                            decoration: InputDecoration(labelText: "First Name"),
+                            decoration:
+                                InputDecoration(labelText: "First Name"),
                             validator: (val) {
                               fieldMustNotBeEmpty(val);
                               setState(() => _firstName = val);
@@ -332,11 +321,10 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
                       Container(
                         width: 185,
                         child: TextFormField(
-                          style: new TextStyle(
-                            fontFamily: 'Lato'
-                          ),
+                          style: new TextStyle(fontFamily: 'Lato'),
                           textAlign: TextAlign.center,
-                          decoration: new InputDecoration(labelText: 'Last Name'),
+                          decoration:
+                              new InputDecoration(labelText: 'Last Name'),
                           validator: (val) {
                             fieldMustNotBeEmpty(val);
                             setState(() => _lastName = val);
@@ -347,9 +335,7 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
                       Container(
                         width: 185,
                         child: TextFormField(
-                          style: new TextStyle(
-                            fontFamily: 'Lato'
-                          ),
+                          style: new TextStyle(fontFamily: 'Lato'),
                           validator: (val) {
                             fieldMustNotBeEmpty(val);
                             setState(() {
@@ -372,9 +358,7 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
                       Container(
                         width: 185,
                         child: TextFormField(
-                          style: new TextStyle(
-                            fontFamily: 'Lato'
-                          ),
+                          style: new TextStyle(fontFamily: 'Lato'),
                           validator: (val) {
                             fieldMustNotBeEmpty(val);
                             setState(() {
@@ -398,14 +382,12 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
                           textColor: Colors.white,
                           color: Colors.blue,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8)
-                          ),
+                              borderRadius: BorderRadius.circular(8)),
                           child: Container(
-                            child: Text("Register", 
-                            style: new TextStyle(
-                            fontFamily: 'Lato'
-                          ),),
-                            
+                            child: Text(
+                              "Register",
+                              style: new TextStyle(fontFamily: 'Lato'),
+                            ),
                           ),
                           onPressed: tryToRegister,
                         ),
@@ -415,15 +397,10 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
             ],
           ),
         ),
-      if(_isTryingToRegister)
-        Container(
-          alignment: Alignment.bottomCenter,
-          child:CircularProgressIndicator(
-
-          )
-        )
-      
-      
+        if (_isTryingToRegister)
+          Container(
+              alignment: Alignment.bottomCenter,
+              child: CircularProgressIndicator())
       ],
     );
   }
