@@ -34,54 +34,79 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
+    double screenWidth = MediaQuery.of(context).size.width;
     return Scaffold(
-        body: new Stack(
-      children: [
-        new BackgroundImage('assets/backgrounds/blue_green_grad.png'),
-        new SingleChildScrollView(
-            child: new Column(children: [
-          Container(
-            child: Image.asset(
-              'assets/logos/deca_logo_blue_bg.png',
-              height: 150,
-              width: 150,
-              fit: BoxFit.cover,
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(0, 245, 0, 0),
-            child: Center(
-              child: Container(
-                width: 200,
-                child: new RaisedButton(
-                  child: Text('Sign In'),
-                  textColor: Colors.white,
-                  color: Colors.transparent,
-                  onPressed: createNewLoginTemplate,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30)),
-                ),
-              ),
-            ),
-          ),
+        backgroundColor: Colors.white,
+        body:
+        Stack(
+            children: [
+              new Column(
+                children: [
+                  Spacer(flex: 1),
+                  Flexible(
+                    flex: 4,
+                    child:
+                      Align(
+                        alignment: Alignment(0.0, -0.6),
+                        child:
+                          Image.asset(
+                              'assets/logos/DECA-Here-We-Go-1024x583.png',
+                            fit: BoxFit.cover
+                          ),
 
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Center(
-              child: Container(
-                  width: 200,
-                  child: new RaisedButton(
-                      child: Text('Sign Up'),
-                      textColor: Colors.white,
-                      color: Colors.transparent,
-                      onPressed: createNewRegisterTemplate,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30)))),
-            ),
-          ),
-
+                      )
+                  ),
+                  Spacer(flex: 2),
+                  Flexible(
+                  flex: 4,
+                  child:
+                    Container(
+                      child:
+                        Align(
+                            alignment: Alignment.bottomCenter,
+                            child:
+                              Column(
+                                children: [
+                                  Container(
+                                    width: 350,
+                                    height: 50,
+                                    child:  new RaisedButton(
+                                      child: Text('Sign In',
+                                          style: new TextStyle(
+                                            fontSize: 20.0,
+                                          )),
+                                      textColor: Colors.white,
+                                      color: Colors.blue,
+                                      onPressed: createNewLoginTemplate,
+                                      shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(30)),
+                                      )
+                                  ),
+                                  Container(
+                                    height: 15,
+                                  ),
+                                  Container(
+                                      width: 350,
+                                      height: 50,
+                                      child:  new RaisedButton(
+                                          child: Text('Sign Up',
+                                              style: new TextStyle(
+                                                fontSize: 20.0,
+                                              )),
+                                        textColor: Colors.black,
+                                        color: Colors.white,
+                                        onPressed: createNewRegisterTemplate,
+                                        shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(30)
+                                        )
+                                      )
+                                  )]
+                              )
+                          )
+                    )
+                  ),
+                ]),
           //handles pulling up the login template
-        ])),
         if (_isLoginButtonClicked)
           Stack(children: [
             GestureDetector(
@@ -133,7 +158,8 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
               )
             ],
           )
-      ],
-    ));
+      ]
+    )
+    );
   }
 }

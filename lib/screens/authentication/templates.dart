@@ -102,10 +102,11 @@ class _LoginTemplateState extends State<LoginTemplate> {
   }
 
   Widget build(BuildContext context) {
+    double screenWidth = MediaQuery.of(context).size.width;
     return Stack(
       children: <Widget>[
         Container(
-          width: 250,
+          width: screenWidth - 50,
           child: Column(
             children: <Widget>[
               Padding(
@@ -127,7 +128,7 @@ class _LoginTemplateState extends State<LoginTemplate> {
                     Padding(
                       padding: EdgeInsets.only(top: 15),
                       child: Container(
-                        width: 225,
+                        width: screenWidth - 150,
                         //make this a TextField if using controller
                         child: TextFormField(
                           controller: _username,
@@ -155,7 +156,7 @@ class _LoginTemplateState extends State<LoginTemplate> {
                       ),
                     ),
                     Container(
-                      width: 225,
+                      width: screenWidth - 150,
                       //make this a TextField if using controller
                       child: TextFormField(
                         controller: _password,
@@ -190,21 +191,32 @@ class _LoginTemplateState extends State<LoginTemplate> {
                             () => _desiresAutoLogin = !_desiresAutoLogin),
                       ),
                     ),
+
                     Padding(
-                      padding: EdgeInsets.only(top: 25),
-                      child: RaisedButton(
-                          child: Text("Login",
-                              style: TextStyle(fontFamily: 'Lato')),
-                          color: Colors.blue,
-                          textColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8)),
-                          onPressed: () {
-                            //logging into firebase test
-                            if (_loginFormKey.currentState.validate()) {
-                              tryToLogin();
-                            }
-                          }),
+                      padding: new EdgeInsets.all(20.0),
+                      child:
+                      ButtonTheme(
+                          minWidth: 150.0,
+                          height: 45.0,
+                          child: RaisedButton(
+                            textColor: Colors.white,
+                            color: Colors.blue,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30)),
+                            child: Container(
+                              child: Text(
+                                "Login",
+                                style: new TextStyle(fontSize: 20, fontFamily: 'Lato'),
+                              ),
+                            ),
+                            onPressed: () {
+                              //logging into firebase test
+                              if (_loginFormKey.currentState.validate()) {
+                                tryToLogin();
+                              }
+                            },
+                          )
+                      ),
                     ),
                   ],
                 ),
@@ -285,10 +297,11 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
   }
 
   Widget build(BuildContext context) {
+    double screenWidth = MediaQuery.of(context).size.width;
     return Stack(
       children: <Widget>[
         Container(
-          width: 250,
+          width: screenWidth - 50,
           child: Column(
             children: <Widget>[
               Padding(
@@ -304,7 +317,7 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
                       Padding(
                         padding: const EdgeInsets.only(top: 15),
                         child: Container(
-                          width: 185,
+                          width: screenWidth - 150,
                           child: TextFormField(
                             style: new TextStyle(fontFamily: 'Lato'),
                             textAlign: TextAlign.center,
@@ -319,7 +332,7 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
                         ),
                       ),
                       Container(
-                        width: 185,
+                        width: screenWidth - 150,
                         child: TextFormField(
                           style: new TextStyle(fontFamily: 'Lato'),
                           textAlign: TextAlign.center,
@@ -333,7 +346,7 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
                         ),
                       ),
                       Container(
-                        width: 185,
+                        width: screenWidth - 150,
                         child: TextFormField(
                           style: new TextStyle(fontFamily: 'Lato'),
                           validator: (val) {
@@ -356,7 +369,7 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
                         ),
                       ),
                       Container(
-                        width: 185,
+                        width: screenWidth - 150,
                         child: TextFormField(
                           style: new TextStyle(fontFamily: 'Lato'),
                           validator: (val) {
@@ -377,19 +390,24 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
                         ),
                       ),
                       Padding(
-                        padding: new EdgeInsets.only(top: 25),
-                        child: RaisedButton(
-                          textColor: Colors.white,
-                          color: Colors.blue,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8)),
-                          child: Container(
-                            child: Text(
-                              "Register",
-                              style: new TextStyle(fontFamily: 'Lato'),
-                            ),
-                          ),
-                          onPressed: tryToRegister,
+                        padding: new EdgeInsets.all(20.0),
+                        child:
+                        ButtonTheme(
+                            minWidth: 150.0,
+                            height: 45.0,
+                            child: RaisedButton(
+                              textColor: Colors.white,
+                              color: Colors.blue,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(30)),
+                              child: Container(
+                                child: Text(
+                                  "Register",
+                                  style: new TextStyle(fontSize: 20, fontFamily: 'Lato'),
+                                ),
+                              ),
+                              onPressed: tryToRegister,
+                        )
                         ),
                       )
                     ],
