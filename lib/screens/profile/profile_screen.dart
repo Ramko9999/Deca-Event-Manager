@@ -41,6 +41,10 @@ class ProfileScreenState extends State<ProfileScreen> {
       'Index 2: School',
       style: optionStyle,
     ),
+    Text(
+      'Index 3: School',
+      style: optionStyle,
+    ),
   ];
 
   void _onItemTapped(int index) {
@@ -71,15 +75,20 @@ class ProfileScreenState extends State<ProfileScreen> {
         ),
         BottomNavigationBarItem(
           icon: Icon(MdiIcons.qrcode),
-          title: Text('Business'),
+          title: Text('Check-In'),
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.school),
-          title: Text('School'),
+          icon: Icon(Icons.notifications),
+          title: Text('Notifications'),
+        ),
+        BottomNavigationBarItem(
+        icon: Icon(Icons.chat),
+        title: Text('Chats')
         ),
       ],
         currentIndex: _selectedIndex,
         selectedItemColor: Colors.blue,
+        unselectedItemColor: Colors.grey,
         onTap: _onItemTapped,),
     );
   }
