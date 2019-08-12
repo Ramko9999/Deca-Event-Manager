@@ -21,11 +21,10 @@ class _LoginTemplateState extends State<LoginTemplate> {
   final _loginFormKey = GlobalKey<FormState>();
   TextEditingController _username = new TextEditingController();
   TextEditingController _password = new TextEditingController();
-  Firestore _fireStore = Firestore.instance; //database connection
   bool _desiresAutoLogin = false;
   bool _isLogginIn = false;
 
-  _LoginTemplateState() {
+  _LoginTemplateState() { //used to pull up the locally stored information
     autoLogin();
   }
 
@@ -49,6 +48,7 @@ class _LoginTemplateState extends State<LoginTemplate> {
           _password.text = userInfo['password'];
         }
       });
+      //following code executes to automatically log the user in
       /*
       if(_desiresAutoLogin){
         try {
@@ -238,7 +238,7 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
   String _lastName;
   String _username;
   String _password;
-  bool _isTryingToRegister = false;
+  bool _isTryingToRegister = false; //used to give progress bar animation
   final _registrationFormKey = GlobalKey<FormState>();
 
   //handles registration of user
@@ -253,7 +253,7 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
             .createUserWithEmailAndPassword(
                 email: _username, password: _password);
 
-        String userId = result.user.uid;
+        String userId = result.user.uid; //grabds user's unique id from Firebase Auth
 
         //creating a new user in Firestore
         await Firestore.instance.collection("Users").document(userId).setData({

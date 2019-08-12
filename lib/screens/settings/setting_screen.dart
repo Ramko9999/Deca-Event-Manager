@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'dart:convert';
+import 'package:connectivity/connectivity.dart';
 
 class SettingScreen extends StatefulWidget {
   String _uid;
@@ -52,16 +53,18 @@ class SettingScreenState extends State<SettingScreen> {
     );
   }
 
-  //function is responsible for handling changes
-  void changeDetails() async {
-    _isAsyncActionOccuring = true;
+  //will actually connect and change the data
+  void connectAndChange() async{
     final user = await FirebaseAuth.instance.currentUser(); //from FirebaseAuth
     final userData = Firestore.instance
         .collection("Users")
         .document(_uid); // from Cloud Firestore
+    
+    //grab the local storage and get local user info contents
     final appDirectory = await getApplicationDocumentsDirectory();
     File localUserInfo = File(appDirectory.path + "/user.json");
     Map userInfo = json.decode(await localUserInfo.readAsString());
+    //start updating the fields
     if (_newUsername.text != "") {
       user.updateEmail(_newUsername.text); //updating firebase auth
       userInfo['username'] = _newUsername.text; //updating local storage
@@ -74,8 +77,9 @@ class SettingScreenState extends State<SettingScreen> {
     }
 
     userInfo['auto'] = _isAutoLoginEnabled;
-    localUserInfo.writeAsStringSync(json.encode(userInfo));
+    localUserInfo.writeAsStringSync(json.encode(userInfo)); //write the json string to the documents
     grabLocalStorage();
+    //shows a success screen
     showDialog(
         context: context,
         builder: (context) {
@@ -83,14 +87,36 @@ class SettingScreenState extends State<SettingScreen> {
         });
   }
 
+  //function is responsible for handling changes
+  void changeDetails() async {
+    setState(()=>_isAsyncActionOccuring = true);
+    
+    //check if network is working
+    Connectivity().checkConnectivity().then((connectionState){
+      print(connectionState);
+      if(connectionState == ConnectivityResult.none){
+        setState(() => _isAsyncActionOccuring = false);
+        throw Exception("Phone is not connected to internet");
+      }
+      else{
+        connectAndChange();
+      }
+
+    }).catchError((error){
+      print("ERROR IS $error");
+    });
+    
+    }
+
   //used to reupdate _oldpassword
   void grabLocalStorage() async {
+    //getting app directory used to store data
     final appDirectory = await getApplicationDocumentsDirectory();
     Map userInfo = json
         .decode(await File(appDirectory.path + "/user.json").readAsString());
     _oldpassword = userInfo['password'];
     _isAutoLoginEnabled = userInfo['auto'];
-    _isAsyncActionOccuring = false;
+    setState(() => _isAsyncActionOccuring = false);
   }
 
   Widget build(BuildContext context) {
