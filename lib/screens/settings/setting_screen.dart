@@ -5,6 +5,7 @@ import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'dart:convert';
 import 'package:connectivity/connectivity.dart';
+import 'package:flutter_first_app/utility/error_popup.dart';
 
 class SettingScreen extends StatefulWidget {
   String _uid;
@@ -37,7 +38,7 @@ class SettingScreenState extends State<SettingScreen> {
     return AlertDialog(
       title: Text("Successful", style: TextStyle(fontFamily: 'Lato')),
       content: Container(
-        height: MediaQuery.of(context).size.height/6.0,
+        height: MediaQuery.of(context).size.height / 6.0,
         child: Column(
           children: <Widget>[
             Text("We have succesfully updated your information!",
@@ -54,12 +55,12 @@ class SettingScreenState extends State<SettingScreen> {
   }
 
   //will actually connect and change the data
-  void connectAndChange() async{
+  void connectAndChange() async {
     final user = await FirebaseAuth.instance.currentUser(); //from FirebaseAuth
     final userData = Firestore.instance
         .collection("Users")
         .document(_uid); // from Cloud Firestore
-    
+
     //grab the local storage and get local user info contents
     final appDirectory = await getApplicationDocumentsDirectory();
     File localUserInfo = File(appDirectory.path + "/user.json");
@@ -77,7 +78,8 @@ class SettingScreenState extends State<SettingScreen> {
     }
 
     userInfo['auto'] = _isAutoLoginEnabled;
-    localUserInfo.writeAsStringSync(json.encode(userInfo)); //write the json string to the documents
+    localUserInfo.writeAsStringSync(
+        json.encode(userInfo)); //write the json string to the documents
     grabLocalStorage();
     //shows a success screen
     showDialog(
@@ -89,24 +91,28 @@ class SettingScreenState extends State<SettingScreen> {
 
   //function is responsible for handling changes
   void changeDetails() async {
-    setState(()=>_isAsyncActionOccuring = true);
-    
+    setState(() => _isAsyncActionOccuring = true);
+
     //check if network is working
-    Connectivity().checkConnectivity().then((connectionState){
-      print(connectionState);
-      if(connectionState == ConnectivityResult.none){
+    Connectivity().checkConnectivity().then((connectionState) {
+      if (connectionState == ConnectivityResult.none) {
         setState(() => _isAsyncActionOccuring = false);
         throw Exception("Phone is not connected to internet");
-      }
-      else{
+      } else {
         connectAndChange();
       }
-
-    }).catchError((error){
-      print("ERROR IS $error");
+    }).catchError((error) {
+      //show error output with try again features
+      showDialog(
+          context: context,
+          builder: (context) {
+            return ErrorPopup(error.toString().substring(10), () {
+              Navigator.of(context).pop();
+              changeDetails();
+            });
+          });
     });
-    
-    }
+  }
 
   //used to reupdate _oldpassword
   void grabLocalStorage() async {
