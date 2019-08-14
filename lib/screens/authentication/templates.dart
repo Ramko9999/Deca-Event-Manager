@@ -3,7 +3,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_first_app/screens/profile/profile_screen.dart';
+import 'package:flutter_first_app/utility/single_action_popup.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:connectivity/connectivity.dart';
+import 'package:flutter_first_app/utility/error_popup.dart';
 import 'dart:io';
 import 'dart:convert';
 
@@ -21,27 +24,21 @@ class _LoginTemplateState extends State<LoginTemplate> {
   final _loginFormKey = GlobalKey<FormState>();
   TextEditingController _username = new TextEditingController();
   TextEditingController _password = new TextEditingController();
-  Firestore _fireStore = Firestore.instance; //database connection
   bool _desiresAutoLogin = false;
   bool _isLogginIn = false;
 
   _LoginTemplateState() {
+    //used to pull up the locally stored information
     autoLogin();
   }
 
-  String fieldMustNotBeEmpty(val) {
-    if (val == "") {
-      return "Field is empty";
-    }
-  }
-
+  //method auto fills username and password fields if they exist
   void autoLogin() async {
     final appDirectory = await getApplicationDocumentsDirectory();
     //check to see if the file for the json object is there
     if (await File(appDirectory.path + "/user.json").exists()) {
       Map userInfo = json
           .decode(await File(appDirectory.path + "/user.json").readAsString());
-      print("UserInfo from Json FIle");
       setState(() {
         _desiresAutoLogin = userInfo['auto'];
         if (_desiresAutoLogin) {
@@ -49,37 +46,15 @@ class _LoginTemplateState extends State<LoginTemplate> {
           _password.text = userInfo['password'];
         }
       });
-      /*
-      if(_desiresAutoLogin){
-        try {
-        AuthResult result = await FirebaseAuth.instance
-            .signInWithEmailAndPassword(email: _username, password: _password);
-        print("Login Successfull");
-
-        Navigator.of(context).push(MaterialPageRoute(
-            builder: (context) => new ProfileScreen(result.user.uid)));
-      } catch (error) {
-        print(error);
-      }
-    } else {
-      print("Not auto loggin");
-    }
-    */
     }
   }
 
-  //grabs login information from cloud firestore
-  void tryToLogin() async {
-    try {
-      setState(() {
-        _isLogginIn = true;
-      });
-
-      //grabbing the information from firebase auth
-      AuthResult authResult = await FirebaseAuth.instance
-          .signInWithEmailAndPassword(
-              email: _username.text, password: _password.text);
-
+  //try executing the actual login process
+  void executeLogin() async {
+    FirebaseAuth.instance
+        .signInWithEmailAndPassword(
+            email: _username.text, password: _password.text)
+        .then((authResult) async {
       String userId =
           authResult.user.uid; //used to query for the user data in firestore
 
@@ -96,9 +71,52 @@ class _LoginTemplateState extends State<LoginTemplate> {
       //changes screen to profile screen
       Navigator.push(context,
           MaterialPageRoute(builder: (context) => new ProfileScreen(userId)));
-    } catch (error, stackTrace) {
-      print(error);
-    }
+    }).catchError((error) {
+      setState(() => _isLogginIn = false);
+      //if credentials are invalid then throw the error
+      if (error.toString().contains("INVALID") ||
+          error.toString().contains("WRONG") ||
+          error.toString().contains("NOT_FOUND")) {
+        showDialog(
+            context: context,
+            builder: (context) {
+              return ErrorPopup("Invalid Credentials", () {
+                Navigator.of(context).pop();
+                tryToLogin();
+              });
+            });
+      }
+    });
+  }
+
+  //grabs login information from cloud firestore
+  void tryToLogin() async {
+    setState(() {
+      _isLogginIn = true;
+    });
+    Connectivity().checkConnectivity().then((connectionState) {
+      if (connectionState == ConnectivityResult.none) {
+        throw Exception("Phone is not connected to wifi");
+      } else {
+        executeLogin();
+      }
+    }).catchError((error) {
+      setState(() => _isLogginIn = false);
+      //checking the type of error
+      //wifi error
+      if (error.toString().contains("Phone")) {
+        showDialog(
+            context: context,
+            builder: (context) {
+              return ErrorPopup("Phone is not connected to Wifi", () {
+                Navigator.of(context).pop();
+                tryToLogin();
+              });
+            });
+      }
+    });
+
+    //grabbing the information from firebase auth
   }
 
   Widget build(BuildContext context) {
@@ -162,7 +180,9 @@ class _LoginTemplateState extends State<LoginTemplate> {
                         controller: _password,
                         style: TextStyle(fontFamily: 'Lato'),
                         validator: (val) {
-                          fieldMustNotBeEmpty(val);
+                          if (val == "") {
+                            return "Field is empty";
+                          }
                           setState(() {
                             _password.text = val;
                           });
@@ -191,11 +211,9 @@ class _LoginTemplateState extends State<LoginTemplate> {
                             () => _desiresAutoLogin = !_desiresAutoLogin),
                       ),
                     ),
-
                     Padding(
                       padding: new EdgeInsets.all(20.0),
-                      child:
-                      ButtonTheme(
+                      child: ButtonTheme(
                           minWidth: 150.0,
                           height: 45.0,
                           child: RaisedButton(
@@ -206,7 +224,8 @@ class _LoginTemplateState extends State<LoginTemplate> {
                             child: Container(
                               child: Text(
                                 "Login",
-                                style: new TextStyle(fontSize: 20, fontFamily: 'Lato'),
+                                style: new TextStyle(
+                                    fontSize: 20, fontFamily: 'Lato'),
                               ),
                             ),
                             onPressed: () {
@@ -215,8 +234,7 @@ class _LoginTemplateState extends State<LoginTemplate> {
                                 tryToLogin();
                               }
                             },
-                          )
-                      ),
+                          )),
                     ),
                   ],
                 ),
@@ -250,49 +268,76 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
   String _lastName;
   String _username;
   String _password;
-  bool _isTryingToRegister = false;
+  bool _isTryingToRegister = false; //used to give progress bar animation
   final _registrationFormKey = GlobalKey<FormState>();
+
+  //executes the actual registration
+  void executeRegistration() async {
+    FirebaseAuth.instance
+        .createUserWithEmailAndPassword(email: _username, password: _password)
+        .then((result) async {
+      String userId =
+          result.user.uid; //grabds user's unique id from Firebase Auth
+
+      //creating a new user in Firestore
+      await Firestore.instance.collection("Users").document(userId).setData({
+        "first_name": _firstName,
+        "last_name": _lastName,
+        "username": _username,
+        "password": _password,
+        "gold_points": 0,
+        "groups": ['none'],
+        "uid": userId
+      });
+
+      setState(() => _isTryingToRegister = false);
+      showDialog(
+          context: context,
+          builder: (context) {
+            return SingleActionPopup(
+                "Successful! Try Logging In", "SUCCESS!", Colors.black);
+          });
+
+      //catching invalid email error
+    }).catchError((error) {
+      setState(() => _isTryingToRegister = false);
+      //if email already exists throw an error popup
+      if (error.toString().contains("ALREADY")) {
+        showDialog(
+            context: context,
+            builder: (context) {
+              return SingleActionPopup(
+                  "Email is already in use", "ERROR!", Colors.red);
+            });
+      }
+    });
+  }
 
   //handles registration of user
   void tryToRegister() async {
+    setState(() => _isTryingToRegister = true);
     if (_registrationFormKey.currentState.validate()) {
-      try {
-        setState(() {
-          _isTryingToRegister = true;
-        });
-        //creating a new user in Firebase Auth
-        AuthResult result = await FirebaseAuth.instance
-            .createUserWithEmailAndPassword(
-                email: _username, password: _password);
-
-        String userId = result.user.uid;
-
-        //creating a new user in Firestore
-        await Firestore.instance.collection("Users").document(userId).setData({
-          "first_name": _firstName,
-          "last_name": _lastName,
-          "username": _username,
-          "password": _password,
-          "gold_points": 0,
-          "groups": ['none'],
-          "uid": userId
-        });
-
-        print("Succesfully registered user");
-
-        setState(() {
-          _isTryingToRegister = false;
-        });
-      } catch (error, stackTrace) {
-        print(error);
-      }
-    }
-  }
-
-  //checks whether a field in the registration form is empty
-  String fieldMustNotBeEmpty(val) {
-    if (val == "") {
-      return "Field is empty";
+      Connectivity().checkConnectivity().then((connectionState) {
+        if (connectionState == ConnectivityResult.none) {
+          throw Exception("Phone is not connected to wifi");
+        } else {
+          executeRegistration();
+        }
+      }).catchError((connectionError) {
+        setState(() => _isTryingToRegister = false);
+        if (connectionError.toString().contains("wifi")) {
+          showDialog(
+              context: context,
+              builder: (context) {
+                return ErrorPopup("Phone is not connected to wifi", () {
+                  Navigator.of(context).pop();
+                  tryToRegister();
+                });
+              });
+        }
+      });
+    } else {
+      setState(() => _isTryingToRegister = false);
     }
   }
 
@@ -315,7 +360,7 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
                   child: Column(
                     children: <Widget>[
                       Padding(
-                        padding: const EdgeInsets.only(top: 15),
+                        padding: const EdgeInsets.only(top: 5),
                         child: Container(
                           width: screenWidth - 150,
                           child: TextFormField(
@@ -324,7 +369,9 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
                             decoration:
                                 InputDecoration(labelText: "First Name"),
                             validator: (val) {
-                              fieldMustNotBeEmpty(val);
+                              if (val == "") {
+                                return "Field is empty";
+                              }
                               setState(() => _firstName = val);
                               return null;
                             },
@@ -339,7 +386,9 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
                           decoration:
                               new InputDecoration(labelText: 'Last Name'),
                           validator: (val) {
-                            fieldMustNotBeEmpty(val);
+                            if (val == "") {
+                              return "Field is empty";
+                            }
                             setState(() => _lastName = val);
                             return null;
                           },
@@ -350,7 +399,9 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
                         child: TextFormField(
                           style: new TextStyle(fontFamily: 'Lato'),
                           validator: (val) {
-                            fieldMustNotBeEmpty(val);
+                            if (val == "") {
+                              return "Field is empty";
+                            }
                             setState(() {
                               _username = val;
                             });
@@ -373,7 +424,9 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
                         child: TextFormField(
                           style: new TextStyle(fontFamily: 'Lato'),
                           validator: (val) {
-                            fieldMustNotBeEmpty(val);
+                            if (val == "") {
+                              return "Field is empty";
+                            }
                             setState(() {
                               _password = val;
                             });
@@ -391,8 +444,7 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
                       ),
                       Padding(
                         padding: new EdgeInsets.all(20.0),
-                        child:
-                        ButtonTheme(
+                        child: ButtonTheme(
                             minWidth: 150.0,
                             height: 45.0,
                             child: RaisedButton(
@@ -403,21 +455,22 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
                               child: Container(
                                 child: Text(
                                   "Register",
-                                  style: new TextStyle(fontSize: 20, fontFamily: 'Lato'),
+                                  style: new TextStyle(
+                                      fontSize: 20, fontFamily: 'Lato'),
                                 ),
                               ),
                               onPressed: tryToRegister,
-                        )
-                        ),
+                            )),
                       )
                     ],
                   )),
             ],
           ),
         ),
-        if (_isTryingToRegister)
+        if (_isTryingToRegister) //to add the progress indicator
           Container(
-              alignment: Alignment.bottomCenter,
+              width: screenWidth - 50,
+              alignment: Alignment.center,
               child: CircularProgressIndicator())
       ],
     );

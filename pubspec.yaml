@@ -23,7 +23,8 @@ dependencies:
   cloud_firestore: 
   path_provider:
   qr_flutter:
-  material_design_icons_flutter: ^3.2.3895
+  connectivity:
+  material_design_icons_flutter:
 
 
   # The following adds the Cupertino Icons font to your application.
