@@ -1,5 +1,5 @@
-name: flutter_first_app
-description: A new Flutter project.
+name: deca_app
+description: A DECA app for the Eden Prairie Chapter
 
 # The following defines the version and build number for your application.
 # A version number is three numbers separated by dots, like 1.2.43
@@ -22,9 +22,9 @@ dependencies:
   firebase_auth: 
   cloud_firestore: 
   path_provider:
-  qr_flutter:
   connectivity:
-  material_design_icons_flutter:
+  qr_flutter:
+  material_design_icons_flutter: ^3.2.3895
 
 
   # The following adds the Cupertino Icons font to your application.

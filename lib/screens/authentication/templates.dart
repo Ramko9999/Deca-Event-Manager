@@ -1,12 +1,12 @@
+import 'package:connectivity/connectivity.dart';
+import 'package:deca_app/utility/error_popup.dart';
+import 'package:deca_app/utility/single_action_popup.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter_first_app/screens/profile/profile_screen.dart';
-import 'package:flutter_first_app/utility/single_action_popup.dart';
+import 'package:deca_app/screens/profile/profile_screen.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:connectivity/connectivity.dart';
-import 'package:flutter_first_app/utility/error_popup.dart';
 import 'dart:io';
 import 'dart:convert';
 
@@ -24,21 +24,27 @@ class _LoginTemplateState extends State<LoginTemplate> {
   final _loginFormKey = GlobalKey<FormState>();
   TextEditingController _username = new TextEditingController();
   TextEditingController _password = new TextEditingController();
+  Firestore _fireStore = Firestore.instance; //database connection
   bool _desiresAutoLogin = false;
   bool _isLogginIn = false;
 
   _LoginTemplateState() {
-    //used to pull up the locally stored information
     autoLogin();
   }
 
-  //method auto fills username and password fields if they exist
+  String fieldMustNotBeEmpty(val) {
+    if (val == "") {
+      return "Field is empty";
+    }
+  }
+
   void autoLogin() async {
     final appDirectory = await getApplicationDocumentsDirectory();
     //check to see if the file for the json object is there
     if (await File(appDirectory.path + "/user.json").exists()) {
       Map userInfo = json
           .decode(await File(appDirectory.path + "/user.json").readAsString());
+      print("UserInfo from Json FIle");
       setState(() {
         _desiresAutoLogin = userInfo['auto'];
         if (_desiresAutoLogin) {

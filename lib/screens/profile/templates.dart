@@ -29,14 +29,16 @@ class DynamicProfileUI extends StatelessWidget {
             _lastName = userInfo.data['last_name'] as String;
             _goldPoints = userInfo.data['gold_points'];
             //setting memberLevel based on gold points
-            _memberLevel = "N/A";
-            if (_goldPoints > 75) {
+            if (_goldPoints < 75) {
+              _memberLevel = "Not a member yet!";
+            }
+            else if (_goldPoints < 125) {
               _memberLevel = "Member";
             }
-            if (_goldPoints > 150) {
+            else if (_goldPoints < 200) {
               _memberLevel = "Silver";
             }
-            if (_goldPoints > 300) {
+            else{
               _memberLevel = "Gold";
             }
 

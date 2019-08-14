@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_first_app/screens/profile/profile_screen.dart';
-import 'package:flutter_first_app/screens/code/qr_screen.dart';
+import 'package:deca_app/screens/profile/profile_screen.dart';
+import 'package:deca_app/screens/code/qr_screen.dart';
 
 class NavigationDrawer extends StatelessWidget {
   String _uid;

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_first_app/utility/navigation_drawer.dart';
+import 'package:deca_app/utility/navigation_drawer.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 class QrScreen extends StatelessWidget {
@@ -8,16 +8,18 @@ class QrScreen extends StatelessWidget {
   QrScreen(this._uid);
 
   Widget build(BuildContext context) {
+    double screenWidth = MediaQuery.of(context).size.width;
     return Scaffold(
-      appBar: new AppBar(
-        title: Text("My QR Code"),
-      ),
       drawer: new NavigationDrawer(_uid),
       body: Center(
-        child: QrImage(
-          data: _uid,
-          version: 9,
-        ),
+        child: Container(
+          width: screenWidth - 75,
+          height: screenWidth - 75,
+            child: QrImage(
+              data: _uid,
+              version: 9,
+            ),
+          ),
       ),
     );
   }

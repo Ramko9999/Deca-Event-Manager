@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_first_app/screens/settings/setting_screen.dart';
-import 'package:flutter_first_app/utility/navigation_drawer.dart';
-import 'package:flutter_first_app/screens/profile/templates.dart';
+import 'package:deca_app/screens/settings/setting_screen.dart';
+import 'package:deca_app/utility/navigation_drawer.dart';
+import 'package:deca_app/screens/profile/templates.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:deca_app/screens/code/qr_screen.dart';
 
 
 class ProfileScreen extends StatefulWidget {
@@ -21,43 +22,41 @@ class ProfileScreen extends StatefulWidget {
 class ProfileScreenState extends State<ProfileScreen> {
   String _uid;
   int _selectedIndex = 0;
+
   ProfileScreenState(String uid) {
     this._uid = uid;
     print(this._uid);
   }
 
-  static const TextStyle optionStyle =
-  TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
-  static const List<Widget> _widgetOptions = <Widget>[
-    Text(
-      'Index 0: Home',
-      style: optionStyle,
-    ),
-    Text(
-      'Index 1: Business',
-      style: optionStyle,
-    ),
-    Text(
-      'Index 2: School',
-      style: optionStyle,
-    ),
-    Text(
-      'Index 3: School',
-      style: optionStyle,
-    ),
-  ];
+  Widget changeScreen(int currentIndex)
+  {
+    switch (currentIndex){
+      case 0: return DynamicProfileUI(_uid);
+      case 1: return QrScreen(_uid);
+      break;
+      default: return DynamicProfileUI(_uid);
+    }
+
+  }
 
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
     });
   }
+
   Widget build(BuildContext context) {
     return Scaffold(
-      body: new DynamicProfileUI(_uid),
+      body: changeScreen(_selectedIndex),
       drawer: new NavigationDrawer(_uid),
       appBar: new AppBar(
-        title: Text("View Profile"),
+        title: (_selectedIndex == 0)
+                ? Text("Profile"):
+            (_selectedIndex == 1)
+                ? Text("QR Code for Check-In"):
+            (_selectedIndex == 2)
+                ? Text("Notifications"):
+                  Text("Chats"),
         actions: <Widget>[
           IconButton(
             icon: Icon(Icons.settings),
