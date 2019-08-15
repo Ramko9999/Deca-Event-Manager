@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_first_app/screens/admin/qr_reader.dart';
 import 'package:flutter_first_app/screens/profile/profile_screen.dart';
 import 'package:flutter_first_app/screens/code/qr_screen.dart';
 
@@ -13,26 +14,11 @@ class NavigationDrawer extends StatelessWidget {
           child: ListView(
             children: <Widget>[
               FlatButton(
-                  child: Text("QR Code"),
+                  child: Text("QR Reader"),
                   onPressed: () async => Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => new QrScreen(_uid)))),
-              FlatButton(
-                child: Text("Chats"),
-                onPressed: () async => Navigator.push(
-                    context, MaterialPageRoute(builder: (context) => null)),
-              ),
-              FlatButton(
-                  child: Text("Notifications"),
-                  onPressed: () async => Navigator.push(
-                      context, MaterialPageRoute(builder: (context) => null))),
-              FlatButton(
-                  child: Text("Home"),
-                  onPressed: () async => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => new ProfileScreen(_uid))))
+                          builder: (context) => new QrReaderScreen(_uid))))
             ],
           ),
         ));
