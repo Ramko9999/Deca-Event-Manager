@@ -1,11 +1,11 @@
+import 'package:connectivity/connectivity.dart';
+import 'package:deca_app/utility/error_popup.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'dart:convert';
-import 'package:connectivity/connectivity.dart';
-import 'package:flutter_first_app/utility/error_popup.dart';
 
 class SettingScreen extends StatefulWidget {
   String _uid;
@@ -13,6 +13,7 @@ class SettingScreen extends StatefulWidget {
   SettingScreen(String uid) {
     this._uid = uid;
   }
+
   @override
   State<SettingScreen> createState() => new SettingScreenState(_uid);
 }
@@ -126,126 +127,140 @@ class SettingScreenState extends State<SettingScreen> {
   }
 
   Widget build(BuildContext context) {
+    double screenWidth = MediaQuery.of(context).size.width;
+    double screenHeight = MediaQuery.of(context).size.height;
+    double textScaleFactor = MediaQuery.of(context).textScaleFactor;
     return Scaffold(
-        appBar: AppBar(
-          title: Text("Settings"),
-          leading: new IconButton(
-            icon: new Icon(Icons.arrow_left),
-            onPressed: () => Navigator.of(context).pop(), //goes back a screen
-          ),
+      appBar: AppBar(
+        title: Text("Settings"),
+        leading: new IconButton(
+          icon: new Icon(Icons.arrow_back_ios),
+          onPressed: () => Navigator.of(context).pop(), //goes back a screen
         ),
-        body: Stack(
-          children: <Widget>[
-            SingleChildScrollView(
-              child: Form(
-                key: _settingsForm,
-                child: Column(
-                  children: <Widget>[
-                    TextFormField(
-                      controller: _newUsername,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontFamily: 'Lato'),
-                      decoration: new InputDecoration(
-                        labelText: "Change Email",
-                      ),
-                      validator: (val) {
-                        //check if email is valid or even entered
-                        if (val != "") {
-                          bool containsDot = val.contains(".");
-                          bool containsAt = val.contains("@");
-                          if (!(containsDot && containsAt)) {
-                            return "Invalid Email";
-                          }
-                        }
-                        return null;
-                      },
-                    ),
-                    TextFormField(
-                        controller: _enteredOldPassword,
+      ),
+      body: Stack(children: <Widget>[
+        SingleChildScrollView(
+          child: Form(
+            key: _settingsForm,
+            child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  Center(
+                      child: Container(
+                          width: screenWidth * 0.8,
+                          child: TextFormField(
+                            controller: _newUsername,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontFamily: 'Lato'),
+                            decoration: new InputDecoration(
+                              labelText: "Change Email",
+                            ),
+                            validator: (val) {
+                              //check if email is valid or even entered
+                              if (val != "") {
+                                bool containsDot = val.contains(".");
+                                bool containsAt = val.contains("@");
+                                if (!(containsDot && containsAt)) {
+                                  return "Invalid Email";
+                                }
+                              }
+                              return null;
+                            },
+                          ))),
+                  Container(
+                      width: screenWidth * 0.8,
+                      child: TextFormField(
+                          controller: _enteredOldPassword,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontFamily: 'Lato'),
+                          obscureText: true,
+                          decoration: new InputDecoration(
+                            labelText: "Enter Old Password",
+                          ),
+                          validator: (val) {
+                            if (_newPassword.text != "") {
+                              if (val != _oldpassword && val != "") {
+                                return "Old Password Is Wrong";
+                              }
+                            }
+                            return null;
+                          })),
+                  Container(
+                      width: screenWidth * 0.8,
+                      child: TextFormField(
+                        controller: _newPassword,
                         textAlign: TextAlign.center,
                         style: TextStyle(fontFamily: 'Lato'),
                         obscureText: true,
                         decoration: new InputDecoration(
-                          labelText: "Enter Old Password",
-                        ),
+                            labelText: "Enter New Password"),
                         validator: (val) {
-                          if (_newPassword.text != "") {
-                            if (val != _oldpassword && val != "") {
-                              return "Old Password Is Wrong";
-                            }
+                          if (val == "") {
+                            return null;
+                          }
+                          if (_enteredOldPassword.text == "") {
+                            return "Please Enter Your Old Password";
+                          }
+                          if (val.length < 8) {
+                            return "Password too weak";
                           }
                           return null;
-                        }),
-                    TextFormField(
-                      controller: _newPassword,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontFamily: 'Lato'),
-                      obscureText: true,
-                      decoration:
-                          new InputDecoration(labelText: "Enter New Password"),
-                      validator: (val) {
-                        if (val == "") {
-                          return null;
-                        }
-                        if (_enteredOldPassword.text == "") {
-                          return "Please Enter Your Old Password";
-                        }
-                        if (val.length < 8) {
-                          return "Password too weak";
-                        }
-                        return null;
-                      },
-                    ),
-                    FlatButton(
-                      child: _isAutoLoginEnabled
-                          ? Text(
-                              "Disable Autofill",
-                              style: TextStyle(
-                                  fontFamily: 'Lato', color: Colors.red),
-                            )
-                          : Text("Enable Autofill",
-                              style: TextStyle(
-                                  fontFamily: 'Lato', color: Colors.blue)),
-                      onPressed: () => setState(
-                          () => _isAutoLoginEnabled = !_isAutoLoginEnabled),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8.0),
-                      child: RaisedButton(
-                        color: Colors.blue,
-                        textColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8)),
-                        child: Text(
-                          "Apply Changes",
-                          style: TextStyle(fontFamily: 'Lato', fontSize: 32),
-                        ),
-                        onPressed: () {
-                          if (_settingsForm.currentState.validate()) {
-                            changeDetails();
-                          }
                         },
-                      ),
-                    )
-                  ],
-                ),
-              ),
-            ),
-            if (_isAsyncActionOccuring)
-              Stack(
-                children: <Widget>[
-                  Container(
-                    color: Colors.black45,
+                      )),
+                  FlatButton(
+                    child: _isAutoLoginEnabled
+                        ? Text(
+                            "Disable Autofill",
+                            style: TextStyle(
+                                fontFamily: 'Lato', color: Colors.red),
+                          )
+                        : Text("Enable Autofill",
+                            style: TextStyle(
+                                fontFamily: 'Lato', color: Colors.blue)),
+                    onPressed: () => setState(
+                        () => _isAutoLoginEnabled = !_isAutoLoginEnabled),
                   ),
-                  Container(
-                    child: Positioned(
-                        top: MediaQuery.of(context).size.height / 2,
-                        right: MediaQuery.of(context).size.width / 2,
-                        child: CircularProgressIndicator()),
-                  )
-                ],
+                  Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: ButtonTheme(
+                        minWidth: 150.0,
+                        height: screenHeight * 0.11,
+                        child: RaisedButton(
+                          color: Colors.blue,
+                          textColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30)),
+                          child: Text(
+                            "Apply Changes",
+                            style: new TextStyle(
+                                fontSize: 20 * textScaleFactor,
+                                fontFamily: 'Lato'),
+                          ),
+                          onPressed: () {
+                            if (_settingsForm.currentState.validate()) {
+                              changeDetails();
+                            }
+                          },
+                        ),
+                      ))
+                ]),
+          ),
+        ),
+        if (_isAsyncActionOccuring)
+          Stack(
+            children: <Widget>[
+              Container(
+                color: Colors.black45,
+              ),
+              Container(
+                child: Positioned(
+                    top: MediaQuery.of(context).size.height / 2,
+                    right: MediaQuery.of(context).size.width / 2,
+                    child: CircularProgressIndicator()),
               )
-          ],
-        ));
+            ],
+          )
+      ]),
+    );
   }
 }

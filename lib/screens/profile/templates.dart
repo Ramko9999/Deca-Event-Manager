@@ -14,6 +14,8 @@ class DynamicProfileUI extends StatelessWidget {
   }
 
   Widget build(BuildContext context) {
+    double screenWidth = MediaQuery.of(context).size.width;
+    double textScaleFactor = MediaQuery.of(context).textScaleFactor;
     return StreamBuilder(
         //connecting to firebase and gathering user data
         stream: Firestore.instance
@@ -53,7 +55,8 @@ class DynamicProfileUI extends StatelessWidget {
                     _firstName + ". " + _lastName[0],
                     textAlign: TextAlign.center,
                     style: new TextStyle(
-                        fontSize: 36, decoration: TextDecoration.underline),
+                        fontSize: 36 * textScaleFactor,
+                        decoration: TextDecoration.underline),
                   ),
                 ),
                 Container(
@@ -65,13 +68,13 @@ class DynamicProfileUI extends StatelessWidget {
                           Text("Gold Points: ",
                               textAlign: TextAlign.center,
                               style: new TextStyle(
-                                fontSize: 24,
+                                fontSize: 24 * textScaleFactor,
                               )),
                           Spacer(),
                           Text(_goldPoints.toString(),
                               textAlign: TextAlign.center,
                               style: new TextStyle(
-                                  fontSize: 24,
+                                  fontSize: 24 * textScaleFactor,
                                   color: Color.fromARGB(255, 249, 166, 22)))
                         ],
                       ),
@@ -80,13 +83,13 @@ class DynamicProfileUI extends StatelessWidget {
                           Text("Member Status: ",
                               textAlign: TextAlign.center,
                               style: new TextStyle(
-                                fontSize: 24,
+                                fontSize: 24 * textScaleFactor,
                               )),
                           Spacer(),
                           Text(_memberLevel,
                               textAlign: TextAlign.center,
                               style: new TextStyle(
-                                fontSize: 24,
+                                fontSize: 24 * textScaleFactor,
                               ))
                         ],
                       ),

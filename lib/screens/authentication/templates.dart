@@ -1,12 +1,12 @@
+import 'package:connectivity/connectivity.dart';
+import 'package:deca_app/utility/error_popup.dart';
+import 'package:deca_app/utility/single_action_popup.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter_first_app/screens/profile/profile_screen.dart';
-import 'package:flutter_first_app/utility/single_action_popup.dart';
+import 'package:deca_app/screens/profile/profile_screen.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:connectivity/connectivity.dart';
-import 'package:flutter_first_app/utility/error_popup.dart';
 import 'dart:io';
 import 'dart:convert';
 
@@ -28,11 +28,9 @@ class _LoginTemplateState extends State<LoginTemplate> {
   bool _isLogginIn = false;
 
   _LoginTemplateState() {
-    //used to pull up the locally stored information
     autoLogin();
   }
 
-  //method auto fills username and password fields if they exist
   void autoLogin() async {
     final appDirectory = await getApplicationDocumentsDirectory();
     //check to see if the file for the json object is there
@@ -120,11 +118,13 @@ class _LoginTemplateState extends State<LoginTemplate> {
   }
 
   Widget build(BuildContext context) {
+    double textScaleFactor = MediaQuery.of(context).textScaleFactor;
     double screenWidth = MediaQuery.of(context).size.width;
+    double screenHeight = MediaQuery.of(context).size.height;
     return Stack(
       children: <Widget>[
         Container(
-          width: screenWidth - 50,
+          width: screenWidth * 0.8,
           child: Column(
             children: <Widget>[
               Padding(
@@ -134,7 +134,7 @@ class _LoginTemplateState extends State<LoginTemplate> {
                     "Login",
                     style: new TextStyle(
                       fontFamily: 'Lato',
-                      fontSize: 32,
+                      fontSize: 32 * textScaleFactor,
                     ),
                   ),
                 ),
@@ -146,11 +146,13 @@ class _LoginTemplateState extends State<LoginTemplate> {
                     Padding(
                       padding: EdgeInsets.only(top: 15),
                       child: Container(
-                        width: screenWidth - 150,
+                        width: screenWidth * 0.65,
                         //make this a TextField if using controller
                         child: TextFormField(
                           controller: _username,
-                          style: TextStyle(fontFamily: 'Lato'),
+                          style: TextStyle(
+                              fontFamily: 'Lato',
+                              fontSize: 18 * textScaleFactor),
                           validator: (val) {
                             if (val != "") {
                               setState(() {
@@ -174,11 +176,12 @@ class _LoginTemplateState extends State<LoginTemplate> {
                       ),
                     ),
                     Container(
-                      width: screenWidth - 150,
+                      width: screenWidth * 0.65,
                       //make this a TextField if using controller
                       child: TextFormField(
                         controller: _password,
-                        style: TextStyle(fontFamily: 'Lato'),
+                        style: TextStyle(
+                            fontFamily: 'Lato', fontSize: 18 * textScaleFactor),
                         validator: (val) {
                           if (val == "") {
                             return "Field is empty";
@@ -203,10 +206,14 @@ class _LoginTemplateState extends State<LoginTemplate> {
                         child: !_desiresAutoLogin
                             ? Text("Enable Auto-Login",
                                 style: TextStyle(
-                                    fontFamily: 'Lato', color: Colors.blue))
+                                    fontFamily: 'Lato',
+                                    color: Colors.blue,
+                                    fontSize: 18 * textScaleFactor))
                             : Text("Disable Auto-Login",
                                 style: TextStyle(
-                                    fontFamily: 'Lato', color: Colors.red)),
+                                    fontFamily: 'Lato',
+                                    color: Colors.red,
+                                    fontSize: 18 * textScaleFactor)),
                         onPressed: () => setState(
                             () => _desiresAutoLogin = !_desiresAutoLogin),
                       ),
@@ -214,8 +221,8 @@ class _LoginTemplateState extends State<LoginTemplate> {
                     Padding(
                       padding: new EdgeInsets.all(20.0),
                       child: ButtonTheme(
-                          minWidth: 150.0,
-                          height: 45.0,
+                          minWidth: 150,
+                          height: screenHeight * 0.07,
                           child: RaisedButton(
                             textColor: Colors.white,
                             color: Colors.blue,
@@ -225,7 +232,8 @@ class _LoginTemplateState extends State<LoginTemplate> {
                               child: Text(
                                 "Login",
                                 style: new TextStyle(
-                                    fontSize: 20, fontFamily: 'Lato'),
+                                    fontSize: 20 * textScaleFactor,
+                                    fontFamily: 'Lato'),
                               ),
                             ),
                             onPressed: () {
@@ -244,10 +252,10 @@ class _LoginTemplateState extends State<LoginTemplate> {
         ),
         if (_isLogginIn)
           Container(
-              width: 250,
+              width: screenWidth * 0.8,
               alignment: Alignment.bottomCenter,
               child: Padding(
-                padding: const EdgeInsets.only(top: 120),
+                padding: EdgeInsets.only(top: screenHeight * 0.23),
                 child: CircularProgressIndicator(),
               )),
       ],
@@ -342,18 +350,22 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
   }
 
   Widget build(BuildContext context) {
+    double textScaleFactor = MediaQuery.of(context).textScaleFactor;
     double screenWidth = MediaQuery.of(context).size.width;
+    double screenHeight = MediaQuery.of(context).size.height;
     return Stack(
       children: <Widget>[
         Container(
-          width: screenWidth - 50,
+          width: screenWidth * 0.8,
           child: Column(
             children: <Widget>[
               Padding(
                 padding: const EdgeInsets.only(top: 15),
                 child: Container(
                     child: Text("Register",
-                        style: TextStyle(fontFamily: 'Lato', fontSize: 32))),
+                        style: TextStyle(
+                            fontFamily: 'Lato',
+                            fontSize: 32 * textScaleFactor))),
               ),
               new Form(
                   key: _registrationFormKey,
@@ -362,9 +374,11 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
                       Padding(
                         padding: const EdgeInsets.only(top: 5),
                         child: Container(
-                          width: screenWidth - 150,
+                          width: screenWidth * 0.65,
                           child: TextFormField(
-                            style: new TextStyle(fontFamily: 'Lato'),
+                            style: new TextStyle(
+                                fontFamily: 'Lato',
+                                fontSize: 18 * textScaleFactor),
                             textAlign: TextAlign.center,
                             decoration:
                                 InputDecoration(labelText: "First Name"),
@@ -379,12 +393,15 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
                         ),
                       ),
                       Container(
-                        width: screenWidth - 150,
+                        width: screenWidth * 0.65,
                         child: TextFormField(
-                          style: new TextStyle(fontFamily: 'Lato'),
+                          style: new TextStyle(
+                              fontFamily: 'Lato',
+                              fontSize: 18 * textScaleFactor),
                           textAlign: TextAlign.center,
-                          decoration:
-                              new InputDecoration(labelText: 'Last Name'),
+                          decoration: new InputDecoration(
+                            labelText: 'Last Name',
+                          ),
                           validator: (val) {
                             if (val == "") {
                               return "Field is empty";
@@ -395,9 +412,11 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
                         ),
                       ),
                       Container(
-                        width: screenWidth - 150,
+                        width: screenWidth * 0.65,
                         child: TextFormField(
-                          style: new TextStyle(fontFamily: 'Lato'),
+                          style: new TextStyle(
+                              fontFamily: 'Lato',
+                              fontSize: 18 * textScaleFactor),
                           validator: (val) {
                             if (val == "") {
                               return "Field is empty";
@@ -420,9 +439,11 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
                         ),
                       ),
                       Container(
-                        width: screenWidth - 150,
+                        width: screenWidth * 0.65,
                         child: TextFormField(
-                          style: new TextStyle(fontFamily: 'Lato'),
+                          style: new TextStyle(
+                              fontFamily: 'Lato',
+                              fontSize: 18 * textScaleFactor),
                           validator: (val) {
                             if (val == "") {
                               return "Field is empty";
@@ -446,7 +467,7 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
                         padding: new EdgeInsets.all(20.0),
                         child: ButtonTheme(
                             minWidth: 150.0,
-                            height: 45.0,
+                            height: screenHeight * 0.07,
                             child: RaisedButton(
                               textColor: Colors.white,
                               color: Colors.blue,
@@ -456,7 +477,8 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
                                 child: Text(
                                   "Register",
                                   style: new TextStyle(
-                                      fontSize: 20, fontFamily: 'Lato'),
+                                      fontSize: 20 * textScaleFactor,
+                                      fontFamily: 'Lato'),
                                 ),
                               ),
                               onPressed: tryToRegister,
@@ -469,9 +491,12 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
         ),
         if (_isTryingToRegister) //to add the progress indicator
           Container(
-              width: screenWidth - 50,
+              width: screenWidth * 0.8,
               alignment: Alignment.center,
-              child: CircularProgressIndicator())
+              child: Padding(
+                padding: EdgeInsets.only(top: screenHeight * 0.27),
+                child: CircularProgressIndicator(),
+              ))
       ],
     );
   }

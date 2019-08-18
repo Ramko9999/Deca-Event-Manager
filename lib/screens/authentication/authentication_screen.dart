@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_first_app/screens/authentication/templates.dart';
+import 'package:deca_app/screens/authentication/templates.dart';
 
 class AuthenticationScreen extends StatefulWidget {
   @override
@@ -31,6 +31,8 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
   Widget build(BuildContext context) {
     // TODO: implement build
     double screenWidth = MediaQuery.of(context).size.width;
+    double screenHeight = MediaQuery.of(context).size.height;
+    double textScaleFactor = MediaQuery.of(context).textScaleFactor;
     return Scaffold(
         backgroundColor: Colors.white,
         body: Stack(children: [
@@ -52,13 +54,13 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
                         alignment: Alignment.bottomCenter,
                         child: Column(children: [
                           Container(
-                              width: 350,
-                              height: 50,
+                              width: screenWidth * 0.85,
+                              height: screenHeight * 0.08,
                               child: new RaisedButton(
                                 child: Text('Sign In',
                                     style: new TextStyle(
-                                      fontSize: 20.0,
-                                    )),
+                                        fontSize: 24.0 * textScaleFactor,
+                                        fontFamily: 'Lato')),
                                 textColor: Colors.white,
                                 color: Colors.blue,
                                 onPressed: createNewLoginTemplate,
@@ -66,16 +68,16 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
                                     borderRadius: BorderRadius.circular(30)),
                               )),
                           Container(
-                            height: 15,
+                            height: screenHeight * 0.02,
                           ),
                           Container(
-                              width: 350,
-                              height: 50,
+                              width: screenWidth * 0.85,
+                              height: screenHeight * 0.08,
                               child: new RaisedButton(
                                   child: Text('Sign Up',
                                       style: new TextStyle(
-                                        fontSize: 20.0,
-                                      )),
+                                          fontSize: 24.0 * textScaleFactor,
+                                          fontFamily: 'Lato')),
                                   textColor: Colors.black,
                                   color: Colors.white,
                                   onPressed: createNewRegisterTemplate,
@@ -96,7 +98,7 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
               ),
               SingleChildScrollView(
                 child: Padding(
-                  padding: new EdgeInsets.only(top: 100, bottom: 75),
+                  padding: new EdgeInsets.only(top: screenHeight / 4),
                   child: Align(
                     alignment: Alignment.bottomCenter,
                     child: Container(
@@ -122,7 +124,7 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
                 ),
                 SingleChildScrollView(
                   child: Padding(
-                    padding: EdgeInsetsDirectional.only(top: 70),
+                    padding: EdgeInsetsDirectional.only(top: screenHeight / 7),
                     child: Align(
                         alignment: Alignment.bottomCenter,
                         child: Container(
