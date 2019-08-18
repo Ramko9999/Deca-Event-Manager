@@ -9,15 +9,19 @@ class NavigationDrawer extends StatelessWidget {
 
   Widget build(BuildContext context) {
     return Container(
-      width: MediaQuery.of(context).size.width * 0.6,
-      child: Drawer(
-        child: ListView(children: <Widget>[
-          FlatButton(
-              child: Text("QR Reader"),
-              onPressed: () => Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => new Scanner(10))))
-        ]),
-      ),
-    );
+        width: MediaQuery.of(context).size.width * 0.6,
+        child: Drawer(
+          child: ListView(
+            children: <Widget>[
+              FlatButton(
+                  child: Text("QR Code"),
+                  onPressed: () async => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => new QrScreen(_uid)))),
+                          
+            ],
+          ),
+        ));
   }
 }

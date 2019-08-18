@@ -1,12 +1,12 @@
-class Seacher {
+class Searcher {
   List<Map> _users;
-  String _firstQuery;
-  String _lastQuery;
+  String firstQuery;
+  String lastQuery;
 
   Searcher(users, firstName, lastName) {
     this._users = users;
-    this._firstQuery = firstName;
-    this._lastQuery = lastName;
+    this.firstQuery = firstName;
+    this.lastQuery = lastName;
   }
 
   //returns a MaxList containing most relevant search results at the top of list
@@ -14,13 +14,19 @@ class Seacher {
     //relevance is based on the longest common substring shared between the query and values
     MaxList relevanceList = new MaxList();
     for (int i = 0; i < _users.length; i++) {
-      Map firstNameRelevance =
-          findLongestCommonSubstring(_firstQuery, _users[i]['first_name']);
-      Map lastNameRelevance =
-          findLongestCommonSubstring(_lastQuery, _users[i]['last_name']);
-      Map fullNameRelevance = {
-        [_users[i]['first_name'], _users[i]['last_name']]:
-            firstNameRelevance['Points'] + lastNameRelevance['Points']
+      Map firstNameRelevance = {'Points': 0};
+      Map lastNameRelevance = {'Points': 0};
+      if(firstQuery != ""){
+        firstNameRelevance =
+          findLongestCommonSubstring(firstQuery, _users[i]['first_name']);
+      }
+      if(lastQuery != ""){
+        lastNameRelevance =
+          findLongestCommonSubstring(lastQuery, _users[i]['last_name']);
+      }
+      
+      Map fullNameRelevance = {'info': _users[i],
+            'Points': firstNameRelevance['Points'] + lastNameRelevance['Points'],
       };
       relevanceList.append(Node(fullNameRelevance));
     }
@@ -60,6 +66,7 @@ class Seacher {
 
 class MaxList {
   Node head; //this should be the maximum node
+  int length;
 
   MaxList() {
     head = null;
@@ -115,8 +122,9 @@ class MaxList {
         lastNode.next = nextNode;
         nextNode.previous = lastNode;
       }
-    }
 
+    }
+    length++;
     printNodes();
   }
 }
