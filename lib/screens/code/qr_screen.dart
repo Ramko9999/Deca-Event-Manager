@@ -10,7 +10,6 @@ class QrScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
     return Scaffold(
-      drawer: new NavigationDrawer(_uid),
       body: Center(
         child: Container(
           width: screenWidth - 75,

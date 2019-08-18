@@ -1,3 +1,4 @@
+import 'package:deca_app/screens/admin/admin_main.dart';
 import 'package:flutter/material.dart';
 import 'package:deca_app/screens/settings/setting_screen.dart';
 import 'package:deca_app/utility/navigation_drawer.dart';
@@ -48,7 +49,21 @@ class ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: changeScreen(_selectedIndex),
-      drawer: new NavigationDrawer(_uid),
+      drawer: Container(
+          width: MediaQuery.of(context).size.width * 0.6,
+          child: Drawer(
+            child: ListView(
+              children: <Widget>[
+                ListTile(
+                    title: Text("Admin Functions",textAlign: TextAlign.center,),
+                    onTap:() async => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => new AdminScreen(_uid)))),
+              ],
+            ),
+          )
+      ),
       appBar: new AppBar(
         title: (_selectedIndex == 0)
                 ? Text("Profile"):
@@ -69,8 +84,8 @@ class ProfileScreenState extends State<ProfileScreen> {
       ),
       bottomNavigationBar: BottomNavigationBar(items: const <BottomNavigationBarItem>[
         BottomNavigationBarItem(
-          icon: Icon(Icons.home),
-          title: Text('Home'),
+          icon: Icon(Icons.account_circle),
+          title: Text('Profile'),
         ),
         BottomNavigationBarItem(
           icon: Icon(MdiIcons.qrcode),

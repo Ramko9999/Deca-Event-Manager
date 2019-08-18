@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 class DynamicProfileUI extends StatelessWidget {
   String _uid;
@@ -14,6 +15,8 @@ class DynamicProfileUI extends StatelessWidget {
   }
 
   Widget build(BuildContext context) {
+    double screenWidth = MediaQuery.of(context).size.width;
+    double screenHeight = MediaQuery.of(context).size.height;
     return StreamBuilder(
         //connecting to firebase and gathering user data
         stream: Firestore.instance
@@ -30,7 +33,7 @@ class DynamicProfileUI extends StatelessWidget {
             _goldPoints = userInfo.data['gold_points'];
             //setting memberLevel based on gold points
             if (_goldPoints < 75) {
-              _memberLevel = "Not a member yet!";
+              _memberLevel = "N/A";
             }
             else if (_goldPoints < 125) {
               _memberLevel = "Member";
@@ -49,51 +52,80 @@ class DynamicProfileUI extends StatelessWidget {
                 child: Column(
               children: <Widget>[
                 Container(
+                  padding: new EdgeInsets.fromLTRB(20.0, 20.0, 30.0, 15.0),
                   width: double.infinity,
-                  padding: new EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 0.0),
-                  child: Text(
-                    _firstName + ". " + _lastName[0],
-                    textAlign: TextAlign.center,
+                  child: Text("Hello " +
+                    _firstName + '.',
+                    textAlign: TextAlign.left,
                     style: new TextStyle(
-                        fontSize: 36, decoration: TextDecoration.underline),
+                        fontSize: 36, fontFamily: 'Lato-Regular'),
                   ),
                 ),
                 Container(
-                  padding: new EdgeInsets.fromLTRB(30.0, 15.0, 30.0, 0.0),
-                  child: Column(
-                    children: <Widget>[
-                      Row(
-                        children: <Widget>[
-                          Text("Gold Points: ",
-                              textAlign: TextAlign.center,
-                              style: new TextStyle(
-                                fontSize: 24,
-                              )),
-                          Spacer(),
-                          Text(_goldPoints.toString(),
-                              textAlign: TextAlign.center,
-                              style: new TextStyle(
-                                  fontSize: 24,
-                                  color: Color.fromARGB(255, 249, 166, 22)))
-                        ],
+                  height: screenHeight - 400,
+                  width: screenWidth - 25,
+                  child:
+                    ListView(children: <Widget>[
+                      Card(
+                        child: ListTile(
+                          leading: Icon(Icons.stars,
+                          color: Color.fromARGB(255, 249, 166, 22)),
+                          title: Text('Gold Points',
+                            textAlign: TextAlign.left,
+                            style: new TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 20
+                            )
+                          ),
+                          trailing: Text(_goldPoints.toString(),
+                            textAlign: TextAlign.center,
+                            style: new TextStyle(
+                                fontSize: 25,
+                                color: Color.fromARGB(255, 249, 166, 22)
+                            ),
+                        ),
+                      )
                       ),
-                      Row(
-                        children: <Widget>[
-                          Text("Member Status: ",
+                      Card(
+                          child: ListTile(
+                            leading: Icon(MdiIcons.accountBadge,
+                                color:  (_memberLevel == 'Member')?
+                                  Colors.blueAccent:
+                                  (_memberLevel == 'Silver')?
+                                  Colors.blueGrey:
+                                  (_memberLevel == 'Gold')?
+                                  Color.fromARGB(255, 249, 166, 22):
+                                  Colors.black),
+                            title: Text('Member Status',
+                                textAlign: TextAlign.left,
+                                style: new TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 20
+                                )
+                            ),
+                            subtitle: (_memberLevel == 'N/A')?
+                                        Text((75 - _goldPoints).toString() + ' GP until you\'re a member!'):
+                                      (_memberLevel == 'Member')?
+                                        Text((125 - _goldPoints).toString() + ' GP until you\'re a SILVER member!'):
+                                      (_memberLevel == 'Silver')?
+                                        Text((200 - _goldPoints).toString() + ' GP until you\'re a GOLD member!'):null,
+
+                            trailing: Text(_memberLevel,
                               textAlign: TextAlign.center,
                               style: new TextStyle(
-                                fontSize: 24,
-                              )),
-                          Spacer(),
-                          Text(_memberLevel,
-                              textAlign: TextAlign.center,
-                              style: new TextStyle(
-                                fontSize: 24,
-                              ))
-                        ],
-                      ),
-                    ],
-                  ),
+                                  fontSize: 20,
+                                  color: (_memberLevel == 'Member') ?
+                                    Colors.blueAccent :
+                                    (_memberLevel == 'Silver') ?
+                                    Colors.blueGrey :
+                                    (_memberLevel == 'Gold') ?
+                                    Color.fromARGB(255, 249, 166, 22) :
+                                    Colors.black
+                              ),
+                            ),
+                          )
+                      )
+                    ],)
                 ),
               ],
             ));

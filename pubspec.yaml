@@ -14,7 +14,7 @@ description: A DECA app for the Eden Prairie Chapter
 version: 1.0.0+1
 
 environment:
-  sdk: ">=2.1.0 <3.0.0"
+  sdk: ">=2.2.2 <3.0.0"
 
 dependencies:
   flutter:
@@ -25,6 +25,8 @@ dependencies:
   connectivity:
   qr_flutter:
   material_design_icons_flutter: ^3.2.3895
+  flutter_datetime_picker: ^1.2.6
+  intl: ^0.15.8
 
 
   # The following adds the Cupertino Icons font to your application.
@@ -68,6 +70,9 @@ flutter:
        fonts:
          - asset: fonts/Lato/Lato-Black.ttf
          - asset: fonts/Lato/Lato-Bold.ttf
+     - family: Lato-Regular
+       fonts:
+         - asset: fonts/Lato/Lato-Regular.ttf
           
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages

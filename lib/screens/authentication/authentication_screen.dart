@@ -49,9 +49,12 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
                       Align(
                         alignment: Alignment(0.0, -0.6),
                         child:
-                          Image.asset(
-                              'assets/logos/DECA-Here-We-Go-1024x583.png',
-                            fit: BoxFit.cover
+                          Container(
+                            width: screenWidth - 50,
+                            child: Image.asset(
+                                'assets/logos/DECA-Here-We-Go-1024x583.png',
+                              fit: BoxFit.cover
+                            ),
                           ),
 
                       )
@@ -68,7 +71,7 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
                               Column(
                                 children: [
                                   Container(
-                                    width: 350,
+                                    width: screenWidth - 100,
                                     height: 50,
                                     child:  new RaisedButton(
                                       child: Text('Sign In',
@@ -86,7 +89,7 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
                                     height: 15,
                                   ),
                                   Container(
-                                      width: 350,
+                                      width: screenWidth - 100,
                                       height: 50,
                                       child:  new RaisedButton(
                                           child: Text('Sign Up',

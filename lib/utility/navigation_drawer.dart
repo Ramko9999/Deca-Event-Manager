@@ -18,21 +18,6 @@ class NavigationDrawer extends StatelessWidget {
                       context,
                       MaterialPageRoute(
                           builder: (context) => new QrScreen(_uid)))),
-              FlatButton(
-                child: Text("Chats"),
-                onPressed: () async => Navigator.push(
-                    context, MaterialPageRoute(builder: (context) => null)),
-              ),
-              FlatButton(
-                  child: Text("Notifications"),
-                  onPressed: () async => Navigator.push(
-                      context, MaterialPageRoute(builder: (context) => null))),
-              FlatButton(
-                  child: Text("Home"),
-                  onPressed: () async => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => new ProfileScreen(_uid))))
             ],
           ),
         ));

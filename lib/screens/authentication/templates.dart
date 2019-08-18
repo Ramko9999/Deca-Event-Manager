@@ -152,7 +152,7 @@ class _LoginTemplateState extends State<LoginTemplate> {
                     Padding(
                       padding: EdgeInsets.only(top: 15),
                       child: Container(
-                        width: screenWidth - 150,
+                        width: screenWidth - 100,
                         //make this a TextField if using controller
                         child: TextFormField(
                           controller: _username,
@@ -180,7 +180,7 @@ class _LoginTemplateState extends State<LoginTemplate> {
                       ),
                     ),
                     Container(
-                      width: screenWidth - 150,
+                      width: screenWidth - 100,
                       //make this a TextField if using controller
                       child: TextFormField(
                         controller: _password,
@@ -368,7 +368,7 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
                       Padding(
                         padding: const EdgeInsets.only(top: 5),
                         child: Container(
-                          width: screenWidth - 150,
+                          width: screenWidth - 100,
                           child: TextFormField(
                             style: new TextStyle(fontFamily: 'Lato'),
                             textAlign: TextAlign.center,
@@ -385,7 +385,7 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
                         ),
                       ),
                       Container(
-                        width: screenWidth - 150,
+                        width: screenWidth - 100,
                         child: TextFormField(
                           style: new TextStyle(fontFamily: 'Lato'),
                           textAlign: TextAlign.center,
@@ -401,7 +401,7 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
                         ),
                       ),
                       Container(
-                        width: screenWidth - 150,
+                        width: screenWidth - 100,
                         child: TextFormField(
                           style: new TextStyle(fontFamily: 'Lato'),
                           validator: (val) {
@@ -426,7 +426,7 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
                         ),
                       ),
                       Container(
-                        width: screenWidth - 150,
+                        width: screenWidth - 100,
                         child: TextFormField(
                           style: new TextStyle(fontFamily: 'Lato'),
                           validator: (val) {
