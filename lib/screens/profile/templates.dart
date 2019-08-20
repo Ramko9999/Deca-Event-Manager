@@ -37,10 +37,10 @@ class DynamicProfileUI extends StatelessWidget {
             } else if (_goldPoints < 125) {
               _memberLevel = "Member";
             }
-            if (_goldPoints >= 150) {
+            else if (_goldPoints < 200) {
               _memberLevel = "Silver";
             }
-            if (_goldPoints >= 300) {
+            else{
               _memberLevel = "Gold";
             }
 
@@ -77,34 +77,36 @@ class DynamicProfileUI extends StatelessWidget {
                             _goldPoints.toString(),
                             textAlign: TextAlign.center,
                             style: new TextStyle(
-                                fontSize: 25,
-                                color: Color.fromARGB(255, 249, 166, 22)),
-                          ),
-                        )),
-                        Card(
-                            child: ListTile(
-                          leading: Icon(MdiIcons.accountBadge,
-                              color: (_memberLevel == 'Member')
-                                  ? Colors.blueAccent
-                                  : (_memberLevel == 'Silver')
-                                      ? Colors.blueGrey
-                                      : (_memberLevel == 'Gold')
-                                          ? Color.fromARGB(255, 249, 166, 22)
-                                          : Colors.black),
-                          title: Text('Member Status',
-                              textAlign: TextAlign.left,
-                              style: new TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 20)),
-                          subtitle: (_memberLevel == 'N/A')
-                              ? Text((75 - _goldPoints).toString() +
-                                  ' GP until you\'re a member!')
-                              : (_memberLevel == 'Member')
-                                  ? Text((125 - _goldPoints).toString() +
-                                      ' GP until you\'re a SILVER member!')
-                                  : (_memberLevel == 'Silver')
-                                      ? Text((200 - _goldPoints).toString() +
-                                          ' GP until you\'re a GOLD member!')
-                                      : null,
+                                fontSize: 20,
+                                color: Color.fromARGB(255, 249, 166, 22)
+                            ),
+                        ),
+                      )
+                      ),
+                      Card(
+                          child: ListTile(
+                            leading: Icon(MdiIcons.accountBadge,
+                                color:  (_memberLevel == 'Member')?
+                                  Colors.blueAccent:
+                                  (_memberLevel == 'Silver')?
+                                  Colors.blueGrey:
+                                  (_memberLevel == 'Gold')?
+                                  Color.fromARGB(255, 249, 166, 22):
+                                  Colors.black),
+                            title: Text('Member Status',
+                                textAlign: TextAlign.left,
+                                style: new TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 20
+                                )
+                            ),
+                            subtitle: (_memberLevel == 'N/A')?
+                                        Text((75 - _goldPoints).toString() + ' GP until you\'re a member!'):
+                                      (_memberLevel == 'Member')?
+                                        Text((125 - _goldPoints).toString() + ' GP until you\'re a SILVER member!'):
+                                      (_memberLevel == 'Silver')?
+                                        Text((200 - _goldPoints).toString() + ' GP until you\'re a GOLD member!'):null,
+                          
                           trailing: Text(
                             _memberLevel,
                             textAlign: TextAlign.center,
