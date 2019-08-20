@@ -19,7 +19,6 @@ class NavigationDrawer extends StatelessWidget {
                       context,
                       MaterialPageRoute(
                           builder: (context) => new QrScreen(_uid)))),
-                          
             ],
           ),
         ));

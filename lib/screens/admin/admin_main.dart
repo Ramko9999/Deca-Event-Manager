@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:deca_app/screens/admin//templates.dart';
 import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 
-class AdminScreen extends StatefulWidget
-{
+class AdminScreen extends StatefulWidget {
   String _uid;
 
   AdminScreen(this._uid);
@@ -14,11 +13,9 @@ class AdminScreen extends StatefulWidget
   }
 }
 
-class _AdminScreenState extends State<AdminScreen>
-{
+class _AdminScreenState extends State<AdminScreen> {
   String uid;
-  _AdminScreenState(uid)
-  {
+  _AdminScreenState(uid) {
     this.uid = uid;
   }
   @override

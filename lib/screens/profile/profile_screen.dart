@@ -54,15 +54,17 @@ class ProfileScreenState extends State<ProfileScreen> {
             child: ListView(
               children: <Widget>[
                 ListTile(
-                    title: Text("Admin Functions",textAlign: TextAlign.center,),
-                    onTap:() async => Navigator.push(
+                    title: Text(
+                      "Admin Functions",
+                      textAlign: TextAlign.center,
+                    ),
+                    onTap: () async => Navigator.push(
                         context,
                         MaterialPageRoute(
                             builder: (context) => new AdminScreen(_uid)))),
               ],
             ),
-          )
-      ),
+          )),
       appBar: new AppBar(
         title: (_selectedIndex == 0)
             ? Text("Profile")
@@ -79,24 +81,22 @@ class ProfileScreenState extends State<ProfileScreen> {
           )
         ],
       ),
-      bottomNavigationBar: BottomNavigationBar(items: const <BottomNavigationBarItem>[
-        BottomNavigationBarItem(
-          icon: Icon(Icons.account_circle),
-          title: Text('Profile'),
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(MdiIcons.qrcode),
-          title: Text('Check-In'),
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.notifications),
-          title: Text('Notifications'),
-        ),
-        BottomNavigationBarItem(
-        icon: Icon(Icons.chat),
-        title: Text('Chats')
-        ),
-      ],
+      bottomNavigationBar: BottomNavigationBar(
+        items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: Icon(Icons.account_circle),
+            title: Text('Profile'),
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(MdiIcons.qrcode),
+            title: Text('Check-In'),
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.notifications),
+            title: Text('Notifications'),
+          ),
+          BottomNavigationBarItem(icon: Icon(Icons.chat), title: Text('Chats')),
+        ],
         currentIndex: _selectedIndex,
         selectedItemColor: Colors.blue,
         unselectedItemColor: Colors.grey,

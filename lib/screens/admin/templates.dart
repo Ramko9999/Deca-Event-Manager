@@ -14,95 +14,156 @@ import 'package:path_provider/path_provider.dart';
 import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'package:intl/intl.dart';
 
-class Finder extends StatefulWidget{
+class Finder extends StatefulWidget {
   Map eventMetaData;
 
-  Finder(Map e){
+  Finder(Map e) {
     this.eventMetaData = e;
   }
 
-  State<Finder> createState(){
+  State<Finder> createState() {
     return FinderState(eventMetaData);
   }
 }
 
-class FinderState extends State<Finder>{
+class FinderState extends State<Finder> {
   Map eventMetaData;
   TextEditingController _firstName = new TextEditingController();
   TextEditingController _lastName = new TextEditingController();
-  var barTitle;
-  
+  Node current;
+  MaxList results;
 
-  FinderState(Map e){
+  FinderState(Map e) {
     this.eventMetaData = e;
-    barTitle = Text("Search something");
   }
 
-  Widget build(BuildContext context){
+  Widget build(BuildContext context) {
+    double screenWidth = MediaQuery.of(context).size.width;
+    double screenHeight = MediaQuery.of(context).size.height;
     return Scaffold(
-      appBar: AppBar(
-        title: barTitle,
-        leading: IconButton(
-          icon: Icon(Icons.search),
-          onPressed: (){
-            setState((){
-              barTitle = Row(children: <Widget>[
-                TextField(
-                  controller: _firstName,
-                  onChanged:(val)=> setState(()=> print("grab results")) ,
-                  decoration: InputDecoration(
-                    labelText: 'First Name'
-                  ),
-                ),
-                TextField(
-                  controller: _lastName,
-                  decoration: InputDecoration(
-                    labelText: 'Last Name'
-                  ),
-                  onChanged: (val)=> setState(()=> print("grab results")),
-                )
-              ],);
-            });
-          },
-      ),
-    ),
-    body: SingleChildScrollView(child: grabListElements(context))
-    );
+        appBar: AppBar(
+          title: Text('Search'),
+        ),
+        body: Column(
+          children: <Widget>[
+            TextField(
+              controller: _firstName,
+              onChanged: (val) {
+                getData();
+              },
+              onSubmitted: (val) {
+                getData();
+              },
+              decoration: InputDecoration(labelText: "First Name"),
+            ),
+            TextField(
+              controller: _lastName,
+              onChanged: (val) {
+                getData();
+              },
+              onSubmitted: (val) {
+                getData();
+              },
+              decoration: InputDecoration(labelText: "Last Name"),
+            ),
+            Flexible(
+              child: current == null
+                  ? Container(
+                    child: CircularProgressIndicator()
+                    
+                    /*Column(children: <Widget>[
+                      Container(child: Image.asset("assets/logos/error-triangle.png"),
+                      width: screenWidth * 0.6, height: screenHeight * 0.6,),
+                      Text("No results were found!", textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.black, fontFamily: 'Lato', fontWeight: FontWeight.bold, fontSize: 32,))
+                    ],) */
+                  )
+                  : ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: results.getSize(),
+                      itemBuilder: (context, i) {
+                        print(results.getSize());
+                        print(current.element['info']);
+                        UserCard user =  UserCard(current.element);
+                        current = current.next;
+                        return user;
+                      }),
+            ),
+          ],
+        ));
   }
 
-  Widget grabListElements(BuildContext context){
-    MaxList relevanceList = getData();
-    if(relevanceList.length == 0){
-      return Text("No results bro!");
+  void getData() {
+    Firestore.instance.collection("Users").getDocuments().then((onDocuments) {
+      List<Map> userList = [];
+      //turn this into map with uid and names
+      for (int i = 0; i < onDocuments.documents.length; i++) {
+        Map userData = onDocuments.documents[i].data;
+        userList.add(userData);
+      }
+      Searcher searcher =
+          new Searcher(userList, _firstName.text, _lastName.text);
+      MaxList relevanceList = searcher.search();
+      setState(() {
+        results = relevanceList;
+        current = relevanceList.head;
+      });
+    });
+  }
+}
+
+class UserCard extends StatefulWidget {
+  Map userInfo;
+  UserCard(Map e) {
+    this.userInfo = e;
+  }
+
+  State<UserCard> createState() {
+    return UserCardState(userInfo);
+  }
+}
+
+class UserCardState extends State<UserCard> {
+  Map userInfo;
+  TextEditingController pointVal = new TextEditingController();
+  Color memberLevelColor;
+  static Color goldMember = Color.fromARGB(255, 249, 166, 22);
+  static Color silverMember = Colors.blueGrey;
+  static Color member = Colors.blueAccent;
+  static Color notMember = Colors.black;
+
+  UserCardState(Map u) {
+    this.userInfo = u;
+    int goldPoints = userInfo['info']['gold_points'] as int;
+    memberLevelColor = notMember;
+    if (goldPoints > 75) {
+      memberLevelColor = member;
     }
-
-    Node current = relevanceList.head;
-    return ListView.builder(
-      itemCount: relevanceList.length,
-      itemBuilder: (context, itemCount){
-       ListTile userTile = ListTile(
-         title: Text(current.element['info']['first_name'] + " " + current.element['info']['last_name'], style: TextStyle(fontFamily: 'Lato'),),
-         subtitle: Text(current.element['info']['god_points'], style: TextStyle(fontFamily: 'Lato', color:  Color.fromARGB(255, 249, 166, 22) ),),
-       );
-       current = current.next;
-       return userTile;
-      },
-    );
-
+    if (goldPoints > 150) {
+      memberLevelColor = silverMember;
+    }
+    if (goldPoints > 300) {
+      memberLevelColor = goldMember;
+    }
   }
 
-  MaxList getData(){
-     Firestore.instance.collection("Users").getDocuments().then((onDocuments){
-       List<Map> userList = [];
-       //turn this into map with uid and names
-       for(int i = 0; i <onDocuments.documents.length; i++){
-         Map userData = onDocuments.documents[i].data;
-         userList.add(userData);
-       }
-
-       Searcher searcher = new Searcher(userList, _firstName.text, _lastName.text);
-       return searcher.search(); //return a MaxList that contains all the values of the users in a relevant manner
-     });
+  Widget build(BuildContext context) {
+    return Card(
+        child: ListTile(
+      leading: Icon(Icons.person, color: memberLevelColor),
+      title: Text(
+        userInfo['info']['first_name'] + " " + userInfo['info']['last_name'],
+        style: TextStyle(fontFamily: 'Lato'),
+      ),
+      subtitle: Text(
+        userInfo['info']['gold_points'].toString(),
+        style: TextStyle(
+            fontFamily: 'Lato', color: Color.fromARGB(255, 249, 166, 22)),
+      ),
+      trailing: TextField(
+        controller: pointVal,
+      ),
+    ));
   }
 }
 
@@ -110,7 +171,7 @@ class Scanner extends StatefulWidget {
   Map eventMetaData;
 
   Scanner(Map e) {
-    this.eventMetaData  = e;
+    this.eventMetaData = e;
   }
   State<Scanner> createState() {
     return _ScannerState(eventMetaData);
@@ -143,7 +204,6 @@ class _ScannerState extends State<Scanner> {
 
   //scan the actual barcode through an image stream
   void scanImage() async {
-
     //starting image stream and saving file
     getApplicationDocumentsDirectory().then((dir) {
       String imagePath = dir.path + "/code.png"; //path for the image
@@ -163,31 +223,33 @@ class _ScannerState extends State<Scanner> {
             String userUniqueID = barcodes[0].rawValue;
 
             //check if uid has already been scanned
-            if(!_scannedUids.contains(userUniqueID)){
-              Firestore.instance
-                .collection("Users")
-                .document(userUniqueID)
-                .get()
-                .then((userData) {
-              //blindly increment gold points this might be where you want to change such that event data and user dictionary are updated
+            if (!_scannedUids.contains(userUniqueID)) {
               Firestore.instance
                   .collection("Users")
                   .document(userUniqueID)
-                  .updateData(
-                      {'gold_points': userData.data['gold_points'] + pointVal});
+                  .get()
+                  .then((userData) {
+                //blindly increment gold points this might be where you want to change such that event data and user dictionary are updated
+                Firestore.instance
+                    .collection("Users")
+                    .document(userUniqueID)
+                    .updateData({
+                  'gold_points': userData.data['gold_points'] + pointVal
+                });
 
-              //update the events
-              Firestore.instance.collection('Events').document(eventMetadata['event_name']).updateData({'attendee_count': FieldValue.increment(1)});        
-              //update the scaffold
+                //update the events
+                Firestore.instance
+                    .collection('Events')
+                    .document(eventMetadata['event_name'])
+                    .updateData({'attendee_count': FieldValue.increment(1)});
+                //update the scaffold
 
-              //append to the hashset the uniqueID
-              _scannedUids.add(userUniqueID);
-            }).catchError((onError) => print(onError));
-            }
-            else{
+                //append to the hashset the uniqueID
+                _scannedUids.add(userUniqueID);
+              }).catchError((onError) => print(onError));
+            } else {
               print("Already Scanned this person");
             }
-            
           }
         });
       }).catchError((onError) {
@@ -226,16 +288,17 @@ class _ScannerState extends State<Scanner> {
     });
   }
 
-  void dispose(){
+  void dispose() {
     _mainCamera.dispose();
     super.dispose();
   }
+
   Widget build(BuildContext context) {
     double screenHeight = MediaQuery.of(context).size.height;
     double screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
-      body: Column(
+        body: Column(
       children: <Widget>[
         _connectionState.contains('none')
             ? showDialog(
@@ -308,42 +371,46 @@ class _CreateEventUIState extends State<CreateEventUI> {
   }
 
   void executeEventCreation() async {
+    Map eventMetaData = {};
 
-   Map eventMetaData= {};
+    //creating a new event in Firestore
+    if (_isManualEnter) {
+      eventMetaData = {
+        "event_name": _eventName.text,
+        "event_date": _eventDate,
+        "event_type": _eventType,
+        "enter_type": _enterType,
+        "attendee_count": 0,
+      } as Map;
+      await Firestore.instance
+          .collection("Events")
+          .document(_eventName.text)
+          .setData(eventMetaData);
+      Navigator.of(context)
+          .push(MaterialPageRoute(builder: (context) => Finder(eventMetaData)));
+    } else {
+      eventMetaData = {
+        "event_name": _eventName.text,
+        "event_date": _eventDate,
+        "event_type": _eventType,
+        "enter_type": _enterType,
+        'gold_points': int.parse(_goldPoints.text),
+        "attendee_count": 0,
+      } as Map;
+      await Firestore.instance
+          .collection("Events")
+          .document(_eventName.text)
+          .setData(eventMetaData);
+      Navigator.of(context).push(
+          MaterialPageRoute(builder: (context) => Scanner(eventMetaData)));
+    }
 
-      //creating a new event in Firestore
-    if(_isManualEnter)
-      {
-        eventMetaData = {
-          "event_name": _eventName.text,
-          "event_date": _eventDate,
-          "event_type": _eventType,
-          "enter_type": _enterType,
-          "attendee_count":0,
-        } as Map;
-        await Firestore.instance.collection("Events").document(_eventName.text).setData(eventMetaData);
-        Navigator.of(context).push(MaterialPageRoute(builder: (context) => Finder(eventMetaData)));
-      }
-    else
-      {
-        eventMetaData = {
-          "event_name": _eventName.text,
-          "event_date": _eventDate,
-          "event_type": _eventType,
-          "enter_type": _enterType,
-          'gold_points': int.parse(_goldPoints.text),
-          "attendee_count":0,
-        } as Map;
-        await Firestore.instance.collection("Events").document(_eventName.text).setData(eventMetaData);
-        Navigator.of(context).push(MaterialPageRoute(builder: (context)=> Scanner(eventMetaData)));
-      }
+    setState(() => _isTryingToCreateEvent = false);
 
-      setState(() => _isTryingToCreateEvent = false);
-      
-      clearAll();
+    clearAll();
   }
-  void clearAll()
-  {
+
+  void clearAll() {
     setState(() {
       _eventName.clear();
       eventDateText = null;
@@ -353,43 +420,32 @@ class _CreateEventUIState extends State<CreateEventUI> {
       _goldPoints.clear();
     });
   }
-  bool validateForm(BuildContext context)
-  {
+
+  bool validateForm(BuildContext context) {
     String errorMessage;
     // Find the Scaffold in the widget tree and use
     // it to show a SnackBar.
-    if(_eventName.text == '')
-      {
-        errorMessage = 'Event Name is Empty';
-      }
-    else if(_eventDate == null)
-      {
-        errorMessage = 'Missing Date of Event';
-      }
-    else if(dropdownValue == null)
-      {
-        errorMessage = 'Missing Event Type';
-      }
-    else if(!(_isManualEnter || _isQuickEnter))
-    {
+    if (_eventName.text == '') {
+      errorMessage = 'Event Name is Empty';
+    } else if (_eventDate == null) {
+      errorMessage = 'Missing Date of Event';
+    } else if (dropdownValue == null) {
+      errorMessage = 'Missing Event Type';
+    } else if (!(_isManualEnter || _isQuickEnter)) {
       errorMessage = 'Missing Enter Type';
+    } else if (_isQuickEnter && _goldPoints.text == '') {
+      errorMessage = 'Missing Gold Points';
+    } else {
+      _eventType = dropdownValue;
+      _enterType = _isManualEnter ? 'ME' : 'QE';
+      return true;
     }
-    else if(_isQuickEnter && _goldPoints.text == '')
-      {
-        errorMessage = 'Missing Gold Points';
-      }
-    else
-      {
-        _eventType = dropdownValue;
-        _enterType = _isManualEnter?'ME':'QE';
-        return true;
-      }
-    SnackBar snackBar = SnackBar(content: Text(errorMessage,
-        textAlign: TextAlign.center,
-        style: new TextStyle(
-          fontSize: 20, fontWeight: FontWeight.bold
-        )),
-      backgroundColor: Colors.red,duration: Duration(seconds: 1),
+    SnackBar snackBar = SnackBar(
+      content: Text(errorMessage,
+          textAlign: TextAlign.center,
+          style: new TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+      backgroundColor: Colors.red,
+      duration: Duration(seconds: 1),
     );
     Scaffold.of(context).showSnackBar(snackBar);
     return false;
@@ -476,9 +532,7 @@ class _CreateEventUIState extends State<CreateEventUI> {
                       borderRadius: new BorderRadius.circular(10.0),
                       borderSide: new BorderSide(color: Colors.blue),
                     ),
-                  )
-              )
-          ),
+                  ))),
           Container(
               padding: new EdgeInsets.only(top: 10.0, bottom: 10.0),
               width: screenWidth - 50,
@@ -496,9 +550,7 @@ class _CreateEventUIState extends State<CreateEventUI> {
                       eventDateText = new DateFormat('EEEE, MMMM d, y')
                           .format(date)
                           .toString();
-                      _eventDate = new DateFormat.yMd()
-                          .format(date)
-                          .toString();
+                      _eventDate = new DateFormat.yMd().format(date).toString();
                     });
                   }, currentTime: DateTime.now(), locale: LocaleType.en);
                 },
@@ -543,50 +595,49 @@ class _CreateEventUIState extends State<CreateEventUI> {
             padding: new EdgeInsets.only(top: 10.0, bottom: 10.0),
             width: screenWidth - 50,
             height: 75,
-            child:
-              Row(
-                children: <Widget>[
-                  Expanded(
-                      flex: 7,
-                      child: Container(
-                        height: 75,
-                        child: RaisedButton(
-                          onPressed: () =>
-                              setState(() => this.updateButtons('Quick Enter')),
-                          child: Text(
-                            "Quick Enter",
+            child: Row(
+              children: <Widget>[
+                Expanded(
+                    flex: 7,
+                    child: Container(
+                      height: 75,
+                      child: RaisedButton(
+                        onPressed: () =>
+                            setState(() => this.updateButtons('Quick Enter')),
+                        child: Text(
+                          "Quick Enter",
+                          textAlign: TextAlign.center,
+                          style: new TextStyle(
+                            fontSize: 15,
+                          ),
+                        ),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10)),
+                        color: _isQuickEnter ? Colors.blue : Colors.grey,
+                        textColor: Colors.white,
+                      ),
+                    )),
+                Spacer(flex: 1),
+                Expanded(
+                    flex: 7,
+                    child: Container(
+                      height: 75,
+                      child: RaisedButton(
+                        onPressed: () =>
+                            setState(() => this.updateButtons('Manual Enter')),
+                        child: Text("Manual Enter",
                             textAlign: TextAlign.center,
                             style: new TextStyle(
                               fontSize: 15,
-                            ),
-                          ),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10)),
-                          color: _isQuickEnter ? Colors.blue : Colors.grey,
-                          textColor: Colors.white,
-                        ),
-                      )),
-                  Spacer(flex: 1),
-                  Expanded(
-                      flex: 7,
-                      child: Container(
-                        height: 75,
-                        child: RaisedButton(
-                          onPressed: () =>
-                              setState(() => this.updateButtons('Manual Enter')),
-                          child: Text("Manual Enter",
-                              textAlign: TextAlign.center,
-                              style: new TextStyle(
-                                fontSize: 15,
-                              )),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10)),
-                          color: _isManualEnter ? Colors.blue : Colors.grey,
-                          textColor: Colors.white,
-                        ),
-                      ))
-                ],
-              ),
+                            )),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10)),
+                        color: _isManualEnter ? Colors.blue : Colors.grey,
+                        textColor: Colors.white,
+                      ),
+                    ))
+              ],
+            ),
           ),
           if (_isQuickEnter)
             Container(
@@ -603,10 +654,7 @@ class _CreateEventUIState extends State<CreateEventUI> {
                         borderRadius: new BorderRadius.circular(10.0),
                         borderSide: new BorderSide(color: Colors.blue),
                       ),
-                    )
-                )
-
-            ),
+                    ))),
           Container(
               padding: new EdgeInsets.only(top: 10.0, bottom: 10.0),
               width: screenWidth - 200,
@@ -621,8 +669,7 @@ class _CreateEventUIState extends State<CreateEventUI> {
                 },
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10)),
-              )
-          ),
+              )),
           if (_isTryingToCreateEvent) //to add the progress indicator
             Container(
                 width: screenWidth - 50,
@@ -670,43 +717,37 @@ class _AdminUIState extends State<AdminScreenUI> {
     }
   }
 
-  Widget returnAdminScreen()
-  {
+  Widget returnAdminScreen() {
     return ListView(
       children: <Widget>[
         Card(
             child: ListTile(
-              leading: Icon(Icons.create),
-              title: Text('Create an Event'),
-              onTap: () =>
-                  setState(() => _activeFunction = 'Create an Event'),
-            )),
+          leading: Icon(Icons.create),
+          title: Text('Create an Event'),
+          onTap: () => setState(() => _activeFunction = 'Create an Event'),
+        )),
         Card(
             child: ListTile(
-              leading: Icon(Icons.library_books),
-              title: Text('Edit Events'),
-              onTap: () =>
-                  setState(() => _activeFunction = 'Edit Events'),
-            )),
+          leading: Icon(Icons.library_books),
+          title: Text('Edit Events'),
+          onTap: () => setState(() => _activeFunction = 'Edit Events'),
+        )),
         Card(
             child: ListTile(
-              leading: Icon(Icons.supervisor_account),
-              title: Text('Edit Individual Members'),
-              onTap: () => setState(
-                      () => _activeFunction = 'Edit Individual Members'),
-            )),
+          leading: Icon(Icons.supervisor_account),
+          title: Text('Edit Individual Members'),
+          onTap: () =>
+              setState(() => _activeFunction = 'Edit Individual Members'),
+        )),
       ],
     );
   }
 
-  void backAction()
-  {
-    if(_activeFunction == null)
-    {
-      Navigator.push(context, NoTransition(builder: (context) => new ProfileScreen(_uid)));
-    }
-    else
-    {
+  void backAction() {
+    if (_activeFunction == null) {
+      Navigator.push(
+          context, NoTransition(builder: (context) => new ProfileScreen(_uid)));
+    } else {
       setState(() {
         _activeFunction = null;
       });
@@ -721,8 +762,7 @@ class _AdminUIState extends State<AdminScreenUI> {
           title: Text("Admin Functions"),
           leading: IconButton(
               icon: Icon(Icons.arrow_back_ios),
-              onPressed: () => {this.backAction()}
-          ),
+              onPressed: () => {this.backAction()}),
           actions: <Widget>[
             IconButton(
               icon: Icon(Icons.settings),
@@ -740,14 +780,12 @@ class _AdminUIState extends State<AdminScreenUI> {
 }
 
 class NoTransition<T> extends MaterialPageRoute<T> {
-  NoTransition({ WidgetBuilder builder, RouteSettings settings })
+  NoTransition({WidgetBuilder builder, RouteSettings settings})
       : super(builder: builder, settings: settings);
 
   @override
-  Widget buildTransitions(BuildContext context,
-      Animation<double> animation,
-      Animation<double> secondaryAnimation,
-      Widget child) {
+  Widget buildTransitions(BuildContext context, Animation<double> animation,
+      Animation<double> secondaryAnimation, Widget child) {
     // Fades between routes. (If you don't want any animation,
     // just return child.)
     return child;

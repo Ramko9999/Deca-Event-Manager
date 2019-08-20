@@ -16,17 +16,18 @@ class Searcher {
     for (int i = 0; i < _users.length; i++) {
       Map firstNameRelevance = {'Points': 0};
       Map lastNameRelevance = {'Points': 0};
-      if(firstQuery != ""){
-        firstNameRelevance =
-          findLongestCommonSubstring(firstQuery, _users[i]['first_name']);
+      if (firstQuery != "") {
+        firstNameRelevance = findLongestCommonSubstring(
+            firstQuery.toLowerCase(), _users[i]['first_name'].toLowerCase());
       }
-      if(lastQuery != ""){
-        lastNameRelevance =
-          findLongestCommonSubstring(lastQuery, _users[i]['last_name']);
+      if (lastQuery != "") {
+        lastNameRelevance = findLongestCommonSubstring(
+            lastQuery.toLowerCase(), _users[i]['last_name'].toLowerCase());
       }
-      
-      Map fullNameRelevance = {'info': _users[i],
-            'Points': firstNameRelevance['Points'] + lastNameRelevance['Points'],
+
+      Map fullNameRelevance = {
+        'info': _users[i],
+        'Points': firstNameRelevance['Points'] + lastNameRelevance['Points'],
       };
       relevanceList.append(Node(fullNameRelevance));
     }
@@ -66,19 +67,27 @@ class Searcher {
 
 class MaxList {
   Node head; //this should be the maximum node
-  int length;
+  int _size;
 
   MaxList() {
     head = null;
+    _size = 0;
   }
 
   void printNodes() {
     Node current = head;
     while (current != null) {
-      print(current.element);
+      print(current.element['info']['first_name'] +
+          " " +
+          current.element['Points'].toString());
       current = current.next;
+      print("-");
     }
     print("------------------");
+  }
+
+  int getSize() {
+    return _size;
   }
 
   void append(Node nextNode) {
@@ -122,10 +131,8 @@ class MaxList {
         lastNode.next = nextNode;
         nextNode.previous = lastNode;
       }
-
     }
-    length++;
-    printNodes();
+    _size++;
   }
 }
 
