@@ -38,10 +38,10 @@ class DynamicProfileUI extends StatelessWidget {
             else if (_goldPoints < 125) {
               _memberLevel = "Member";
             }
-            if (_goldPoints >= 150) {
+            else if (_goldPoints < 200) {
               _memberLevel = "Silver";
             }
-            if (_goldPoints >= 300) {
+            else{
               _memberLevel = "Gold";
             }
 
@@ -80,7 +80,7 @@ class DynamicProfileUI extends StatelessWidget {
                           trailing: Text(_goldPoints.toString(),
                             textAlign: TextAlign.center,
                             style: new TextStyle(
-                                fontSize: 25,
+                                fontSize: 20,
                                 color: Color.fromARGB(255, 249, 166, 22)
                             ),
                         ),

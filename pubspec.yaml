@@ -24,11 +24,12 @@ dependencies:
   path_provider:
   connectivity:
   qr_flutter:
+  material_design_icons_flutter:
+  flutter_datetime_picker:
+  intl:
   camera:
   firebase_ml_vision:
-  material_design_icons_flutter: ^3.2.3895
-  flutter_datetime_picker: ^1.2.6
-  intl: ^0.15.8
+  auto_size_text:
 
 
   # The following adds the Cupertino Icons font to your application.
