@@ -1,5 +1,6 @@
 import 'package:connectivity/connectivity.dart';
 import 'package:deca_app/utility/error_popup.dart';
+import 'package:deca_app/utility/single_action_popup.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -19,40 +20,18 @@ class SettingScreen extends StatefulWidget {
 }
 
 class SettingScreenState extends State<SettingScreen> {
-  final _settingsForm = new GlobalKey<FormState>();
-  TextEditingController _newUsername = new TextEditingController();
+  final _passwordForm = new GlobalKey<FormState>();
   TextEditingController _newPassword = new TextEditingController();
   TextEditingController _enteredOldPassword = new TextEditingController();
   String _oldpassword;
+  bool _wantsToChangePassword = false;
+  bool _wantsToChangeAutoFill = false;
   bool _isAutoLoginEnabled = false;
   String _uid;
-  bool _isAsyncActionOccuring =
-      false; //this will be used as a progress indicator
 
   SettingScreenState(String uid) {
     this._uid = uid;
     grabLocalStorage(); //initally grabbing the local storage
-  }
-
-  //used to create a pop up
-  Widget _successPopup(BuildContext context) {
-    return AlertDialog(
-      title: Text("Successful", style: TextStyle(fontFamily: 'Lato')),
-      content: Container(
-        height: MediaQuery.of(context).size.height / 6.0,
-        child: Column(
-          children: <Widget>[
-            Text("We have succesfully updated your information!",
-                style: TextStyle(fontFamily: 'Lato')),
-            FlatButton(
-              child: Text("Got it!", style: TextStyle(fontFamily: 'Lato')),
-              onPressed: () => Navigator.of(context).pop(),
-              textColor: Colors.blue,
-            )
-          ],
-        ),
-      ),
-    );
   }
 
   //will actually connect and change the data
@@ -66,38 +45,32 @@ class SettingScreenState extends State<SettingScreen> {
     final appDirectory = await getApplicationDocumentsDirectory();
     File localUserInfo = File(appDirectory.path + "/user.json");
     Map userInfo = json.decode(await localUserInfo.readAsString());
-    //start updating the fields
-    if (_newUsername.text != "") {
-      user.updateEmail(_newUsername.text); //updating firebase auth
-      userInfo['username'] = _newUsername.text; //updating local storage
-      userData.updateData({'username': _newUsername.text});
-    }
-    if (_newPassword.text != "") {
-      user.updatePassword(_newPassword.text);
-      userInfo['password'] = _newPassword.text;
-      userData.updateData({'password': _newPassword.text});
-    }
 
-    userInfo['auto'] = _isAutoLoginEnabled;
-    localUserInfo.writeAsStringSync(
-        json.encode(userInfo)); //write the json string to the documents
+    if (_newPassword.text != "") {
+      user.updatePassword(_newPassword.text).then((dummy_val) {
+        userInfo['password'] = _newPassword.text;
+        userData.updateData({'password': _newPassword.text});
+      }).catchError((onError) {
+        if (onError.toString().contains("RECENT")) {
+          print('Action not allowed');
+        }
+      });
+    }
     grabLocalStorage();
     //shows a success screen
     showDialog(
         context: context,
         builder: (context) {
-          return _successPopup(context);
+          return SingleActionPopup(
+              "We were able to change your details", "Success!", Colors.black);
         });
   }
 
   //function is responsible for handling changes
   void changeDetails() async {
-    setState(() => _isAsyncActionOccuring = true);
-
     //check if network is working
     Connectivity().checkConnectivity().then((connectionState) {
-      if (connectionState == ConnectivityResult.none) {
-        setState(() => _isAsyncActionOccuring = false);
+      if (connectionState == ConnectivityResult.wifi) {
         throw Exception("Phone is not connected to internet");
       } else {
         connectAndChange();
@@ -123,144 +96,190 @@ class SettingScreenState extends State<SettingScreen> {
         .decode(await File(appDirectory.path + "/user.json").readAsString());
     _oldpassword = userInfo['password'];
     _isAutoLoginEnabled = userInfo['auto'];
-    setState(() => _isAsyncActionOccuring = false);
   }
 
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
     double textScaleFactor = MediaQuery.of(context).textScaleFactor;
+
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Settings"),
-        leading: new IconButton(
-          icon: new Icon(Icons.arrow_back_ios),
-          onPressed: () => Navigator.of(context).pop(), //goes back a screen
-        ),
-      ),
-      body: Stack(children: <Widget>[
-        SingleChildScrollView(
-          child: Form(
-            key: _settingsForm,
-            child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: <Widget>[
-                  Center(
-                      child: Container(
-                          width: screenWidth * 0.8,
-                          child: TextFormField(
-                            controller: _newUsername,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(fontFamily: 'Lato'),
-                            decoration: new InputDecoration(
-                              labelText: "Change Email",
-                            ),
-                            validator: (val) {
-                              //check if email is valid or even entered
-                              if (val != "") {
-                                bool containsDot = val.contains(".");
-                                bool containsAt = val.contains("@");
-                                if (!(containsDot && containsAt)) {
-                                  return "Invalid Email";
-                                }
-                              }
-                              return null;
-                            },
-                          ))),
-                  Container(
-                      width: screenWidth * 0.8,
-                      child: TextFormField(
-                          controller: _enteredOldPassword,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(fontFamily: 'Lato'),
-                          obscureText: true,
-                          decoration: new InputDecoration(
-                            labelText: "Enter Old Password",
-                          ),
-                          validator: (val) {
-                            if (_newPassword.text != "") {
-                              if (val != _oldpassword && val != "") {
-                                return "Old Password Is Wrong";
-                              }
-                            }
-                            return null;
-                          })),
-                  Container(
-                      width: screenWidth * 0.8,
-                      child: TextFormField(
-                        controller: _newPassword,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontFamily: 'Lato'),
-                        obscureText: true,
-                        decoration: new InputDecoration(
-                            labelText: "Enter New Password"),
-                        validator: (val) {
-                          if (val == "") {
-                            return null;
-                          }
-                          if (_enteredOldPassword.text == "") {
-                            return "Please Enter Your Old Password";
-                          }
-                          if (val.length < 8) {
-                            return "Password too weak";
-                          }
-                          return null;
-                        },
-                      )),
-                  FlatButton(
-                    child: _isAutoLoginEnabled
-                        ? Text(
-                            "Disable Autofill",
-                            style: TextStyle(
-                                fontFamily: 'Lato', color: Colors.red),
-                          )
-                        : Text("Enable Autofill",
-                            style: TextStyle(
-                                fontFamily: 'Lato', color: Colors.blue)),
-                    onPressed: () => setState(
-                        () => _isAutoLoginEnabled = !_isAutoLoginEnabled),
-                  ),
-                  Padding(
-                      padding: const EdgeInsets.only(top: 8.0),
-                      child: ButtonTheme(
-                        minWidth: 150.0,
-                        height: screenHeight * 0.11,
-                        child: RaisedButton(
-                          color: Colors.blue,
-                          textColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30)),
-                          child: Text(
-                            "Apply Changes",
-                            style: new TextStyle(
-                                fontSize: 20 * textScaleFactor,
-                                fontFamily: 'Lato'),
-                          ),
-                          onPressed: () {
-                            if (_settingsForm.currentState.validate()) {
-                              changeDetails();
-                            }
-                          },
-                        ),
-                      ))
-                ]),
+        appBar: AppBar(
+          title: Text("Settings"),
+          leading: new IconButton(
+            icon: new Icon(Icons.arrow_back_ios),
+            onPressed: () => Navigator.of(context).pop(), //goes back a screen
           ),
         ),
-        if (_isAsyncActionOccuring)
-          Stack(
-            children: <Widget>[
-              Container(
-                color: Colors.black45,
-              ),
-              Container(
-                child: Positioned(
-                    top: MediaQuery.of(context).size.height / 2,
-                    right: MediaQuery.of(context).size.width / 2,
-                    child: CircularProgressIndicator()),
-              )
-            ],
-          )
-      ]),
-    );
+        body: ListView(
+          children: <Widget>[
+            _wantsToChangePassword
+                ? Card(
+                    child: Column(children: [
+                    ListTile(
+                      leading: Icon(Icons.lock, color: Colors.black),
+                      title: Text(
+                        "Change Password",
+                        style: TextStyle(fontSize: 20),
+                      ),
+                      trailing: IconButton(
+                        icon: Icon(Icons.remove),
+                        onPressed: () {
+                          setState(() {
+                            _wantsToChangePassword = !_wantsToChangePassword;
+                          });
+                        },
+                      ),
+                    ),
+                    Form(
+                      key: _passwordForm,
+                      child: Column(
+                        children: <Widget>[
+                          Container(
+                              width: screenWidth * 0.8,
+                              child: TextFormField(
+                                  controller: _enteredOldPassword,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(fontFamily: 'Lato'),
+                                  obscureText: true,
+                                  decoration: new InputDecoration(
+                                    labelText: "Enter Old Password",
+                                  ),
+                                  validator: (val) {
+                                    if (_newPassword.text != "") {
+                                      if (val != _oldpassword && val != "") {
+                                        return "Old Password Is Wrong";
+                                      }
+                                    }
+                                    return null;
+                                  })),
+                          Container(
+                              width: screenWidth * 0.8,
+                              child: TextFormField(
+                                controller: _newPassword,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(fontFamily: 'Lato'),
+                                obscureText: true,
+                                decoration: new InputDecoration(
+                                    labelText: "Enter New Password"),
+                                validator: (val) {
+                                  if (val == "") {
+                                    return null;
+                                  }
+                                  if (_enteredOldPassword.text == "") {
+                                    return "Please Enter Your Old Password";
+                                  }
+                                  if (val.length < 8) {
+                                    return "Password too weak";
+                                  }
+                                  return null;
+                                },
+                              )),
+                          FlatButton(
+                            child: Text(
+                              "Apply",
+                              style: TextStyle(
+                                  fontFamily: 'Lato',
+                                  fontSize: 18,
+                                  color: Colors.blue),
+                            ),
+                            onPressed: () {
+                              if (_passwordForm.currentState.validate()) {
+                                changeDetails();
+                              }
+                            },
+                          )
+                        ],
+                      ),
+                    ),
+                  ]))
+                : GestureDetector(
+                    onTap: () => setState(
+                        () => _wantsToChangePassword = !_wantsToChangePassword),
+                    child: Container(
+                      height: screenHeight * 0.10,
+                      child: Card(
+                          child: ListTile(
+                        leading: Icon(Icons.lock, color: Colors.black),
+                        title: Text(
+                          "Change Password",
+                          style: TextStyle(fontSize: 20),
+                        ),
+                      )),
+                    ),
+                  ),
+            _wantsToChangeAutoFill
+                ? Card(
+                    child: Column(
+                    children: <Widget>[
+                      ListTile(
+                        leading: Icon(Icons.radio_button_checked,
+                            color: Colors.black),
+                        title: Text(
+                          "Change Autofill Settings",
+                          style: TextStyle(fontSize: 20),
+                        ),
+                        trailing: IconButton(
+                          icon: Icon(Icons.remove, color: Colors.black),
+                          onPressed: () {
+                            setState(() {
+                              _wantsToChangeAutoFill = !_wantsToChangeAutoFill;
+                            });
+                          },
+                        ),
+                      ),
+                      Container(
+                        alignment: Alignment.center,
+                        child: Row(
+                          children: <Widget>[
+                            Checkbox(
+                              value: _isAutoLoginEnabled,
+                              onChanged: (val) async {
+                                final documents =
+                                    await getApplicationDocumentsDirectory();
+                                final path = documents.path + "/user.json";
+                                Map userFile =
+                                    json.decode(File(path).readAsStringSync());
+                                userFile['auto'] = _isAutoLoginEnabled;
+                                File(path)
+                                    .writeAsStringSync(json.encode(userFile));
+                                setState(() =>
+                                    _isAutoLoginEnabled = !_isAutoLoginEnabled);
+                              },
+                            ),
+                            Text(
+                              _isAutoLoginEnabled
+                                  ? "Autofill is enabled"
+                                  : "Autofill is disabled",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  fontFamily: 'Lato',
+                                  fontSize: 18,
+                                  color: _isAutoLoginEnabled
+                                      ? Colors.blue
+                                      : Colors.red),
+                            )
+                          ],
+                        ),
+                      )
+                    ],
+                  ))
+                : GestureDetector(
+                    onTap: () {
+                      setState(() =>
+                          _wantsToChangeAutoFill = !_wantsToChangeAutoFill);
+                    },
+                    child: Card(
+                        child: ListTile(
+                      leading:
+                          Icon(Icons.radio_button_checked, color: Colors.black),
+                      title: Text(
+                        "Change Autofill Settings",
+                        style: TextStyle(fontSize: 20),
+                      ),
+                    )),
+                  )
+          ],
+        ));
   }
 }
