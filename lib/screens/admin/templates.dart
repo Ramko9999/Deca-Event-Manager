@@ -15,6 +15,27 @@ import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 
+class FinderScreen extends StatelessWidget {
+  Map eventData;
+  FinderScreen(Map e) {
+    this.eventData = e;
+  }
+
+  Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: AppBar(
+          title: Text("Manual Search"),
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+        ),
+        body: Finder(eventData));
+  }
+}
+
 class Finder extends StatefulWidget {
   Map eventMetaData;
 
@@ -29,8 +50,8 @@ class Finder extends StatefulWidget {
 
 class FinderState extends State<Finder> {
   Map eventMetaData;
-  TextEditingController _firstName = new TextEditingController();
-  TextEditingController _lastName = new TextEditingController();
+  final _firstName = TextEditingController();
+  final _lastName = TextEditingController();
   Node current;
   MaxList results;
   bool hasSearched = false;
@@ -38,85 +59,93 @@ class FinderState extends State<Finder> {
   FinderState(Map e) {
     this.eventMetaData = e;
   }
+  @override
+  void initState() {
+    super.initState();
+    _firstName.addListener(getData);
+    _lastName.addListener(getData);
+  }
 
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
-    return Scaffold(
-        appBar: AppBar(
-          title: Text('Search'),
-        ),
-        body: Column(
+    return Container(
+      width: screenWidth,
+      child: Column(children: <Widget>[
+        Row(
           children: <Widget>[
-            Row(
-              children: <Widget>[
-                Container(
-                  width: screenWidth * 0.5,
-                  child: TextField(
-                    controller: _firstName,
-                    onChanged: (val) {
-                      getData();
-                    },
-                    onSubmitted: (val) {
-                      getData();
-                    },
-                    decoration: InputDecoration(labelText: "First Name"),
-                  ),
-                ),
-                Container(
-                  width: screenWidth * 0.5,
-                  child: TextField(
-                    controller: _lastName,
-                    onChanged: (val) {
-                      getData();
-                    },
-                    onSubmitted: (val){
-                      getData();
-                    },
-                    
-                    decoration: InputDecoration(labelText: "Last Name"),
-                  ),
-                ),
-              ],
+            Container(
+              width: screenWidth * 0.5,
+              child: TextField(
+                controller: _firstName,
+                onChanged: (val) {
+                  getData();
+                },
+                decoration: InputDecoration(labelText: "First Name"),
+              ),
             ),
-            Flexible(
-              child: current == null
-              ? Container(
-                      alignment: Alignment.center,
-                      child: hasSearched
-                          ? CircularProgressIndicator()
-                          : Text("Search Someone",
-                              style:
-                                  TextStyle(fontFamily: 'Lato', fontSize: 32)))
-                  : ListView.builder(
-                      shrinkWrap: true,
-                      itemCount: results.getSize(),
-                      itemBuilder: (context, i) {
-                        Map userInfo = current.element['info'];
-                        Card c =  new Card(
-                          child: ListTile(
-                            leading: Icon(Icons.person, color:  Colors.black),
-                            title: Text(userInfo['first_name'] + " " + userInfo['last_name'],
-                            style: TextStyle(
-                              fontFamily: 'Lato',
-                              fontSize: 20
+            Container(
+              width: screenWidth * 0.5,
+              child: TextField(
+                controller: _lastName,
+                onChanged: (val) {
+                  getData();
+                },
+                decoration: InputDecoration(labelText: "Last Name"),
+              ),
+            ),
+          ],
+        ),
+        Flexible(
+            child: current == null
+                ? Container(
+                    alignment: Alignment.center,
+                    child: hasSearched
+                        ? CircularProgressIndicator()
+                        : Text("Search Someone",
+                            style: TextStyle(fontFamily: 'Lato', fontSize: 32)))
+                : ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: results.getSize(),
+                    itemBuilder: (context, i) {
+                      Map userInfo = current.element['info'];
+                      GestureDetector c = GestureDetector(
+                          onTap: () {
+                            FocusScope.of(context).requestFocus(FocusNode());
+
+                            showDialog(
+                                context: context,
+                                builder: (context) {
+                                  return FinderPopup(
+                                      userInfo, () => print("Grabbing Data"));
+                                });
+                          },
+                          child: Card(
+                            child: ListTile(
+                              leading: Icon(Icons.person, color: Colors.black),
+                              title: Text(
+                                userInfo['first_name'] +
+                                    " " +
+                                    userInfo['last_name'],
+                                style:
+                                    TextStyle(fontFamily: 'Lato', fontSize: 20),
+                              ),
+                              subtitle: Text(
+                                userInfo['gold_points'].toString(),
+                                style:
+                                    TextStyle(fontFamily: 'Lato', fontSize: 15),
+                              ),
+                              trailing: Icon(Icons.add, color: Colors.black),
                             ),
-                            ),
-                            subtitle: Text(userInfo['gold_points'].toString(), 
-                            style: TextStyle(
-                              fontFamily: 'Lato',
-                              fontSize: 15
-                            ),
-                            ),
-                            trailing: Icon(Icons.add, color: Colors.black),
-                            ),
-                          );
-                          current = current.next;
-                        return c;
-                      }))]));
+                          ));
+                      current = current.next;
+                      return c;
+                    }))
+      ]),
+    );
   }
 
-  void getData() {
+  getData() {
     Firestore.instance.collection("Users").getDocuments().then((onDocuments) {
       List<Map> userList = [];
       //turn this into map with uid and names
@@ -136,15 +165,80 @@ class FinderState extends State<Finder> {
   }
 }
 
+class FinderPopup extends StatefulWidget {
+  Map eventData;
+  Function callback;
 
+  FinderPopup(Map u, Function c) {
+    this.eventData = u;
+    this.callback = c;
+  }
+  State<FinderPopup> createState() {
+    return FinderPopupState(eventData, callback);
+  }
+}
+
+class FinderPopupState extends State<FinderPopup> {
+  Map eventData;
+  TextEditingController pointController = new TextEditingController();
+  bool wantsToAdd = true;
+  Function callback;
+
+  FinderPopupState(Map u, Function c) {
+    this.eventData = u;
+    pointController.text = 0.toString();
+    this.callback = c;
+  }
+
+  Widget build(BuildContext context) {
+    double screenWidth = MediaQuery.of(context).size.width;
+    return AlertDialog(
+      title: Text('Edit Gold Points'),
+      content: Row(
+        children: <Widget>[
+          FlatButton(
+            child: wantsToAdd
+                ? Text(
+                    "+",
+                    style: TextStyle(color: Colors.blue),
+                  )
+                : Text("-", style: TextStyle(color: Colors.red)),
+            onPressed: () {
+              setState(() => wantsToAdd = !wantsToAdd);
+            },
+          ),
+          Container(
+            width: screenWidth * 0.10,
+            child: TextField(
+              keyboardType: TextInputType.number,
+              controller: pointController,
+            ),
+          )
+        ],
+      ),
+      actions: <Widget>[
+        FlatButton(
+          child: Text("Submit", style: TextStyle(color: Colors.blue)),
+          onPressed: () {
+            print(pointController.text);
+            Navigator.of(context).pop();
+            callback();
+          },
+        )
+      ],
+    );
+  }
+}
 
 class Scanner extends StatefulWidget {
   Map eventMetaData;
   String _uid;
+
   Scanner(Map e, String uid) {
     this.eventMetaData = e;
     this._uid = uid;
   }
+
   State<Scanner> createState() {
     return _ScannerState(eventMetaData, _uid);
   }
@@ -249,7 +343,10 @@ class _ScannerState extends State<Scanner> {
         ));
       }).catchError((onError) => print(onError));
     } else {
-      print("Already Scanned this person");
+      Scaffold.of(context).showSnackBar(SnackBar(
+        backgroundColor: Colors.redAccent,
+        content: Text('Already Scanned This Person'),
+      ));
     }
   }
 
@@ -351,96 +448,103 @@ class _ScannerState extends State<Scanner> {
           ),
         ],
       ),
-      body: Center(
-        child: Column(
-          children: <Widget>[
-            _connectionState.contains('none')
-                ? showDialog(
-                    context: context,
-                    builder: (context) {
-                      return AlertDialog(
-                        title: Text("Network Error",
-                            style: TextStyle(
-                                fontFamily: 'Lato', color: Colors.red)),
-                        content: Text(
-                            "There is an error connecting to network. Once we detect a connecton, this page will automatically disappear."),
-                      );
-                    })
-                : Container(
-                    padding: new EdgeInsets.only(top: 10.0, bottom: 10.0),
-                    width: screenWidth - 50,
-                    height: 75,
-                    child: Row(
-                      children: <Widget>[
-                        Expanded(
-                            flex: 7,
-                            child: Container(
-                              height: 50,
-                              child: RaisedButton(
-                                onPressed: () =>
-                                    setState(() => updateButtons('QR')),
-                                child: Text(
-                                  "QR Reader",
-                                  textAlign: TextAlign.center,
-                                  style: new TextStyle(
-                                    fontSize: 15,
-                                  ),
-                                ),
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10)),
-                                color: _isQR ? Colors.blue : Colors.grey,
-                                textColor: Colors.white,
-                              ),
-                            )),
-                        Spacer(flex: 1),
-                        Expanded(
-                            flex: 7,
-                            child: Container(
-                              height: 50,
-                              child: RaisedButton(
-                                onPressed: () =>
-                                    setState(() => updateButtons('S')),
-                                child: Text("Searcher",
+      body: SingleChildScrollView(
+        child: Center(
+          child: Column(
+            children: <Widget>[
+              _connectionState.contains('none')
+                  ? showDialog(
+                      context: context,
+                      builder: (context) {
+                        return AlertDialog(
+                          title: Text("Network Error",
+                              style: TextStyle(
+                                  fontFamily: 'Lato', color: Colors.red)),
+                          content: Text(
+                              "There is an error connecting to network. Once we detect a connecton, this page will automatically disappear."),
+                        );
+                      })
+                  : Container(
+                      padding: new EdgeInsets.only(top: 10.0, bottom: 10.0),
+                      width: screenWidth - 50,
+                      height: 75,
+                      child: Row(
+                        children: <Widget>[
+                          Expanded(
+                              flex: 7,
+                              child: Container(
+                                height: 50,
+                                child: RaisedButton(
+                                  onPressed: () =>
+                                      setState(() => updateButtons('QR')),
+                                  child: Text(
+                                    "QR Reader",
                                     textAlign: TextAlign.center,
                                     style: new TextStyle(
                                       fontSize: 15,
-                                    )),
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10)),
-                                color: _isSearcher ? Colors.blue : Colors.grey,
-                                textColor: Colors.white,
-                              ),
-                            ))
-                      ],
+                                    ),
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10)),
+                                  color: _isQR ? Colors.blue : Colors.grey,
+                                  textColor: Colors.white,
+                                ),
+                              )),
+                          Spacer(flex: 1),
+                          Expanded(
+                              flex: 7,
+                              child: Container(
+                                height: 50,
+                                child: RaisedButton(
+                                  onPressed: () =>
+                                      setState(() => updateButtons('S')),
+                                  child: Text("Searcher",
+                                      textAlign: TextAlign.center,
+                                      style: new TextStyle(
+                                        fontSize: 15,
+                                      )),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10)),
+                                  color:
+                                      _isSearcher ? Colors.blue : Colors.grey,
+                                  textColor: Colors.white,
+                                ),
+                              ))
+                        ],
+                      ),
                     ),
-                  ),
-            if (_isQR)
+              if (_isQR)
+                Container(
+                    height: screenHeight - 350,
+                    width: screenWidth - 100,
+                    child: _isCameraInitalized
+                        ? RotationTransition(
+                            child: CameraPreview(_mainCamera),
+                            turns: AlwaysStoppedAnimation(270 / 360))
+                        : Text("Loading...")),
               Container(
-                  height: screenHeight - 350,
-                  width: screenWidth - 100,
-                  child: _isCameraInitalized
-                      ? RotationTransition(
-                          child: CameraPreview(_mainCamera),
-                          turns: AlwaysStoppedAnimation(270 / 360))
-                      : Text("Loading...")),
-            if (_isSearcher) Container(),
-            Container(
-                padding: new EdgeInsets.only(top: 10.0, bottom: 10.0),
-                width: screenWidth - 200,
-                height: 75,
-                child: new RaisedButton(
-                  child: Text('Finish',
-                      style: new TextStyle(fontSize: 17, fontFamily: 'Lato')),
-                  textColor: Colors.white,
-                  color: Color.fromRGBO(46, 204, 113, 1),
-                  onPressed: () {
-                    _mainCamera.stopImageStream();
-                    Navigator.pop(context);
-                  },
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)),
-                ))
-          ],
+                  padding: new EdgeInsets.only(top: 10.0, bottom: 10.0),
+                  width: screenWidth - 200,
+                  height: 75,
+                  child: new RaisedButton(
+                    child: Text('Finish',
+                        style: new TextStyle(fontSize: 17, fontFamily: 'Lato')),
+                    textColor: Colors.white,
+                    color: Color.fromRGBO(46, 204, 113, 1),
+                    onPressed: () {
+                      _mainCamera.stopImageStream();
+                      Navigator.pop(context);
+                      Navigator.push(
+                          context,
+                          NoTransition(
+                              builder: (context) => new EditEventUI(_uid)));
+                    },
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                  )),
+              if (_isSearcher) Finder(eventMetadata),
+            ],
+          ),
         ),
       ),
     );
@@ -496,8 +600,8 @@ class _CreateEventUIState extends State<CreateEventUI> {
           .collection("Events")
           .document(_eventName.text)
           .setData(eventMetaData);
-      Navigator.of(context)
-          .push(NoTransition(builder: (context) => Finder(eventMetaData)));
+      Navigator.of(context).push(
+          NoTransition(builder: (context) => FinderScreen(eventMetaData)));
     } else {
       eventMetaData = {
         "event_name": _eventName.text,
@@ -1001,6 +1105,7 @@ class EventInfoUI extends StatefulWidget {
   EventInfoUI(Map metadata) {
     eventMetadata = metadata;
   }
+
   @override
   State<StatefulWidget> createState() {
     // TODO: implement createState
