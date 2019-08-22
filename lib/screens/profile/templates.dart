@@ -122,7 +122,22 @@ class DynamicProfileUI extends StatelessWidget {
               ],
             ));
           } else {
-            return Text("Loading...");
+            return Container(
+                alignment: Alignment.center,
+                child: Column(
+                  children: <Widget>[
+                    Text(
+                      "Connecting...",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontFamily: "Lato",
+                        color: Colors.grey,
+                        fontSize: 32,
+                      ),
+                    ),
+                    CircularProgressIndicator()
+                  ],
+                ));
           }
         });
   }

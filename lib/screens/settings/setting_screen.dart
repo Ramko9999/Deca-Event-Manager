@@ -1,6 +1,7 @@
 import 'package:connectivity/connectivity.dart';
 import 'package:deca_app/utility/error_popup.dart';
 import 'package:deca_app/utility/single_action_popup.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -36,7 +37,9 @@ class SettingScreenState extends State<SettingScreen> {
 
   //will actually connect and change the data
   void connectAndChange() async {
+    bool isReconnectionNecessary = false;
     final user = await FirebaseAuth.instance.currentUser(); //from FirebaseAuth
+    print(user);
     final userData = Firestore.instance
         .collection("Users")
         .document(_uid); // from Cloud Firestore
@@ -46,31 +49,82 @@ class SettingScreenState extends State<SettingScreen> {
     File localUserInfo = File(appDirectory.path + "/user.json");
     Map userInfo = json.decode(await localUserInfo.readAsString());
 
+    //if password field is altered start updating password
     if (_newPassword.text != "") {
+      //if firebaseAuth password is not updated then DO NOT UPDATE ANYWHERE ELSE
       user.updatePassword(_newPassword.text).then((dummy_val) {
         userInfo['password'] = _newPassword.text;
         userData.updateData({'password': _newPassword.text});
       }).catchError((onError) {
+        //catching ERROR RECENT LOGIN REQUIRED
         if (onError.toString().contains("RECENT")) {
-          print('Action not allowed');
+          isReconnectionNecessary = true;
+          showDialog(
+              context: context,
+              builder: (context) {
+                if (Platform.isAndroid) {
+                  return AlertDialog(
+                    title: Container(
+                      height: MediaQuery.of(context).size.height / 15,
+                      child: Text(
+                        "Connecting...",
+                        style: TextStyle(fontSize: 26),
+                      ),
+                    ),
+                    content: Text(
+                      'This will automatically dissapear when we connect you back to the servers and change your credentials',
+                      style: TextStyle(
+                        fontSize: 16,
+                      ),
+                    ),
+                  );
+                } else {
+                  return CupertinoAlertDialog(
+                    title: Container(
+                      height: MediaQuery.of(context).size.height * 15,
+                      child: Text(
+                        "Connecting...",
+                        style: TextStyle(fontSize: 26),
+                      ),
+                    ),
+                    content: Text(
+                      'This will automatically dissapear when we connect you back to the servers and change your credentials',
+                      style: TextStyle(
+                        fontSize: 16,
+                      ),
+                    ),
+                  );
+                }
+              });
+          //sign user back in and try changing details again
+          AuthCredential userCred = EmailAuthProvider.getCredential(
+              email: userInfo['username'], password: 'pitch123');
+          user.reauthenticateWithCredential(userCred).then((onValue) {
+            Navigator.of(context).pop();
+            connectAndChange();
+          });
         }
       });
     }
-    grabLocalStorage();
-    //shows a success screen
-    showDialog(
-        context: context,
-        builder: (context) {
-          return SingleActionPopup(
-              "We were able to change your details", "Success!", Colors.black);
-        });
+    if (!isReconnectionNecessary) {
+      userInfo['password'] = _newPassword.text;
+      localUserInfo.writeAsStringSync(json.encode(userInfo));
+      grabLocalStorage();
+      //shows a success screen
+      showDialog(
+          context: context,
+          builder: (context) {
+            return SingleActionPopup("We were able to change your details",
+                "Success!", Colors.black);
+          });
+    }
   }
 
   //function is responsible for handling changes
   void changeDetails() async {
     //check if network is working
     Connectivity().checkConnectivity().then((connectionState) {
-      if (connectionState == ConnectivityResult.wifi) {
+      if (connectionState == ConnectivityResult.none) {
         throw Exception("Phone is not connected to internet");
       } else {
         connectAndChange();

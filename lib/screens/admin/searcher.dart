@@ -19,10 +19,18 @@ class Searcher {
       if (firstQuery != "") {
         firstNameRelevance = findLongestCommonSubstring(
             firstQuery.toLowerCase(), _users[i]['first_name'].toLowerCase());
+        if (firstQuery[0].toLowerCase() ==
+            _users[i]['first_name'][0].toLowerCase()) {
+          firstNameRelevance['Points'] += 2;
+        }
       }
       if (lastQuery != "") {
         lastNameRelevance = findLongestCommonSubstring(
             lastQuery.toLowerCase(), _users[i]['last_name'].toLowerCase());
+        if (lastQuery[0].toLowerCase() ==
+            _users[i]['last_name'][0].toLowerCase()) {
+          lastNameRelevance['Points'] += 2;
+        }
       }
 
       Map fullNameRelevance = {
