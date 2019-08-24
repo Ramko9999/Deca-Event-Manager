@@ -1,4 +1,5 @@
 import 'package:connectivity/connectivity.dart';
+import 'package:deca_app/utility/InheritedInfo.dart';
 import 'package:deca_app/utility/error_popup.dart';
 import 'package:deca_app/utility/single_action_popup.dart';
 import 'package:flutter/material.dart';
@@ -49,12 +50,14 @@ class _LoginTemplateState extends State<LoginTemplate> {
 
   //try executing the actual login process
   void executeLogin() async {
+    final container = StateContainer.of(context);
     FirebaseAuth.instance
         .signInWithEmailAndPassword(
             email: _username.text, password: _password.text)
         .then((authResult) async {
       String userId =
           authResult.user.uid; //used to query for the user data in firestore
+      container.setUID(userId);
 
       final appDirectory = await getApplicationDocumentsDirectory();
 
@@ -68,7 +71,7 @@ class _LoginTemplateState extends State<LoginTemplate> {
       userStorageFile.writeAsStringSync(json.encode(jsonInformation));
       //changes screen to profile screen
       Navigator.push(context,
-          MaterialPageRoute(builder: (context) => new ProfileScreen(userId)));
+          MaterialPageRoute(builder: (context) => new ProfileScreen()));
     }).catchError((error) {
       setState(() => _isLogginIn = false);
       //if credentials are invalid then throw the error
@@ -286,6 +289,8 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
         .then((result) async {
       String userId =
           result.user.uid; //grabds user's unique id from Firebase Auth
+      final container = StateContainer.of(context);
+      container.setUID(userId);
 
       //creating a new user in Firestore
       await Firestore.instance.collection("Users").document(userId).setData({

@@ -4,6 +4,7 @@ import 'package:deca_app/screens/admin/scanner.dart';
 import 'package:deca_app/screens/admin/searcher.dart';
 import 'package:deca_app/screens/profile/profile_screen.dart';
 import 'package:deca_app/screens/settings/setting_screen.dart';
+import 'package:deca_app/utility/InheritedInfo.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
@@ -13,16 +14,12 @@ import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'package:intl/intl.dart';
 
 class CreateEventUI extends StatefulWidget {
-  String _uid;
-
-  CreateEventUI(uid) {
-    this._uid = uid;
-  }
+  CreateEventUI();
 
   @override
   State<StatefulWidget> createState() {
     // TODO: implement createState
-    return _CreateEventUIState(_uid);
+    return _CreateEventUIState();
   }
 }
 
@@ -30,7 +27,6 @@ class _CreateEventUIState extends State<CreateEventUI> {
   String dropdownValue;
   bool _isManualEnter = false;
   bool _isQuickEnter = false;
-  String _uid;
   String eventDateText;
   bool _isTryingToCreateEvent = false;
 
@@ -41,16 +37,16 @@ class _CreateEventUIState extends State<CreateEventUI> {
   String _enterType;
   TextEditingController _goldPoints = new TextEditingController();
 
-  _CreateEventUIState(String uid) {
-    this._uid = uid;
-  }
+  Map eventMetadata;
 
-  void executeEventCreation() async {
-    Map eventMetaData = {};
+  _CreateEventUIState();
+
+  void executeEventCreation(BuildContext context) async {
+    final container = StateContainer.of(context);
 
     //creating a new event in Firestore
     if (_isManualEnter) {
-      eventMetaData = {
+      eventMetadata = {
         "event_name": _eventName.text,
         "event_date": _eventDate,
         "event_type": _eventType,
@@ -60,13 +56,14 @@ class _CreateEventUIState extends State<CreateEventUI> {
       await Firestore.instance
           .collection("Events")
           .document(_eventName.text)
-          .setData(eventMetaData);
+          .setData(eventMetadata);
 
       setState(() => _isTryingToCreateEvent = false);
-      Navigator.of(context).push(
-          NoTransition(builder: (context) => FinderScreen(eventMetaData)));
+      container.setEventMetadata(eventMetadata);
+      Navigator.of(context)
+          .push(NoTransition(builder: (context) => FinderScreen()));
     } else {
-      eventMetaData = {
+      eventMetadata = {
         "event_name": _eventName.text,
         "event_date": _eventDate,
         "event_type": _eventType,
@@ -77,11 +74,12 @@ class _CreateEventUIState extends State<CreateEventUI> {
       await Firestore.instance
           .collection("Events")
           .document(_eventName.text)
-          .setData(eventMetaData);
+          .setData(eventMetadata);
 
       setState(() => _isTryingToCreateEvent = false);
-      Navigator.of(context).push(
-          NoTransition(builder: (context) => Scanner(eventMetaData, _uid)));
+
+      container.setEventMetadata(eventMetadata);
+      Navigator.of(context).push(NoTransition(builder: (context) => Scanner()));
     }
 
     clearAll();
@@ -135,7 +133,7 @@ class _CreateEventUIState extends State<CreateEventUI> {
         if (connectionState == ConnectivityResult.none) {
           throw Exception("Phone is not connected to wifi");
         } else {
-          executeEventCreation();
+          executeEventCreation(context);
         }
       }).catchError((connectionError) {
         setState(() => _isTryingToCreateEvent = false);
@@ -188,18 +186,14 @@ class _CreateEventUIState extends State<CreateEventUI> {
           leading: IconButton(
               icon: Icon(Icons.arrow_back_ios),
               onPressed: () => {
-                    Navigator.push(
-                        context,
-                        NoTransition(
-                            builder: (context) => new AdminScreenUI(_uid)))
+                    Navigator.push(context,
+                        NoTransition(builder: (context) => new AdminScreenUI()))
                   }),
           actions: <Widget>[
             IconButton(
               icon: Icon(Icons.settings),
-              onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => new SettingScreen(_uid))),
+              onPressed: () => Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => new SettingScreen())),
             ),
           ],
         ),
@@ -385,25 +379,17 @@ class _CreateEventUIState extends State<CreateEventUI> {
 }
 
 class AdminScreenUI extends StatefulWidget {
-  String _uid;
-
-  AdminScreenUI(uid) {
-    this._uid = uid;
-  }
+  AdminScreenUI();
 
   @override
   State<StatefulWidget> createState() {
     // TODO: implement createState
-    return (_AdminUIState(_uid));
+    return (_AdminUIState());
   }
 }
 
 class _AdminUIState extends State<AdminScreenUI> {
-  String _uid;
-
-  _AdminUIState(uid) {
-    this._uid = uid;
-  }
+  _AdminUIState();
 
   @override
   Widget build(BuildContext context) {
@@ -414,18 +400,14 @@ class _AdminUIState extends State<AdminScreenUI> {
           leading: IconButton(
               icon: Icon(Icons.arrow_back_ios),
               onPressed: () => {
-                    Navigator.push(
-                        context,
-                        NoTransition(
-                            builder: (context) => new ProfileScreen(_uid)))
+                    Navigator.push(context,
+                        NoTransition(builder: (context) => new ProfileScreen()))
                   }),
           actions: <Widget>[
             IconButton(
               icon: Icon(Icons.settings),
-              onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => new SettingScreen(_uid))),
+              onPressed: () => Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => new SettingScreen())),
             ),
           ],
         ),
@@ -438,13 +420,13 @@ class _AdminUIState extends State<AdminScreenUI> {
                     onTap: () => Navigator.push(
                         context,
                         NoTransition(
-                            builder: (context) => new CreateEventUI(_uid))))),
+                            builder: (context) => new CreateEventUI())))),
             Card(
                 child: ListTile(
               leading: Icon(Icons.library_books),
               title: Text('Edit Events'),
               onTap: () => Navigator.push(context,
-                  NoTransition(builder: (context) => new EditEventUI(_uid))),
+                  NoTransition(builder: (context) => new EditEventUI())),
             )),
             Card(
                 child: ListTile(
@@ -457,23 +439,15 @@ class _AdminUIState extends State<AdminScreenUI> {
 }
 
 class EditEventUI extends StatefulWidget {
-  String _uid;
-
-  EditEventUI(String uid) {
-    _uid = uid;
-  }
+  EditEventUI();
 
   State<EditEventUI> createState() {
-    return _EditEventUIState(_uid);
+    return _EditEventUIState();
   }
 }
 
 class _EditEventUIState extends State<EditEventUI> {
-  String _uid;
-
-  _EditEventUIState(String uid) {
-    _uid = uid;
-  }
+  _EditEventUIState();
 
   ListView _buildEventList(context, snapshot) {
     return ListView.builder(
@@ -481,17 +455,19 @@ class _EditEventUIState extends State<EditEventUI> {
       itemCount: snapshot.data.documents.length,
       // A callback that will return a widget.
       itemBuilder: (context, int) {
-        DocumentSnapshot userInfo = snapshot.data.documents[int];
+        DocumentSnapshot eventInfo = snapshot.data.documents[int];
         return Card(
           child: ListTile(
-            title: Text(userInfo['event_name'],
+            title: Text(eventInfo['event_name'],
                 textAlign: TextAlign.left,
                 style:
                     new TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
-            subtitle: Text(userInfo['event_type']),
+            subtitle: Text(eventInfo['event_type']),
             onTap: () {
-              Navigator.of(context).push(NoTransition(
-                  builder: (context) => Scanner(userInfo.data, _uid)));
+              final container = StateContainer.of(context);
+              container.setEventMetadata(eventInfo.data);
+              Navigator.of(context)
+                  .push(NoTransition(builder: (context) => Scanner()));
             },
           ),
         );
@@ -510,42 +486,42 @@ class _EditEventUIState extends State<EditEventUI> {
         leading: IconButton(
             icon: Icon(Icons.arrow_back_ios),
             onPressed: () => {
-                  Navigator.push(
-                      context,
-                      NoTransition(
-                          builder: (context) => new AdminScreenUI(_uid)))
+                  Navigator.push(context,
+                      NoTransition(builder: (context) => new AdminScreenUI()))
                 }),
         actions: <Widget>[
           IconButton(
             icon: Icon(Icons.settings),
-            onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => new SettingScreen(_uid))),
+            onPressed: () => Navigator.push(context,
+                MaterialPageRoute(builder: (context) => new SettingScreen())),
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: <Widget>[
-            StreamBuilder(
-              stream: Firestore.instance.collection('Events').snapshots(),
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  return Center(
-                    child: Container(
-                      height: screenHeight - 75,
-                      width: screenWidth - 25,
-                      child: _buildEventList(context, snapshot),
-                    ),
-                  );
-                } else {
-                  return Text("Loading...");
-                }
-              },
+      body: Stack(
+        children: <Widget>[
+          SingleChildScrollView(
+            child: Column(
+              children: <Widget>[
+                StreamBuilder(
+                  stream: Firestore.instance.collection('Events').snapshots(),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData) {
+                      return Center(
+                        child: Container(
+                          height: screenHeight - 75,
+                          width: screenWidth - 25,
+                          child: _buildEventList(context, snapshot),
+                        ),
+                      );
+                    } else {
+                      return Text("Loading...");
+                    }
+                  },
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -565,97 +541,117 @@ class NoTransition<T> extends MaterialPageRoute<T> {
 }
 
 class EventInfoUI extends StatefulWidget {
-  Map eventMetadata;
-
-  EventInfoUI(Map metadata) {
-    eventMetadata = metadata;
-  }
-
   @override
   State<StatefulWidget> createState() {
     // TODO: implement createState
-    return _EventInfoUIState(eventMetadata);
+    return _EventInfoUIState();
   }
 }
 
 class _EventInfoUIState extends State<EventInfoUI> {
   Map eventMetadata;
   int scanCount;
-  _EventInfoUIState(metadata) {
-    eventMetadata = metadata;
-    scanCount = eventMetadata['attendee_count'];
-  }
 
   @override
   Widget build(BuildContext context) {
+    double textScaleFactor = MediaQuery.of(context).textScaleFactor;
     double screenHeight = MediaQuery.of(context).size.height;
     double screenWidth = MediaQuery.of(context).size.width;
 
+    final container = StateContainer.of(context);
+    eventMetadata = container.eventMetadata;
+    scanCount = eventMetadata['attendee_count'];
     // TODO: implement build
     return Container(
-      width: screenWidth - 100,
-      child: ListView(
-        children: <Widget>[
-          Card(
-            child: ListTile(
-              leading:
-                  Icon(Icons.stars, color: Color.fromARGB(255, 249, 166, 22)),
-              title: Text('Gold Points',
-                  textAlign: TextAlign.left,
-                  style:
-                      new TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
-              trailing: Container(
-                width: 100,
-                height: 50,
-                child: TextFormField(
-                  initialValue: (eventMetadata['enter_type'] == 'QE')
-                      ? (eventMetadata['gold_points'].toString())
-                      : "",
-                  enabled: (eventMetadata['enter_type'] == 'ME') ? true : false,
-                  textAlign: TextAlign.center,
-                  style: new TextStyle(
-                      fontSize: 20, color: Color.fromARGB(255, 249, 166, 22)),
-                ),
+      width: screenWidth * .9,
+      height: screenHeight * .4,
+      decoration: new BoxDecoration(
+          borderRadius: BorderRadius.circular(15), color: Colors.white),
+      child: Center(
+        child: Column(
+          children: <Widget>[
+            Padding(
+              padding: const EdgeInsets.only(top: 15),
+              child: Container(
+                  child: Text("Event Info",
+                      style: TextStyle(
+                          fontFamily: 'Lato',
+                          fontSize: 32 * textScaleFactor))),
+            ),
+            Container(
+              width: screenWidth * .8,
+              height: screenHeight * .3,
+              child: ListView(
+                children: <Widget>[
+                  Card(
+                    child: ListTile(
+                      leading: Icon(Icons.stars,
+                          color: Color.fromARGB(255, 249, 166, 22)),
+                      title: Text('Gold Points',
+                          textAlign: TextAlign.left,
+                          style: new TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 20)),
+                      trailing: Container(
+                        width: 100,
+                        height: 50,
+                        child: TextFormField(
+                          initialValue: (eventMetadata['enter_type'] == 'QE')
+                              ? (eventMetadata['gold_points'].toString())
+                              : "N/A",
+                          enabled: (eventMetadata['enter_type'] == 'ME')
+                              ? false
+                              : true,
+                          textAlign: TextAlign.center,
+                          style: new TextStyle(
+                              fontSize: 20,
+                              color: Color.fromARGB(255, 249, 166, 22)),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Card(
+                    child: ListTile(
+                      leading: Icon(Icons.stars,
+                          color: Color.fromARGB(255, 249, 166, 22)),
+                      title: Text('Date',
+                          textAlign: TextAlign.left,
+                          style: new TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 20)),
+                      trailing: Text(
+                        eventMetadata['event_date'],
+                        textAlign: TextAlign.center,
+                        style: new TextStyle(
+                            fontSize: 20,
+                            color: Color.fromARGB(255, 249, 166, 22)),
+                      ),
+                    ),
+                  ),
+                  Card(
+                    child: ListTile(
+                      leading: Icon(Icons.stars,
+                          color: Color.fromARGB(255, 249, 166, 22)),
+                      title: Text('Attendee Count',
+                          textAlign: TextAlign.left,
+                          style: new TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 20)),
+                      trailing: Container(
+                        width: 100,
+                        height: 50,
+                        child: Text(
+                          scanCount.toString(),
+                          textAlign: TextAlign.center,
+                          style: new TextStyle(
+                              fontSize: 20,
+                              color: Color.fromARGB(255, 249, 166, 22)),
+                        ),
+                      ),
+                    ),
+                  )
+                ],
               ),
             ),
-          ),
-          Card(
-            child: ListTile(
-              leading:
-                  Icon(Icons.stars, color: Color.fromARGB(255, 249, 166, 22)),
-              title: Text('Date',
-                  textAlign: TextAlign.left,
-                  style:
-                      new TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
-              trailing: Text(
-                eventMetadata['event_date'],
-                textAlign: TextAlign.center,
-                style: new TextStyle(
-                    fontSize: 20, color: Color.fromARGB(255, 249, 166, 22)),
-              ),
-            ),
-          ),
-          Card(
-            child: ListTile(
-              leading:
-                  Icon(Icons.stars, color: Color.fromARGB(255, 249, 166, 22)),
-              title: Text('Attendee Count',
-                  textAlign: TextAlign.left,
-                  style:
-                      new TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
-              trailing: Container(
-                width: 100,
-                height: 50,
-                child: Text(
-                  scanCount.toString(),
-                  textAlign: TextAlign.center,
-                  style: new TextStyle(
-                      fontSize: 20, color: Color.fromARGB(255, 249, 166, 22)),
-                ),
-              ),
-            ),
-          )
-        ],
+          ],
+        ),
       ),
     );
   }

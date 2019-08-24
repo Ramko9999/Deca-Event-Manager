@@ -4,10 +4,9 @@ import 'package:deca_app/screens/profile/profile_screen.dart';
 import 'package:deca_app/screens/code/qr_screen.dart';
 
 class NavigationDrawer extends StatelessWidget {
-  String _uid;
-  NavigationDrawer(this._uid);
 
   Widget build(BuildContext context) {
+
     return Container(
         width: MediaQuery.of(context).size.width * 0.6,
         child: Drawer(
@@ -18,7 +17,7 @@ class NavigationDrawer extends StatelessWidget {
                   onPressed: () async => Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => new QrScreen(_uid)))),
+                          builder: (context) => new QrScreen()))),
             ],
           ),
         ));

@@ -1,4 +1,5 @@
 import 'package:deca_app/screens/admin/admin_main.dart';
+import 'package:deca_app/utility/InheritedInfo.dart';
 import 'package:flutter/material.dart';
 import 'package:deca_app/screens/settings/setting_screen.dart';
 import 'package:deca_app/utility/navigation_drawer.dart';
@@ -7,15 +8,12 @@ import 'package:material_design_icons_flutter/material_design_icons_flutter.dart
 import 'package:deca_app/screens/code/qr_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
-  String _uid;
 
-  ProfileScreen(uid) {
-    this._uid = uid;
-  }
+  ProfileScreen();
 
   @override
   State<ProfileScreen> createState() {
-    return ProfileScreenState(_uid);
+    return ProfileScreenState();
   }
 }
 
@@ -23,19 +21,17 @@ class ProfileScreenState extends State<ProfileScreen> {
   String _uid;
   int _selectedIndex = 0;
 
-  ProfileScreenState(String uid) {
-    this._uid = uid;
-  }
+  ProfileScreenState();
 
   Widget changeScreen(int currentIndex) {
     switch (currentIndex) {
       case 0:
-        return DynamicProfileUI(_uid);
+        return DynamicProfileUI();
       case 1:
-        return QrScreen(_uid);
+        return QrScreen();
         break;
       default:
-        return DynamicProfileUI(_uid);
+        return DynamicProfileUI();
     }
   }
 
@@ -46,6 +42,9 @@ class ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget build(BuildContext context) {
+    final container = StateContainer.of(context);
+    _uid = container.uid;
+
     return Scaffold(
       body: changeScreen(_selectedIndex),
       drawer: Container(
@@ -61,7 +60,7 @@ class ProfileScreenState extends State<ProfileScreen> {
                     onTap: () async => Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => new AdminScreen(_uid)))),
+                            builder: (context) => new AdminScreen()))),
               ],
             ),
           )),
@@ -77,7 +76,7 @@ class ProfileScreenState extends State<ProfileScreen> {
             onPressed: () => Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => new SettingScreen(_uid))),
+                    builder: (context) => new SettingScreen())),
           )
         ],
       ),

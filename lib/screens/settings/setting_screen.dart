@@ -1,4 +1,5 @@
 import 'package:connectivity/connectivity.dart';
+import 'package:deca_app/utility/InheritedInfo.dart';
 import 'package:deca_app/utility/error_popup.dart';
 import 'package:deca_app/utility/single_action_popup.dart';
 import 'package:flutter/cupertino.dart';
@@ -10,14 +11,11 @@ import 'dart:io';
 import 'dart:convert';
 
 class SettingScreen extends StatefulWidget {
-  String _uid;
 
-  SettingScreen(String uid) {
-    this._uid = uid;
-  }
+  SettingScreen();
 
   @override
-  State<SettingScreen> createState() => new SettingScreenState(_uid);
+  State<SettingScreen> createState() => new SettingScreenState();
 }
 
 class SettingScreenState extends State<SettingScreen> {
@@ -30,8 +28,7 @@ class SettingScreenState extends State<SettingScreen> {
   bool _isAutoLoginEnabled = false;
   String _uid;
 
-  SettingScreenState(String uid) {
-    this._uid = uid;
+  SettingScreenState() {
     grabLocalStorage(); //initally grabbing the local storage
   }
 
@@ -156,7 +153,8 @@ class SettingScreenState extends State<SettingScreen> {
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
     double textScaleFactor = MediaQuery.of(context).textScaleFactor;
-
+    final container = StateContainer.of(context);
+    _uid = container.uid;
     return Scaffold(
         appBar: AppBar(
           title: Text("Settings"),

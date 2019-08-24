@@ -1,3 +1,4 @@
+import 'package:deca_app/utility/InheritedInfo.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
@@ -10,11 +11,12 @@ class DynamicProfileUI extends StatelessWidget {
   String _memberLevel;
   List _groups;
 
-  DynamicProfileUI(uid) {
-    this._uid = uid;
-  }
+  DynamicProfileUI() {}
 
   Widget build(BuildContext context) {
+    final container = StateContainer.of(context);
+    _uid = container.uid;
+
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
     return StreamBuilder(
