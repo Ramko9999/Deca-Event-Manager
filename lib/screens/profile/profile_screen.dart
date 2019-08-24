@@ -1,4 +1,5 @@
 import 'package:deca_app/screens/admin/admin_main.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:deca_app/screens/settings/setting_screen.dart';
 import 'package:deca_app/utility/navigation_drawer.dart';
@@ -10,7 +11,7 @@ class ProfileScreen extends StatefulWidget {
   String _uid;
 
   ProfileScreen(uid) {
-    this._uid = uid;
+  this._uid = uid;
   }
 
   @override
