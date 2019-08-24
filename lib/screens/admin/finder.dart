@@ -1,14 +1,11 @@
-
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:deca_app/screens/admin/searcher.dart';
+import 'package:deca_app/utility/InheritedInfo.dart';
 import 'package:flutter/material.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 
 class FinderScreen extends StatelessWidget {
-  Map eventData;
-  FinderScreen(Map e) {
-    this.eventData = e;
-  }
+  FinderScreen();
 
   Widget build(BuildContext context) {
     return Scaffold(
@@ -21,19 +18,15 @@ class FinderScreen extends StatelessWidget {
             },
           ),
         ),
-        body: Finder(eventData));
+        body: Finder());
   }
 }
 
 class Finder extends StatefulWidget {
-  Map eventMetaData;
-
-  Finder(Map e) {
-    this.eventMetaData = e;
-  }
+  Finder();
 
   State<Finder> createState() {
-    return FinderState(eventMetaData);
+    return FinderState();
   }
 }
 
@@ -42,13 +35,12 @@ class FinderState extends State<Finder> {
   final _firstName = TextEditingController();
   final _lastName = TextEditingController();
   bool hasSearched = false;
-  bool isCardTapped = false;
+  bool isCardTapped;
   Map recentCardInfo;
   List<DocumentSnapshot> userDocs;
 
-  FinderState(Map e) {
-    this.eventMetaData = e;
-  }
+  FinderState();
+
   @override
   void initState() {
     super.initState();
@@ -64,6 +56,13 @@ class FinderState extends State<Finder> {
   }
 
   Widget build(BuildContext context) {
+    final container = StateContainer.of(context);
+    eventMetaData = container.eventMetadata;
+    isCardTapped = container.isCardTapped;
+    Firestore.instance.collection("Users").getDocuments().then((documents) {
+      setState(() => userDocs = documents.documents);
+    });
+
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
     return Stack(
@@ -71,47 +70,40 @@ class FinderState extends State<Finder> {
         Container(
           width: screenWidth,
           child: Column(children: <Widget>[
-            Row(
-              children: <Widget>[
-                Container(
-                  width: screenWidth * 0.5,
-                  child: TextField(
-                    controller: _firstName,
-                    decoration: InputDecoration(labelText: "First Name"),
-                    
+            Padding(
+              padding: const EdgeInsets.fromLTRB(0, 0, 0, 15),
+              child: Row(
+                children: <Widget>[
+                  Expanded(
+                    child: Container(
+                      child: TextField(
+                        controller: _firstName,
+                        decoration: InputDecoration(labelText: "First Name"),
+                      ),
+                    ),
                   ),
-                ),
-                Container(
-                  width: screenWidth * 0.5,
-                  child: TextField(
-                    controller: _lastName,
-                    decoration: InputDecoration(labelText: "Last Name"),
+                  Expanded(
+                    child: TextField(
+                      controller: _lastName,
+                      decoration: InputDecoration(labelText: "Last Name"),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
             Flexible(
-                child: userDocs == null ? CircularProgressIndicator() : getList())
+                child: userDocs == null
+                    ? CircularProgressIndicator()
+                    : getList(context)),
           ]),
         ),
-
-        if(isCardTapped)
-        GestureDetector(
-          onTap: (){
-            Firestore.instance.collection("Users").getDocuments().then((documents) {
-            setState((){ 
-              userDocs = documents.documents;
-              isCardTapped = false;
-            });
-            
-          });
-          },
-          child: Container(
-            color: Colors.black45,
-            child: FinderPopup(recentCardInfo)
-          ),
-        )
-      
+        if (isCardTapped)
+          GestureDetector(
+            onTap: () {
+              userDocs = container.setIsCardTapped(false);
+            },
+            child: Container(child: FinderPopup()),
+          )
       ],
     );
   }
@@ -128,8 +120,9 @@ class FinderState extends State<Finder> {
     return relevanceList;
   }
 
-  Widget getList() {
+  Widget getList(BuildContext context) {
     MaxList list = getData();
+    final infoContainer = StateContainer.of(context);
     Node current = list.head;
     return ListView.builder(
         shrinkWrap: true,
@@ -143,8 +136,23 @@ class FinderState extends State<Finder> {
               onTap: () {
                 FocusScope.of(context).requestFocus(FocusNode());
                 setState(() {
-                  isCardTapped = true;
-                  recentCardInfo = userInfo;
+                  infoContainer.setUserData(userInfo);
+                  if (infoContainer.eventMetadata['enter_type'] == 'QE') {
+                    infoContainer.updateGP(userInfo['uid']);
+                    Scaffold.of(context).showSnackBar(SnackBar(
+                      content: Text(
+                        "Succesfully added ${eventMetaData['gold_points'].toString()} to ${userInfo['first_name']}",
+                        style: TextStyle(
+                            fontFamily: 'Lato',
+                            fontSize: 20,
+                            color: Colors.white),
+                      ),
+                      backgroundColor: Colors.green,
+                    ));
+                  } else {
+                    infoContainer.setIsCardTapped(true);
+                    recentCardInfo = userInfo;
+                  }
                 });
               },
               child: Card(
@@ -168,78 +176,69 @@ class FinderState extends State<Finder> {
 }
 
 class FinderPopup extends StatefulWidget {
-  Map userData;
-
-  FinderPopup(Map u) {
-    this.userData = u;
-  }
+  FinderPopup();
   State<FinderPopup> createState() {
-    return FinderPopupState(userData);
+    return FinderPopupState();
   }
 }
 
 class FinderPopupState extends State<FinderPopup> {
   TextEditingController pointController = new TextEditingController();
-  bool wantsToAdd = true;
   Map userData;
 
-  FinderPopupState(Map u) {
+  FinderPopupState() {
     pointController.text = 0.toString();
-    userData = u;
-
   }
 
+  void addGPManual() {}
+
+  void addGPQuick() {}
+
   Widget build(BuildContext context) {
+    final container = StateContainer.of(context);
+    userData = container.userData;
     double screenWidth = MediaQuery.of(context).size.width;
+
     return AlertDialog(
-      title: Text('Edit Gold Points'),
-      content: Row(
-        children: <Widget>[
-          FlatButton(
-            child: wantsToAdd
-                ? Text(
-                    "+",
-                    style: TextStyle(color: Colors.blue, fontSize: 24),
-                  )
-                : Text("-", style: TextStyle(color: Colors.red, fontSize: 24)),
-            onPressed: () {
-              setState(() => wantsToAdd = !wantsToAdd);
-            },
-          ),
-          Container(
-            width: screenWidth * 0.10,
-            child: TextField(
-              keyboardType: TextInputType.number,
-              controller: pointController,
+      title: AutoSizeText(
+        "Add GP to " + userData['first_name'],
+        maxLines: 1,
+      ),
+      content: Container(
+        width: screenWidth * 0.10,
+        child: TextField(
+          style: TextStyle(fontFamily: 'Lato'),
+          textAlign: TextAlign.center,
+          decoration: new InputDecoration(
+            labelText: "GP",
+            border: new OutlineInputBorder(
+              borderRadius: new BorderRadius.circular(10.0),
+              borderSide: new BorderSide(color: Colors.blue),
             ),
-          )
-        ],
+          ),
+          keyboardType: TextInputType.number,
+          controller: pointController,
+        ),
       ),
       actions: <Widget>[
         FlatButton(
           child: Text("Submit", style: TextStyle(color: Colors.blue)),
           onPressed: () {
             String userUID = userData['uid'];
-            int operand = wantsToAdd ? 1 : -1;
             int points = int.parse(pointController.text);
-            Firestore.instance.collection("Users").document(userUID).updateData({'gold_points': FieldValue.increment(operand * points)}).then((confirmation){
-              Scaffold.of(context).showSnackBar(
-                SnackBar(content: 
-                Text("Succesfully added ${(operand * points).toString()} to ${userData['first_name']}", style: 
-                TextStyle(
-                  fontFamily: 'Lato',
-                  fontSize: 20,
-                  color: Colors.white
-                ),),
-                backgroundColor: Colors.green,)
-              );
-            });
+            container.updateGP(userUID, points);
+            Scaffold.of(context).showSnackBar(SnackBar(
+              content: Text(
+                "Succesfully added ${points.toString()} to ${userData['first_name']}",
+                style: TextStyle(
+                    fontFamily: 'Lato', fontSize: 20, color: Colors.white),
+              ),
+              backgroundColor: Colors.green,
+            ));
+            container.setIsCardTapped(false);
           },
         )
       ],
     );
   }
 }
-
-
-

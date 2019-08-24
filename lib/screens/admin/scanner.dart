@@ -1,6 +1,5 @@
 import 'dart:collection';
 import 'dart:io';
-
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:camera/camera.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -8,21 +7,14 @@ import 'package:connectivity/connectivity.dart';
 import 'package:deca_app/screens/admin/finder.dart';
 import 'package:deca_app/screens/admin/templates.dart';
 import 'package:deca_app/screens/settings/setting_screen.dart';
+import 'package:deca_app/utility/InheritedInfo.dart';
 import 'package:firebase_ml_vision/firebase_ml_vision.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class Scanner extends StatefulWidget {
-  Map eventMetaData;
-  String _uid;
-
-  Scanner(Map e, String uid) {
-    this.eventMetaData = e;
-    this._uid = uid;
-  }
-
   State<Scanner> createState() {
-    return _ScannerState(eventMetaData, _uid);
+    return _ScannerState();
   }
 }
 
@@ -33,81 +25,22 @@ class _ScannerState extends State<Scanner> {
   CameraController _mainCamera; //camera that will give us the feed
   bool _isCameraInitalized = false;
   Map eventMetadata;
-  bool _isQR;
-  bool _isSearcher;
+  bool _isQR = true;
+  bool _isSearcher = false;
   int pointVal;
   int scanCount;
-  String _uid;
-
-  _ScannerState(Map e, String uid) {
-    _scannedUids = new HashSet();
-    _connectionState = "Unknown Connection";
-    eventMetadata = e;
-
-    pointVal = eventMetadata['gold_points'];
-    scanCount = eventMetadata['attendee_count'];
-    this._uid = uid;
-    _isQR = true;
-    _isSearcher = false;
-  }
-  void updateGP(String _uid) {
-    Firestore.instance
-        .collection('Users')
-        .document(_uid)
-        .get()
-        .then((userData) {
-      int totalGP = 0;
-      Map eventsList = userData['events'].values;
-      for (var gp in eventsList.keys) {
-        totalGP += gp;
-      }
-      Firestore.instance
-          .collection('Users')
-          .document(_uid)
-          .updateData({'gold_points': totalGP});
-    });
-  }
+  bool isInfo = false;
 
   void pushToDB(String userUniqueID) {
-    print(userUniqueID);
+    final gpContainer = StateContainer.of(context);
     if (!_scannedUids.contains(userUniqueID)) {
       Firestore.instance
           .collection("Users")
           .document(userUniqueID)
           .get()
           .then((userData) {
-        //blindly increment gold points this might be where you want to change such that event data and user dictionary are updated
-        Firestore.instance
-            .collection("Users")
-            .document(userUniqueID)
-            .updateData(
-                {'gold_points': userData.data['gold_points'] + pointVal});
-
-        //update the events
-        Firestore.instance
-            .collection('Events')
-            .document(eventMetadata['event_name'])
-            .updateData({
-          'events': () {
-            Map events = userData['events'];
-            if (events != null) {
-              events.addAll({eventMetadata['event_name']: pointVal});
-              return events;
-            } else {
-              return {eventMetadata['event_name']: pointVal};
-            }
-          }
-        });
-        updateGP(userUniqueID);
-
-        //update the events
-        Firestore.instance
-            .collection('Events')
-            .document(eventMetadata['event_name'])
-            .updateData({'attendee_count': FieldValue.increment(1)});
-        setState(() {
-          scanCount += 1;
-        });
+        //update the events field for the user
+        gpContainer.updateGP(userUniqueID);
         //update the scaffold
 
         //append to the hashset the uniqueID
@@ -132,6 +65,41 @@ class _ScannerState extends State<Scanner> {
     }
   }
 
+  void runStream() {
+    _mainCamera.startImageStream((image) {
+      print("Scanning...");
+      FirebaseVisionImageMetadata metadata;
+      //metadata tag for the for image format.
+      //source https://github.com/flutter/flutter/issues/26348
+      metadata = FirebaseVisionImageMetadata(
+          rawFormat: image.format.raw,
+          size: Size(image.width.toDouble(), image.height.toDouble()),
+          planeData: image.planes
+              .map((plane) => FirebaseVisionImagePlaneMetadata(
+                  bytesPerRow: plane.bytesPerRow,
+                  height: plane.height,
+                  width: plane.width))
+              .toList());
+
+      FirebaseVisionImage visionImage =
+          FirebaseVisionImage.fromBytes(image.planes[0].bytes, metadata);
+      FirebaseVision.instance
+          .barcodeDetector()
+          .detectInImage(visionImage)
+          .then((barcodes) {
+        for (Barcode barcode in barcodes) {
+          pushToDB(barcode.rawValue);
+        }
+      });
+    }).catchError((error) {
+      if (error.runtimeType == CameraException) {
+        Scaffold.of(context).showSnackBar(SnackBar(
+          content: Text("Issues with Camera"),
+        ));
+      }
+    });
+  }
+
   void initState() {
     super.initState();
 
@@ -150,40 +118,11 @@ class _ScannerState extends State<Scanner> {
         if (!mounted) {
           return;
         }
-        setState(() => _isCameraInitalized = true); //show the actual camera
-        _mainCamera.startImageStream((image) {
-          FirebaseVisionImageMetadata metadata;
-          //android image format is different than ios
-          if (Platform.isAndroid) {
-            //metadata tag for the yvu format.
-            //source https://github.com/flutter/flutter/issues/26348
-            metadata = FirebaseVisionImageMetadata(
-                rawFormat: image.format.raw,
-                size: Size(image.width.toDouble(), image.height.toDouble()),
-                planeData: image.planes
-                    .map((plane) => FirebaseVisionImagePlaneMetadata(
-                        bytesPerRow: plane.bytesPerRow,
-                        height: plane.height,
-                        width: plane.width))
-                    .toList());
-          }
-          FirebaseVisionImage visionImage =
-              FirebaseVisionImage.fromBytes(image.planes[0].bytes, metadata);
-          FirebaseVision.instance
-              .barcodeDetector()
-              .detectInImage(visionImage)
-              .then((barcodes) {
-            for (Barcode barcode in barcodes) {
-              pushToDB(barcode.rawValue);
-            }
-          });
-        }).catchError((error) {
-          if (error.runtimeType == CameraException) {
-            Scaffold.of(context).showSnackBar(SnackBar(
-              content: Text("Issues with Camera"),
-            ));
-          }
-        });
+        setState(() {
+          _isCameraInitalized = true;
+        }); //show the actual camera
+
+        runStream();
       });
     });
   }
@@ -208,8 +147,27 @@ class _ScannerState extends State<Scanner> {
   }
 
   Widget build(BuildContext context) {
+    if (_isQR && _isCameraInitalized) {
+      if (!_mainCamera.value.isStreamingImages) {
+        runStream();
+      }
+    } else {
+      if (_mainCamera.value.isStreamingImages) {
+        _mainCamera.stopImageStream();
+      }
+    }
+
     double screenHeight = MediaQuery.of(context).size.height;
     double screenWidth = MediaQuery.of(context).size.width;
+
+    final container = StateContainer.of(context);
+    eventMetadata = container.eventMetadata;
+
+    _scannedUids = new HashSet();
+    _connectionState = "Unknown Connection";
+
+    pointVal = eventMetadata['gold_points'];
+    scanCount = eventMetadata['attendee_count'];
 
     return Scaffold(
       appBar: new AppBar(
@@ -222,11 +180,12 @@ class _ScannerState extends State<Scanner> {
             onPressed: () => {Navigator.of(context).pop()}),
         actions: <Widget>[
           IconButton(
-            icon: Icon(Icons.settings),
-            onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => new SettingScreen(_uid))),
+            icon: Icon(Icons.info),
+            onPressed: () {
+              setState(() {
+                isInfo = true;
+              });
+            },
           ),
         ],
       ),
@@ -289,9 +248,11 @@ class _ScannerState extends State<Scanner> {
                         height: screenHeight - 350,
                         width: screenWidth - 100,
                         child: _isCameraInitalized
-                            ? RotationTransition(
-                                child: CameraPreview(_mainCamera),
-                                turns: AlwaysStoppedAnimation(270 / 360))
+                            ? Platform.isAndroid
+                                ? RotationTransition(
+                                    child: CameraPreview(_mainCamera),
+                                    turns: AlwaysStoppedAnimation(270 / 360))
+                                : CameraPreview(_mainCamera)
                             : Text("Loading...")),
                   Container(
                       padding: new EdgeInsets.only(top: 10.0, bottom: 10.0),
@@ -309,12 +270,18 @@ class _ScannerState extends State<Scanner> {
                           Navigator.push(
                               context,
                               NoTransition(
-                                  builder: (context) => new EditEventUI(_uid)));
+                                  builder: (context) => new EditEventUI()));
                         },
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10)),
                       )),
-                  if (_isSearcher) Finder(eventMetadata),
+                  if (_isSearcher)
+                    Container(
+                      width: screenWidth - 50,
+                      height: screenHeight - 250,
+                      padding: EdgeInsets.fromLTRB(0, 0, 0, 20),
+                      child: Finder(),
+                    ),
                 ],
               ),
             ),
@@ -327,6 +294,21 @@ class _ScannerState extends State<Scanner> {
                     style: TextStyle(fontFamily: 'Lato', color: Colors.red)),
                 content: Text(
                     "There is an error connecting to network. Once we detect a connecton, this page will automatically disappear."),
+              ),
+            ),
+          if (isInfo)
+            GestureDetector(
+              onTap: () {
+                setState(() {
+                  isInfo = false;
+                });
+              },
+              child: Container(
+                width: screenWidth,
+                height: screenHeight,
+                decoration: new BoxDecoration(color: Colors.black45),
+                child: Align(
+                    alignment: Alignment.center, child: new EventInfoUI()),
               ),
             )
         ],

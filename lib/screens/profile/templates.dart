@@ -1,20 +1,57 @@
+import 'package:deca_app/utility/InheritedInfo.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
-class DynamicProfileUI extends StatelessWidget {
+class DynamicProfileUI extends StatefulWidget {
+  DynamicProfileUI();
+
+  @override
+  _DynamicProfileUIState createState() => _DynamicProfileUIState();
+}
+
+class _DynamicProfileUIState extends State<DynamicProfileUI> {
   String _uid;
+
   String _firstName;
+
   String _lastName;
+
   int _goldPoints;
+
   String _memberLevel;
+
   List _groups;
 
-  DynamicProfileUI(uid) {
-    this._uid = uid;
+  bool _wantsToSeeGroups = false;
+
+  Widget getGroups(BuildContext context) {
+    if (_groups.length == 0) {
+      return Text("Not in any groups");
+    } else {
+      List<Widget> groupList = [];
+      for (String group in _groups) {
+        groupList.add(Padding(
+          padding: EdgeInsets.only(bottom: 5),
+          child: Text(group,
+              style: TextStyle(
+                fontSize: 18,
+              )),
+        ));
+      }
+      return Padding(
+        padding: EdgeInsets.only(top: 5),
+        child: Column(
+          children: groupList,
+        ),
+      );
+    }
   }
 
   Widget build(BuildContext context) {
+    final container = StateContainer.of(context);
+    _uid = container.uid;
+
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
     return StreamBuilder(
@@ -45,43 +82,69 @@ class DynamicProfileUI extends StatelessWidget {
             _groups = userInfo.data['groups'];
 
             //setting the new UI
-            return Center(
-                child: Column(
-              children: <Widget>[
-                Container(
-                  padding: new EdgeInsets.fromLTRB(20.0, 20.0, 30.0, 15.0),
-                  width: double.infinity,
-                  child: Text(
-                    "Hello " + _firstName + '.',
-                    textAlign: TextAlign.left,
-                    style:
-                        new TextStyle(fontSize: 36, fontFamily: 'Lato-Regular'),
+            return SingleChildScrollView(
+              child: Center(
+                  child: Column(
+                children: <Widget>[
+                  Container(
+                    padding: new EdgeInsets.fromLTRB(20.0, 20.0, 30.0, 15.0),
+                    width: double.infinity,
+                    child: Text(
+                      "Hello " + _firstName + '.',
+                      textAlign: TextAlign.left,
+                      style: new TextStyle(
+                          fontSize: 36, fontFamily: 'Lato-Regular'),
+                    ),
                   ),
-                ),
-                Container(
-                    height: screenHeight - 400,
+                  Container(
+                    height: screenHeight,
                     width: screenWidth - 25,
-                    child: ListView(
-                      children: <Widget>[
-                        Card(
-                            child: ListTile(
-                          leading: Icon(Icons.stars,
-                              color: Color.fromARGB(255, 249, 166, 22)),
-                          title: Text('Gold Points',
-                              textAlign: TextAlign.left,
-                              style: new TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 20)),
-                          trailing: Text(
-                            _goldPoints.toString(),
-                            textAlign: TextAlign.center,
+                    child: ListView(children: <Widget>[
+                      Card(
+                          child: ListTile(
+                        leading: Icon(Icons.stars,
+                            color: Color.fromARGB(255, 249, 166, 22)),
+                        title: Text('Gold Points',
+                            textAlign: TextAlign.left,
                             style: new TextStyle(
-                                fontSize: 20,
-                                color: Color.fromARGB(255, 249, 166, 22)),
-                          ),
-                        )),
-                        Card(
-                            child: ListTile(
-                          leading: Icon(MdiIcons.accountBadge,
+                                fontWeight: FontWeight.bold, fontSize: 20)),
+                        trailing: Text(
+                          _goldPoints.toString(),
+                          textAlign: TextAlign.center,
+                          style: new TextStyle(
+                              fontSize: 20,
+                              color: Color.fromARGB(255, 249, 166, 22)),
+                        ),
+                      )),
+                      Card(
+                          child: ListTile(
+                        leading: Icon(MdiIcons.accountBadge,
+                            color: (_memberLevel == 'Member')
+                                ? Colors.blueAccent
+                                : (_memberLevel == 'Silver')
+                                    ? Colors.blueGrey
+                                    : (_memberLevel == 'Gold')
+                                        ? Color.fromARGB(255, 249, 166, 22)
+                                        : Colors.black),
+                        title: Text('Member Status',
+                            textAlign: TextAlign.left,
+                            style: new TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 20)),
+                        subtitle: (_memberLevel == 'N/A')
+                            ? Text((75 - _goldPoints).toString() +
+                                ' GP until you\'re a member!')
+                            : (_memberLevel == 'Member')
+                                ? Text((125 - _goldPoints).toString() +
+                                    ' GP until you\'re a SILVER member!')
+                                : (_memberLevel == 'Silver')
+                                    ? Text((200 - _goldPoints).toString() +
+                                        ' GP until you\'re a GOLD member!')
+                                    : null,
+                        trailing: Text(
+                          _memberLevel,
+                          textAlign: TextAlign.center,
+                          style: new TextStyle(
+                              fontSize: 20,
                               color: (_memberLevel == 'Member')
                                   ? Colors.blueAccent
                                   : (_memberLevel == 'Silver')
@@ -89,38 +152,58 @@ class DynamicProfileUI extends StatelessWidget {
                                       : (_memberLevel == 'Gold')
                                           ? Color.fromARGB(255, 249, 166, 22)
                                           : Colors.black),
-                          title: Text('Member Status',
-                              textAlign: TextAlign.left,
-                              style: new TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 20)),
-                          subtitle: (_memberLevel == 'N/A')
-                              ? Text((75 - _goldPoints).toString() +
-                                  ' GP until you\'re a member!')
-                              : (_memberLevel == 'Member')
-                                  ? Text((125 - _goldPoints).toString() +
-                                      ' GP until you\'re a SILVER member!')
-                                  : (_memberLevel == 'Silver')
-                                      ? Text((200 - _goldPoints).toString() +
-                                          ' GP until you\'re a GOLD member!')
-                                      : null,
-                          trailing: Text(
-                            _memberLevel,
-                            textAlign: TextAlign.center,
-                            style: new TextStyle(
-                                fontSize: 20,
-                                color: (_memberLevel == 'Member')
-                                    ? Colors.blueAccent
-                                    : (_memberLevel == 'Silver')
-                                        ? Colors.blueGrey
-                                        : (_memberLevel == 'Gold')
-                                            ? Color.fromARGB(255, 249, 166, 22)
-                                            : Colors.black),
-                          ),
-                        ))
-                      ],
-                    )),
-              ],
-            ));
+                        ),
+                      )),
+                      _wantsToSeeGroups
+                          ? Card(
+                              child: Column(
+                              children: <Widget>[
+                                ListTile(
+                                  leading: Icon(
+                                    Icons.group,
+                                    color: Colors.blue,
+                                  ),
+                                  title: Text('Committees',
+                                      textAlign: TextAlign.left,
+                                      style: new TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 20)),
+                                  subtitle: Text("Hit the dash to exit"),
+                                  trailing: IconButton(
+                                    icon: Icon(Icons.remove),
+                                    onPressed: () {
+                                      setState(() => _wantsToSeeGroups = false);
+                                    },
+                                  ),
+                                ),
+                                getGroups(context)
+                              ],
+                            ))
+                          : GestureDetector(
+                              onTap: () {
+                                setState(() => _wantsToSeeGroups = true);
+                              },
+                              child: Card(
+                                child: ListTile(
+                                  leading: Icon(
+                                    Icons.group,
+                                    color: Colors.blue,
+                                  ),
+                                  title: Text('Committees',
+                                      textAlign: TextAlign.left,
+                                      style: new TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 20)),
+                                  subtitle: Text(
+                                    "Click to View",
+                                  ),
+                                ),
+                              )),
+                    ]),
+                  )
+                ],
+              )),
+            );
           } else {
             return Container(
                 alignment: Alignment.center,
