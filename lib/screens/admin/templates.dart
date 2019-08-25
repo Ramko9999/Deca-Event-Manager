@@ -243,7 +243,7 @@ class _CreateEventUIState extends State<CreateEventUI> {
                                 .format(date)
                                 .toString();
                             _eventDate =
-                                new DateFormat.yMd().format(date).toString();
+                                new DateFormat('yyyy-MM-dd').format(date).toString();
                           });
                         }, currentTime: DateTime.now(), locale: LocaleType.en);
                       },

@@ -299,6 +299,7 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
         "username": _username,
         "password": _password,
         "gold_points": 0,
+        "events":{},
         "groups": ['none'],
         "uid": userId
       });

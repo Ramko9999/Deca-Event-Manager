@@ -17,7 +17,6 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class ProfileScreenState extends State<ProfileScreen> {
-  String _uid;
   int _selectedIndex = 0;
 
   ProfileScreenState();
@@ -41,8 +40,6 @@ class ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget build(BuildContext context) {
-    final container = StateContainer.of(context);
-    _uid = container.uid;
 
     return Scaffold(
       body: changeScreen(_selectedIndex),
@@ -91,7 +88,6 @@ class ProfileScreenState extends State<ProfileScreen> {
             icon: Icon(Icons.notifications),
             title: Text('Notifications'),
           ),
-          BottomNavigationBarItem(icon: Icon(Icons.chat), title: Text('Chats')),
         ],
         currentIndex: _selectedIndex,
         selectedItemColor: Colors.blue,

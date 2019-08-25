@@ -7,6 +7,7 @@ class StateContainerState extends State<StateContainer> {
   Map eventMetadata;
   Map userData;
   bool isCardTapped = false;
+  String filterType;
 
   // You can (and probably will) have methods on your StateContainer
   // These methods are then used through our your app to
@@ -15,25 +16,34 @@ class StateContainerState extends State<StateContainer> {
   // Widgets in the app that rely on the state you've changed.
 
   //-----methods go here-----
-  void setEventMetadata(Map newMetadata) {
+  void setEventMetadata(Map newMetadata)
+  {
     setState(() {
       eventMetadata = newMetadata;
     });
   }
-
-  void setUserData(Map newUserData) {
+  void setUserData(Map newUserData)
+  {
     setState(() {
       userData = newUserData;
     });
   }
-
-  void setUID(String _uid) {
+  void setUID(String _uid)
+  {
     setState(() {
       uid = _uid;
     });
   }
 
-  void updateGP(String userUniqueId, [int manualGP]) {
+  void setFilterType(String newFilterType)
+  {
+    setState(() {
+      filterType = newFilterType;
+    });
+  }
+
+  void updateGP(String userUniqueId, [int manualGP])
+  {
     //adds the current event in eventMetadata state to events field for the user that is parameterized
     addToEvents(userUniqueId, manualGP);
     //updates gp value to match events field in user
@@ -57,7 +67,8 @@ class StateContainerState extends State<StateContainer> {
     });
   }
 
-  void incrementAttendees() {
+  void incrementAttendees()
+  {
     int scanCount = eventMetadata['attendee_count'];
     //update the events
     Firestore.instance
@@ -70,40 +81,51 @@ class StateContainerState extends State<StateContainer> {
   }
 
   //adds the current event in eventMetadata state to events field for the user that is parameterized
-  void addToEvents(String userUniqueId, [int manualGP]) {
+  void addToEvents(String userUniqueId, [int manualGP])
+  {
     int pointVal = eventMetadata['gold_points'];
     Map finalEvents = userData['events'];
 
     if (finalEvents != null) {
-      if (eventMetadata['enter_type'] == 'QE') {
+      if(eventMetadata['enter_type'] == 'QE')
+      {
         finalEvents.addAll({eventMetadata['event_name']: pointVal});
-      } else if (manualGP != null) {
+      }
+      else if(manualGP != null)
+      {
         finalEvents.addAll({eventMetadata['event_name']: manualGP});
       }
-    } else {
+    }
+    else {
       finalEvents = {eventMetadata['event_name']: pointVal};
     }
-    Firestore.instance
-        .collection('Users')
-        .document(userUniqueId)
-        .updateData({'events': finalEvents});
+      Firestore.instance
+          .collection('Users')
+          .document(userUniqueId)
+          .updateData({'events': finalEvents});
+
   }
 
-  List<DocumentSnapshot> setIsCardTapped(bool newVal) {
-    if (!newVal) {
-      Firestore.instance.collection("Users").getDocuments().then((documents) {
-        setState(() {
-          isCardTapped = false;
-          return documents.documents;
+  List<DocumentSnapshot> setIsCardTapped(bool newVal)
+  {
+    if(!newVal)
+      {
+        Firestore.instance.collection("Users").getDocuments().then((documents) {
+          setState(() {
+            isCardTapped = false;
+            return documents.documents;
+          });
         });
-      });
-    } else {
-      setState(() {
-        isCardTapped = true;
-      });
-    }
+      }
+    else
+      {
+        setState(() {
+          isCardTapped = true;
+        });
+      }
     return null;
   }
+
 
   // Simple build method that just passes this state through
   // your InheritedWidget
@@ -141,21 +163,23 @@ class StateContainer extends StatefulWidget {
   final Map eventMetadata;
   final Map userData;
   final bool isCardTapped;
+  final String filterType;
 
-  StateContainer(
-      {@required this.child,
-      this.uid,
-      this.eventMetadata,
-      this.userData,
-      this.isCardTapped});
+  StateContainer({
+    @required this.child,
+    this.uid,
+    this.eventMetadata,
+    this.userData,
+    this.isCardTapped,
+    this.filterType,
+  });
 
   // This is the secret sauce. Write your own 'of' method that will behave
   // Exactly like MediaQuery.of and Theme.of
   // It basically says 'get the data from the widget of this type.
   static StateContainerState of(BuildContext context) {
     return (context.inheritFromWidgetOfExactType(_InheritedStateContainer)
-            as _InheritedStateContainer)
-        .data;
+    as _InheritedStateContainer).data;
   }
 
   @override
