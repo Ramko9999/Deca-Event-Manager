@@ -44,12 +44,8 @@ class StateContainerState extends State<StateContainer> {
 
   void updateGP(String userUniqueId, [int manualGP])
   {
-    //adds the current event in eventMetadata state to events field for the user that is parameterized
-    addToEvents(userUniqueId, manualGP);
-    //updates gp value to match events field in user
-    incrementAttendees();
-    print('hello');
-    Firestore.instance
+    incrementAttendees(userUniqueId).then((_) => addToEvents(userUniqueId,manualGP).then((_) =>
+        Firestore.instance
         .collection('Users')
         .document(userUniqueId)
         .get()
@@ -64,25 +60,50 @@ class StateContainerState extends State<StateContainer> {
           .collection('Users')
           .document(userUniqueId)
           .updateData({'gold_points': totalGP});
-    });
+    })));
+    //adds the current event in eventMetadata state to events field for the user that is parameterized
+    //updates gp value to match events field in user
   }
 
-  void incrementAttendees()
+  Future incrementAttendees(String _uid) async
   {
-    int scanCount = eventMetadata['attendee_count'];
-    //update the events
-    Firestore.instance
-        .collection('Events')
-        .document(eventMetadata['event_name'])
-        .updateData({'attendee_count': FieldValue.increment(1)});
-    setState(() {
-      scanCount += 1;
+    bool hasAttended = false;
+    Map userSnapshot;
+    await Firestore.instance.collection('Users').document(_uid).get().then((data) {
+      userSnapshot = data.data;
+    }).whenComplete(() {
+      print(userSnapshot);
+      for(String eventName in userSnapshot['events'].keys)
+      {
+        print(eventName);
+        print(eventMetadata['event_name']);
+        if(eventName == eventMetadata['event_name'])
+        {
+          hasAttended = true;
+          break;
+        }
+      }
+      print(hasAttended);
+      if(!hasAttended)
+      {
+        print('got here');
+        int scanCount = eventMetadata['attendee_count'];
+        //update the events
+        Firestore.instance
+            .collection('Events')
+            .document(eventMetadata['event_name'])
+            .updateData({'attendee_count': FieldValue.increment(1)});
+        setState(() {
+          scanCount += 1;
+        });
+      }
     });
   }
 
   //adds the current event in eventMetadata state to events field for the user that is parameterized
-  void addToEvents(String userUniqueId, [int manualGP])
+  Future addToEvents(String userUniqueId, [int manualGP]) async
   {
+    print("adding events");
     int pointVal = eventMetadata['gold_points'];
     Map finalEvents = userData['events'];
 
@@ -99,10 +120,11 @@ class StateContainerState extends State<StateContainer> {
     else {
       finalEvents = {eventMetadata['event_name']: pointVal};
     }
-      Firestore.instance
+      await Firestore.instance
           .collection('Users')
           .document(userUniqueId)
           .updateData({'events': finalEvents});
+    print('finished adding to events');
 
   }
 

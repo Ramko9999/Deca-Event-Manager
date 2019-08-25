@@ -114,6 +114,7 @@ class _ScannerState extends State<Scanner> {
     availableCameras().then((allCameras) {
       _cameras = allCameras;
       _mainCamera = CameraController(allCameras[0], ResolutionPreset.medium);
+      print("Line 117 $_mainCamera");
       _mainCamera.initialize().then((_) {
         if (!mounted) {
           return;
@@ -121,7 +122,7 @@ class _ScannerState extends State<Scanner> {
         setState(() {
           _isCameraInitalized = true;
         }); //show the actual camera
-
+        print("Line 125 $_mainCamera");
         runStream();
       });
     });
@@ -152,11 +153,10 @@ class _ScannerState extends State<Scanner> {
         runStream();
       }
     } else {
-      if (_mainCamera.value.isStreamingImages) {
+      if (_isCameraInitalized && _mainCamera.value.isStreamingImages) {
         _mainCamera.stopImageStream();
       }
     }
-
     double screenHeight = MediaQuery.of(context).size.height;
     double screenWidth = MediaQuery.of(context).size.width;
 

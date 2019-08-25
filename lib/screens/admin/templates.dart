@@ -60,8 +60,6 @@ class _CreateEventUIState extends State<CreateEventUI> {
 
       setState(() => _isTryingToCreateEvent = false);
       container.setEventMetadata(eventMetadata);
-      Navigator.of(context)
-          .push(NoTransition(builder: (context) => FinderScreen()));
     } else {
       eventMetadata = {
         "event_name": _eventName.text,
@@ -79,9 +77,8 @@ class _CreateEventUIState extends State<CreateEventUI> {
       setState(() => _isTryingToCreateEvent = false);
 
       container.setEventMetadata(eventMetadata);
-      Navigator.of(context).push(NoTransition(builder: (context) => Scanner()));
     }
-
+    Navigator.of(context).push(NoTransition(builder: (context) => Scanner()));
     clearAll();
   }
 

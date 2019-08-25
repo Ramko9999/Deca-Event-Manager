@@ -75,7 +75,7 @@ class DynamicProfileUI extends StatelessWidget {
                               textAlign: TextAlign.left,
                               style: new TextStyle(
                                   fontWeight: FontWeight.bold, fontSize: 20)),
-                          subtitle: Text('Click for more details!'),
+                          subtitle: Text('Click to view attended events!'),
                           onTap: () => Navigator.push(
                               context,
                               NoTransition(
@@ -175,31 +175,39 @@ class GPInfoScreenState extends State<GPInfoScreen> {
       // A callback that will return a widget.
       itemBuilder: (context, i) {
         DocumentSnapshot event = eventList[i].info;
-        int gold_points = event['gold_points']; // change
         return Card(
+          color: eventList[i].eventColor,
           child: ListTile(
             title: Text(event['event_name'],
                 textAlign: TextAlign.left,
                 style:
                     new TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
             subtitle: Text(event['event_type']),
-            trailing: Text(gold_points.toString(),
+            trailing: Text(eventList[i].gp.toString(),
                 textAlign: TextAlign.center,
                 style: new TextStyle(
-                    fontSize: 20, color: Color.fromARGB(255, 249, 166, 22))),
+                    fontSize: 20, color: Colors.black, fontWeight: FontWeight.bold)),
           ),
         );
       },
     );
   }
 
-  List<EventObject> filter(eventSnapshot, userSnapshot) {
+  List<EventObject> filter(eventSnapshot, DocumentSnapshot userSnapshot) {
     List<EventObject> eventList = [];
-    if (!userSnapshot['events'].isEmpty()) {
+    Map userMetadata = userSnapshot.data as Map;
+    if (!userMetadata.isEmpty) {
       for (DocumentSnapshot event in eventSnapshot) {
-        for (String userEvent in userSnapshot['events'].keys) {
+        for (String userEvent in userMetadata['events'].keys) {
           if (event['event_name'] == userEvent) {
-            eventList.add(new EventObject(event));
+            if(event['enter_type'] == "ME")
+              {
+                eventList.add(new EventObject(event,userMetadata['events'][userEvent]));
+              }
+            else
+              {
+                eventList.add(new EventObject(event));
+              }
           }
         }
       }
@@ -220,29 +228,78 @@ class GPInfoScreenState extends State<GPInfoScreen> {
     // TODO: implement build
     return Scaffold(
       appBar: AppBar(
-        title: Text('GP Information'),
+        title: Text('Events Attended'),
         actions: <Widget>[
           IconButton(
             icon: Icon(Icons.filter_list),
           )
         ],
       ),
-      body: StreamBuilder(
-          stream: Firestore.instance.collection('Events').snapshots(),
-          builder: (context, eventSnapshot) {
-            return StreamBuilder(
-                stream: Firestore.instance
-                    .collection('Users')
-                    .where("uid", isEqualTo: _uid)
-                    .snapshots(),
-                builder: (context, userSnapshot) {
+      body: Column(
+        children: <Widget>[
+          StreamBuilder(
+              stream: Firestore.instance.collection('Events').snapshots(),
+              builder: (context, eventSnapshot) {
+                if(eventSnapshot.hasData) {
+                  List<DocumentSnapshot> eventSnap = eventSnapshot.data.documents;
+                  return StreamBuilder(
+                      stream: Firestore.instance
+                          .collection('Users')
+                          .where("uid", isEqualTo: _uid)
+                          .snapshots(),
+                      builder: (context, userSnapshot) {
+                        if(userSnapshot.hasData) {
+                          DocumentSnapshot userSnap = userSnapshot.data.documents[0];
+                          return Center(
+                            child: Container(
+                              padding: EdgeInsets.fromLTRB(0, 10, 0, 0),
+                              height: screenHeight - 76,
+                              width: screenWidth - 25,
+                              child: _buildEventList(context, eventSnap, userSnap),
+                            ),
+                          );
+                        }
+                        else {
+                          return Container(
+                              alignment: Alignment.center,
+                              child: Column(
+                                children: <Widget>[
+                                  Text(
+                                    "Connecting...",
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontFamily: "Lato",
+                                      color: Colors.grey,
+                                      fontSize: 32,
+                                    ),
+                                  ),
+                                  CircularProgressIndicator()
+                                ],
+                              ));
+                        }
+                      });
+                }
+                else {
                   return Container(
-                    height: screenHeight - 75,
-                    width: screenWidth - 25,
-                    child: _buildEventList(context, eventSnapshot, userSnapshot),
-                  );
-                });
-          }),
+                      alignment: Alignment.center,
+                      child: Column(
+                        children: <Widget>[
+                          Text(
+                            "Connecting...",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontFamily: "Lato",
+                              color: Colors.grey,
+                              fontSize: 32,
+                            ),
+                          ),
+                          CircularProgressIndicator()
+                        ],
+                      ));
+                }
+              }),
+        ],
+      ),
     );
   }
 }
@@ -250,9 +307,25 @@ class GPInfoScreenState extends State<GPInfoScreen> {
 class EventObject implements Comparable<EventObject> {
   final DocumentSnapshot info;
   DateTime eventDate;
+  Color eventColor;
+  int gp;
 
-  EventObject(this.info) {
+  final Map<String, Color> eventColors = {
+    'Meeting':Colors.blueAccent,
+    'Social':Colors.orange,
+    'Event':Colors.tealAccent,
+    'Competition':Colors.lightGreenAccent,
+    'Committee':Colors.redAccent,
+    'Cookie Store':Colors.yellowAccent,
+    'Miscellaneous':Colors.grey};
+
+  EventObject(this.info, [this.gp]) {
     eventDate = DateTime.parse(info['event_date']);
+    eventColor = eventColors[info['event_type']];
+    if(this.gp == null)
+      {
+        this.gp = info['gold_points'];
+      }
   }
 
   int compareTo(EventObject other) {
