@@ -55,6 +55,13 @@ class FinderState extends State<Finder> {
     });
   }
 
+  void dispose(){
+    userDocs = null;
+    _firstName.dispose();
+    _lastName.dispose();
+    this.dispose();
+  }
+
   Widget build(BuildContext context) {
     final container = StateContainer.of(context);
     eventMetaData = container.eventMetadata;

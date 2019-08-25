@@ -253,7 +253,7 @@ class GPInfoScreenState extends State<GPInfoScreen> {
                           return Center(
                             child: Container(
                               padding: EdgeInsets.fromLTRB(0, 10, 0, 0),
-                              height: screenHeight - 76,
+                              height: screenHeight - 80,
                               width: screenWidth - 25,
                               child: _buildEventList(context, eventSnap, userSnap),
                             ),

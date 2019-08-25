@@ -72,7 +72,7 @@ class StateContainerState extends State<StateContainer> {
     await Firestore.instance.collection('Users').document(_uid).get().then((data) {
       userSnapshot = data.data;
     }).whenComplete(() {
-      print(userSnapshot);
+
       for(String eventName in userSnapshot['events'].keys)
       {
         print(eventName);
@@ -86,7 +86,6 @@ class StateContainerState extends State<StateContainer> {
       print(hasAttended);
       if(!hasAttended)
       {
-        print('got here');
         int scanCount = eventMetadata['attendee_count'];
         //update the events
         Firestore.instance

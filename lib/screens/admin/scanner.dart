@@ -30,33 +30,29 @@ class _ScannerState extends State<Scanner> {
   int pointVal;
   int scanCount;
   bool isInfo = false;
+  final _scaffoldKey = new GlobalKey<ScaffoldState>();
 
-  void pushToDB(String userUniqueID) {
+  void pushToDB(String userUniqueID) async {
     final gpContainer = StateContainer.of(context);
     if (!_scannedUids.contains(userUniqueID)) {
-      Firestore.instance
+      final userData = await Firestore.instance
           .collection("Users")
           .document(userUniqueID)
-          .get()
-          .then((userData) {
+          .get();
+          
+          
+          gpContainer.setUserData(userData.data);
         //update the events field for the user
         gpContainer.updateGP(userUniqueID);
+        String firstName = userData.data['first_name'];
         //update the scaffold
-
-        //append to the hashset the uniqueID
-        _scannedUids.add(userUniqueID);
-      }).catchError((onError) => print(onError));
-      Firestore.instance
-          .collection('Users')
-          .document(userUniqueID)
-          .get()
-          .then((user) {
-        String firstName = user.data['first_name'];
-        Scaffold.of(context).showSnackBar(SnackBar(
+          _scaffoldKey.currentState.showSnackBar(SnackBar(
           backgroundColor: Color.fromRGBO(46, 204, 113, 1),
-          content: Text("Scanned" + firstName),
+          content: Text("Scanned " + firstName),
         ));
-      }).catchError((onError) => print(onError));
+        //append to the hashset the uniqueID
+       _scannedUids.add(userUniqueID);
+      
     } else {
       Scaffold.of(context).showSnackBar(SnackBar(
         backgroundColor: Colors.redAccent,
@@ -67,7 +63,6 @@ class _ScannerState extends State<Scanner> {
 
   void runStream() {
     _mainCamera.startImageStream((image) {
-      print("Scanning...");
       FirebaseVisionImageMetadata metadata;
       //metadata tag for the for image format.
       //source https://github.com/flutter/flutter/issues/26348
@@ -148,15 +143,19 @@ class _ScannerState extends State<Scanner> {
   }
 
   Widget build(BuildContext context) {
-    if (_isQR && _isCameraInitalized) {
-      if (!_mainCamera.value.isStreamingImages) {
-        runStream();
+    if(_isCameraInitalized){
+      if(_isQR){
+        if(!_mainCamera.value.isStreamingImages){
+            runStream();
+        }
       }
-    } else {
-      if (_isCameraInitalized && _mainCamera.value.isStreamingImages) {
-        _mainCamera.stopImageStream();
+      else{
+        if(_mainCamera.value.isStreamingImages){
+          _mainCamera.stopImageStream();
+        }
       }
     }
+   
     double screenHeight = MediaQuery.of(context).size.height;
     double screenWidth = MediaQuery.of(context).size.width;
 
@@ -170,6 +169,7 @@ class _ScannerState extends State<Scanner> {
     scanCount = eventMetadata['attendee_count'];
 
     return Scaffold(
+      key: _scaffoldKey,
       appBar: new AppBar(
         title: AutoSizeText(
           "Add Members to \'" + eventMetadata['event_name'] + "\'",

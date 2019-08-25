@@ -152,6 +152,7 @@ class _LoginTemplateState extends State<LoginTemplate> {
                         width: screenWidth - 100,
                         //make this a TextField if using controller
                         child: TextFormField(
+                          keyboardType: TextInputType.emailAddress,
                           controller: _username,
                           style: TextStyle(
                               fontFamily: 'Lato',
@@ -173,7 +174,7 @@ class _LoginTemplateState extends State<LoginTemplate> {
                           textAlign: TextAlign.center,
                           decoration: new InputDecoration(
                             icon: Icon(Icons.mail),
-                            labelText: "Username",
+                            labelText: "Email",
                           ),
                         ),
                       ),
@@ -305,12 +306,7 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
       });
 
       setState(() => _isTryingToRegister = false);
-      showDialog(
-          context: context,
-          builder: (context) {
-            return SingleActionPopup(
-                "Successful! Try Logging In", "SUCCESS!", Colors.black);
-          });
+      Navigator.of(context).push(MaterialPageRoute(builder: (context)=> ProfileScreen()));
 
       //catching invalid email error
     }).catchError((error) {
@@ -420,6 +416,7 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
                       Container(
                         width: screenWidth - 100,
                         child: TextFormField(
+                          keyboardType: TextInputType.emailAddress,
                           style: new TextStyle(
                               fontFamily: 'Lato',
                               fontSize: 18 * textScaleFactor),
@@ -440,7 +437,7 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
                           textAlign: TextAlign.center,
                           decoration: new InputDecoration(
                             icon: Icon(Icons.mail),
-                            labelText: "Username",
+                            labelText: "Email",
                           ),
                         ),
                       ),
