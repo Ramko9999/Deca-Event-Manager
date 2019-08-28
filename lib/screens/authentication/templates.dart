@@ -10,6 +10,7 @@ import 'package:deca_app/screens/profile/profile_screen.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'dart:convert';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 //login template
 class LoginTemplate extends StatefulWidget {
@@ -282,6 +283,7 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
   String _password;
   bool _isTryingToRegister = false; //used to give progress bar animation
   final _registrationFormKey = GlobalKey<FormState>();
+  FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
 
   //executes the actual registration
   void executeRegistration() async {
@@ -292,9 +294,10 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
           result.user.uid; //grabds user's unique id from Firebase Auth
       final container = StateContainer.of(context);
       container.setUID(userId);
+      String messagingToken = await _firebaseMessaging.getToken();
 
       //creating a new user in Firestore
-      await Firestore.instance.collection("Users").document(userId).setData({
+      Firestore.instance.collection("Users").document(userId).setData({
         "first_name": _firstName,
         "last_name": _lastName,
         "username": _username,
@@ -302,12 +305,12 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
         "gold_points": 0,
         "events":{},
         "groups": ['none'],
-        "uid": userId
-      });
-
-      setState(() => _isTryingToRegister = false);
+        "uid": userId,
+        "device-token": messagingToken
+      }).then( (_){
+        setState(() => _isTryingToRegister = false);
       Navigator.of(context).push(MaterialPageRoute(builder: (context)=> ProfileScreen()));
-
+      });
       //catching invalid email error
     }).catchError((error) {
       setState(() => _isTryingToRegister = false);

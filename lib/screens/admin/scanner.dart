@@ -2,6 +2,7 @@ import 'dart:collection';
 import 'dart:io';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:camera/camera.dart';
+import 'package:camera/camera.dart' as prefix0;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity/connectivity.dart';
 import 'package:deca_app/screens/admin/finder.dart';
@@ -11,6 +12,7 @@ import 'package:deca_app/utility/InheritedInfo.dart';
 import 'package:firebase_ml_vision/firebase_ml_vision.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class Scanner extends StatefulWidget {
   State<Scanner> createState() {
@@ -30,6 +32,7 @@ class _ScannerState extends State<Scanner> {
   int pointVal;
   int scanCount;
   bool isInfo = false;
+  bool _cameraPermission = true;
   final _scaffoldKey = new GlobalKey<ScaffoldState>();
 
   void pushToDB(String userUniqueID) async {
@@ -95,21 +98,54 @@ class _ScannerState extends State<Scanner> {
     });
   }
 
-  void initState() {
-    super.initState();
 
-    //listening for changes in connection
-    Connectivity().onConnectivityChanged.listen((connectionStatus) {
-      setState(() {
-        _connectionState = connectionStatus.toString();
+  //get a list of permissions that are still denied
+  Future<List> getPermissionsThatNeedToBeChecked(PermissionGroup cameraPermission, PermissionGroup microphonePermission) async {
+    PermissionStatus cameraPermStatus = await PermissionHandler().checkPermissionStatus(cameraPermission);
+    PermissionStatus microphonePermStatus = await PermissionHandler().checkPermissionStatus(microphonePermission);
+    List<PermissionGroup> stillNeedToBeGranted = [];
+    if(cameraPermStatus == PermissionStatus.denied){
+      stillNeedToBeGranted.add(cameraPermission);
+    }
+    if(microphonePermStatus == PermissionStatus.denied){
+      stillNeedToBeGranted.add(microphonePermission);
+    }
+    return stillNeedToBeGranted;
+  }
+
+
+  //request permissions and check until all are requestsed
+  void requestPermStatus(List<PermissionGroup> permissionGroups){
+    bool allAreAccepted = true;
+    PermissionHandler().requestPermissions(permissionGroups).then((permissionResult){
+      permissionResult.forEach((k,v){
+        if(v == PermissionStatus.denied){
+          allAreAccepted = false;
+        }
+        
       });
+      if(allAreAccepted){
+        setState((){
+          _cameraPermission = true;
+          
+        });
+        createCamera();
+      }
+      
     });
+   
+  }
 
-    //get all the avaliable cameras
+
+  //create camera based on permissions 
+  void createCamera(){
+    getPermissionsThatNeedToBeChecked(PermissionGroup.camera, PermissionGroup.microphone).then((permList){
+      if(permList.length == 0){
+        //get all the avaliable cameras
     availableCameras().then((allCameras) {
       _cameras = allCameras;
       _mainCamera = CameraController(allCameras[0], ResolutionPreset.medium);
-      print("Line 117 $_mainCamera");
+      
       _mainCamera.initialize().then((_) {
         if (!mounted) {
           return;
@@ -117,10 +153,44 @@ class _ScannerState extends State<Scanner> {
         setState(() {
           _isCameraInitalized = true;
         }); //show the actual camera
-        print("Line 125 $_mainCamera");
         runStream();
+      }).
+    catchError((onError){
+      //permission denied 
+      if(onError.toString().contains("permission not granted")){
+        setState((){
+          _cameraPermission = false;
+        });
+      }
+    });
+  });
+      }
+      else{
+        setState((){
+          _cameraPermission = false;
+        });
+      }
+   
+    
+    
+    });
+    
+      
+  }
+
+  void initState() {
+    super.initState();
+    
+
+    //listening for changes in connection
+    Connectivity().onConnectivityChanged.listen((connectionStatus) {
+      setState(() {
+        _connectionState = connectionStatus.toString();
       });
     });
+    
+    createCamera();
+
   }
 
   void dispose() {
@@ -143,6 +213,8 @@ class _ScannerState extends State<Scanner> {
   }
 
   Widget build(BuildContext context) {
+
+    //turn of image stream if searcher is selected
     if(_isCameraInitalized){
       if(_isQR){
         if(!_mainCamera.value.isStreamingImages){
@@ -247,13 +319,31 @@ class _ScannerState extends State<Scanner> {
                     Container(
                         height: screenHeight - 350,
                         width: screenWidth - 100,
-                        child: _isCameraInitalized
-                            ? Platform.isAndroid
+                        child: 
+                        
+                        _cameraPermission ?
+                        _isCameraInitalized
+                          
+                            ? 
+                            Platform.isAndroid
                                 ? RotationTransition(
                                     child: CameraPreview(_mainCamera),
                                     turns: AlwaysStoppedAnimation(270 / 360))
-                                : CameraPreview(_mainCamera)
-                            : Text("Loading...")),
+                              : CameraPreview(_mainCamera)
+                            :
+                             Container(
+                                child: Text("Loading"),
+                              )
+                          :GestureDetector(
+                              onTap : (){
+                                getPermissionsThatNeedToBeChecked(PermissionGroup.camera, PermissionGroup.microphone).then((permGroupList){
+                                  requestPermStatus(permGroupList);
+                                });
+                                
+                                
+                              },
+                              child: Container(child: Text("You have denied camera permissions please accept them by clicking on this text"),)),),
+                           
                   Container(
                       padding: new EdgeInsets.only(top: 10.0, bottom: 10.0),
                       width: screenWidth - 200,

@@ -1,3 +1,4 @@
+import 'package:deca_app/screens/admin/notification_sender.dart';
 import 'package:flutter/material.dart';
 import 'package:deca_app/screens/admin/templates.dart';
 import 'package:deca_app/screens/profile/profile_screen.dart';
@@ -14,6 +15,10 @@ class NavigationDrawer extends StatelessWidget {
                   child: Text("QR Code"),
                   onPressed: () async => Navigator.push(context,
                       MaterialPageRoute(builder: (context) => new QrScreen()))),
+              FlatButton(
+                  child: Text("Push Notifications"),
+                  onPressed: () async => Navigator.push(context,
+                      MaterialPageRoute(builder: (context) => new Sender())))
             ],
           ),
         ));

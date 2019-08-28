@@ -5,9 +5,11 @@ class StateContainerState extends State<StateContainer> {
   // Whichever properties you wanna pass around your app as state
   String uid;
   Map eventMetadata;
-  Map userData;
+  Map userData; //this is not the app user's UID, but the data of the person who is getting changed
   bool isCardTapped = false;
   String filterType;
+  List notifications = [];
+  bool hasSeenNotification = false;
 
   // You can (and probably will) have methods on your StateContainer
   // These methods are then used through our your app to
@@ -32,6 +34,19 @@ class StateContainerState extends State<StateContainer> {
   {
     setState(() {
       uid = _uid;
+    });
+  }
+  void hasSawNotification(){
+    setState((){
+      hasSeenNotification = true;
+    });
+  }
+
+  //used to add to the notifications of the user
+  void addToNotifications(Map notification){
+    setState((){
+      this.notifications.add(notification);
+      hasSeenNotification = true;
     });
   }
 
