@@ -4,26 +4,13 @@ import 'package:deca_app/utility/InheritedInfo.dart';
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 
-class FinderScreen extends StatelessWidget {
-  FinderScreen();
-
-  Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: AppBar(
-          title: Text("Manual Search"),
-          leading: IconButton(
-            icon: Icon(Icons.arrow_back),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-        ),
-        body: Finder());
-  }
-}
-
 class Finder extends StatefulWidget {
-  Finder();
+  Widget alert;
+  Function tapCallback;
+  Finder(Function t, [Widget a]) {
+    this.alert = a;
+    this.tapCallback = t;
+  }
 
   State<Finder> createState() {
     return FinderState();
@@ -55,11 +42,8 @@ class FinderState extends State<Finder> {
     });
   }
 
-  void dispose(){
-    userDocs = null;
-    _firstName.dispose();
-    _lastName.dispose();
-    this.dispose();
+  void dispose() {
+    super.dispose();
   }
 
   Widget build(BuildContext context) {
@@ -67,7 +51,9 @@ class FinderState extends State<Finder> {
     eventMetaData = container.eventMetadata;
     isCardTapped = container.isCardTapped;
     Firestore.instance.collection("Users").getDocuments().then((documents) {
-      setState(() => userDocs = documents.documents);
+      if(this.mounted){
+          setState(() => userDocs = documents.documents);
+      }
     });
 
     double screenWidth = MediaQuery.of(context).size.width;
@@ -85,7 +71,8 @@ class FinderState extends State<Finder> {
                     child: Container(
                       child: TextField(
                         controller: _firstName,
-                        decoration: InputDecoration(labelText: "First Name"),
+                        decoration: InputDecoration(
+                          labelText: "First Name"),
                       ),
                     ),
                   ),
@@ -105,12 +92,9 @@ class FinderState extends State<Finder> {
           ]),
         ),
         if (isCardTapped)
-          GestureDetector(
-            onTap: () {
-              userDocs = container.setIsCardTapped(false);
-            },
-            child: Container(child: FinderPopup()),
-          )
+          //this will most likely execute for gold points and never will execute for adding groups
+          if (widget.alert != null)
+            widget.alert //build alert widget
       ],
     );
   }
@@ -138,29 +122,17 @@ class FinderState extends State<Finder> {
           if (list.getSize() == 0) {
             return CircularProgressIndicator();
           }
+          if(current == null){
+            return CircularProgressIndicator();
+          }
           Map userInfo = current.element['info'];
           GestureDetector c = GestureDetector(
               onTap: () {
-                FocusScope.of(context).requestFocus(FocusNode());
-                setState(() {
-                  infoContainer.setUserData(userInfo);
-                  if (infoContainer.eventMetadata['enter_type'] == 'QE') {
-                    infoContainer.updateGP(userInfo['uid']);
-                    Scaffold.of(context).showSnackBar(SnackBar(
-                      content: Text(
-                        "Succesfully added ${eventMetaData['gold_points'].toString()} to ${userInfo['first_name']}",
-                        style: TextStyle(
-                            fontFamily: 'Lato',
-                            fontSize: 20,
-                            color: Colors.white),
-                      ),
-                      backgroundColor: Colors.green,
-                    ));
-                  } else {
-                    infoContainer.setIsCardTapped(true);
-                    recentCardInfo = userInfo;
-                  }
-                });
+                FocusScope.of(context)
+                    .requestFocus(FocusNode()); //remove the keyboard
+
+                //checking what the purpose of the finder is
+                widget.tapCallback(context, infoContainer, userInfo);
               },
               child: Card(
                 child: ListTile(

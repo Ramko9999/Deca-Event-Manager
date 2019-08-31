@@ -19,6 +19,7 @@ class Searcher {
       if (firstQuery != "") {
         firstNameRelevance = findLongestCommonSubstring(
             firstQuery.toLowerCase(), _users[i]['first_name'].toLowerCase());
+        //if the first letter matches then automatically give 2 points
         if (firstQuery[0].toLowerCase() ==
             _users[i]['first_name'][0].toLowerCase()) {
           firstNameRelevance['Points'] += 2;
@@ -27,6 +28,7 @@ class Searcher {
       if (lastQuery != "") {
         lastNameRelevance = findLongestCommonSubstring(
             lastQuery.toLowerCase(), _users[i]['last_name'].toLowerCase());
+        //if the first letter matches then automatically give 2 points
         if (lastQuery[0].toLowerCase() ==
             _users[i]['last_name'][0].toLowerCase()) {
           lastNameRelevance['Points'] += 2;

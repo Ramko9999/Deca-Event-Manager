@@ -303,13 +303,14 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
         "username": _username,
         "password": _password,
         "gold_points": 0,
-        "events":{},
+        "events": {},
         "groups": ['none'],
         "uid": userId,
         "device-token": messagingToken
-      }).then( (_){
+      }).then((_) {
         setState(() => _isTryingToRegister = false);
-      Navigator.of(context).push(MaterialPageRoute(builder: (context)=> ProfileScreen()));
+        Navigator.of(context)
+            .push(MaterialPageRoute(builder: (context) => ProfileScreen()));
       });
       //catching invalid email error
     }).catchError((error) {

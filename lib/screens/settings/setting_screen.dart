@@ -120,7 +120,7 @@ class SettingScreenState extends State<SettingScreen> {
   void changeDetails() async {
     //check if network is working
     Connectivity().checkConnectivity().then((connectionState) {
-      if (connectionState == ConnectivityResult.none) {
+      if (connectionState == ConnectivityResult.mobile) {
         throw Exception("Phone is not connected to internet");
       } else {
         connectAndChange();
@@ -248,7 +248,7 @@ class SettingScreenState extends State<SettingScreen> {
                     onTap: () => setState(
                         () => _wantsToChangePassword = !_wantsToChangePassword),
                     child: Container(
-                      height: screenHeight * 0.10,
+                 
                       child: Card(
                           child: ListTile(
                         leading: Icon(Icons.lock, color: Colors.black),

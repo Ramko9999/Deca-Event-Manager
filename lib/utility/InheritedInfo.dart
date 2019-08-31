@@ -9,7 +9,9 @@ class StateContainerState extends State<StateContainer> {
   bool isCardTapped = false;
   String filterType;
   List notifications = [];
-  bool hasSeenNotification = false;
+  String group; //this is the group that might be created or edited
+  bool hasSeenNotification =
+      false; //supposed to be use to change the notification icon when a notification comes up NOT WORKING!
 
   // You can (and probably will) have methods on your StateContainer
   // These methods are then used through our your app to
@@ -18,89 +20,98 @@ class StateContainerState extends State<StateContainer> {
   // Widgets in the app that rely on the state you've changed.
 
   //-----methods go here-----
-  void setEventMetadata(Map newMetadata)
-  {
+  void setEventMetadata(Map newMetadata) {
     setState(() {
       eventMetadata = newMetadata;
     });
   }
-  void setUserData(Map newUserData)
-  {
+
+  void setUserData(Map newUserData) {
     setState(() {
       userData = newUserData;
     });
   }
-  void setUID(String _uid)
-  {
+
+  void setUID(String _uid) {
     setState(() {
       uid = _uid;
     });
   }
-  void hasSawNotification(){
-    setState((){
+
+  void hasSawNotification() {
+    setState(() {
       hasSeenNotification = true;
     });
   }
 
-  //used to add to the notifications of the user
-  void addToNotifications(Map notification){
+  void setGroup(String g){
     setState((){
+      group = g;
+    });
+  }
+
+  //used to add to the notifications of the user
+  void addToNotifications(Map notification) {
+    setState(() {
       this.notifications.add(notification);
       hasSeenNotification = true;
     });
   }
 
-  void setFilterType(String newFilterType)
-  {
+  void initNotifications(List notifications) {
+    setState(() {
+      this.notifications = notifications;
+    });
+  }
+
+  void setFilterType(String newFilterType) {
     setState(() {
       filterType = newFilterType;
     });
   }
 
-  void updateGP(String userUniqueId, [int manualGP])
-  {
-    incrementAttendees(userUniqueId).then((_) => addToEvents(userUniqueId,manualGP).then((_) =>
-        Firestore.instance
-        .collection('Users')
-        .document(userUniqueId)
-        .get()
-        .then((userData) {
-      int totalGP = 0;
-      Map eventsList = userData['events'];
-      for (var gp in eventsList.keys) {
-        totalGP += eventsList[gp];
-      }
-      print(totalGP);
-      Firestore.instance
-          .collection('Users')
-          .document(userUniqueId)
-          .updateData({'gold_points': totalGP});
-    })));
+  void updateGP(String userUniqueId, [int manualGP]) {
+    incrementAttendees(userUniqueId).then((_) =>
+        addToEvents(userUniqueId, manualGP).then((_) => Firestore.instance
+                .collection('Users')
+                .document(userUniqueId)
+                .get()
+                .then((userData) {
+              int totalGP = 0;
+              Map eventsList = userData['events'];
+              for (var gp in eventsList.keys) {
+                totalGP += eventsList[gp];
+              }
+              print(totalGP);
+              Firestore.instance
+                  .collection('Users')
+                  .document(userUniqueId)
+                  .updateData({'gold_points': totalGP});
+            })));
     //adds the current event in eventMetadata state to events field for the user that is parameterized
     //updates gp value to match events field in user
   }
 
-  Future incrementAttendees(String _uid) async
-  {
+  Future incrementAttendees(String _uid) async {
     bool hasAttended = false;
     Map userSnapshot;
-    await Firestore.instance.collection('Users').document(_uid).get().then((data) {
+    await Firestore.instance
+        .collection('Users')
+        .document(_uid)
+        .get()
+        .then((data) {
       userSnapshot = data.data;
     }).whenComplete(() {
-
-      for(String eventName in userSnapshot['events'].keys)
-      {
+      for (String eventName in userSnapshot['events'].keys) {
         print(eventName);
         print(eventMetadata['event_name']);
-        if(eventName == eventMetadata['event_name'])
-        {
+        if (eventName == eventMetadata['event_name']) {
           hasAttended = true;
           break;
         }
       }
       print(hasAttended);
-      if(!hasAttended)
-      {
+      if (!hasAttended) {
         int scanCount = eventMetadata['attendee_count'];
         //update the events
         Firestore.instance
@@ -115,53 +126,30 @@ class StateContainerState extends State<StateContainer> {
   }
 
   //adds the current event in eventMetadata state to events field for the user that is parameterized
-  Future addToEvents(String userUniqueId, [int manualGP]) async
-  {
+  Future addToEvents(String userUniqueId, [int manualGP]) async {
     print("adding events");
     int pointVal = eventMetadata['gold_points'];
     Map finalEvents = userData['events'];
 
     if (finalEvents != null) {
-      if(eventMetadata['enter_type'] == 'QE')
-      {
+      if (eventMetadata['enter_type'] == 'QE') {
         finalEvents.addAll({eventMetadata['event_name']: pointVal});
-      }
-      else if(manualGP != null)
-      {
+      } else if (manualGP != null) {
         finalEvents.addAll({eventMetadata['event_name']: manualGP});
       }
-    }
-    else {
+    } else {
       finalEvents = {eventMetadata['event_name']: pointVal};
     }
-      await Firestore.instance
-          .collection('Users')
-          .document(userUniqueId)
-          .updateData({'events': finalEvents});
+    await Firestore.instance
+        .collection('Users')
+        .document(userUniqueId)
+        .updateData({'events': finalEvents});
     print('finished adding to events');
-
   }
 
-  List<DocumentSnapshot> setIsCardTapped(bool newVal)
-  {
-    if(!newVal)
-      {
-        Firestore.instance.collection("Users").getDocuments().then((documents) {
-          setState(() {
-            isCardTapped = false;
-            return documents.documents;
-          });
-        });
-      }
-    else
-      {
-        setState(() {
-          isCardTapped = true;
-        });
-      }
-    return null;
+  void setIsCardTapped(bool newVal) {
+    setState(() => isCardTapped = newVal);
   }
-
 
   // Simple build method that just passes this state through
   // your InheritedWidget
@@ -215,7 +203,8 @@ class StateContainer extends StatefulWidget {
   // It basically says 'get the data from the widget of this type.
   static StateContainerState of(BuildContext context) {
     return (context.inheritFromWidgetOfExactType(_InheritedStateContainer)
-    as _InheritedStateContainer).data;
+            as _InheritedStateContainer)
+        .data;
   }
 
   @override

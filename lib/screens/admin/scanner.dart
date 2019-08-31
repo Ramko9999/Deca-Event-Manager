@@ -42,20 +42,18 @@ class _ScannerState extends State<Scanner> {
           .collection("Users")
           .document(userUniqueID)
           .get();
-          
-          
-          gpContainer.setUserData(userData.data);
-        //update the events field for the user
-        gpContainer.updateGP(userUniqueID);
-        String firstName = userData.data['first_name'];
-        //update the scaffold
-          _scaffoldKey.currentState.showSnackBar(SnackBar(
-          backgroundColor: Color.fromRGBO(46, 204, 113, 1),
-          content: Text("Scanned " + firstName),
-        ));
-        //append to the hashset the uniqueID
-       _scannedUids.add(userUniqueID);
-      
+
+      gpContainer.setUserData(userData.data);
+      //update the events field for the user
+      gpContainer.updateGP(userUniqueID);
+      String firstName = userData.data['first_name'];
+      //update the scaffold
+      _scaffoldKey.currentState.showSnackBar(SnackBar(
+        backgroundColor: Color.fromRGBO(46, 204, 113, 1),
+        content: Text("Scanned " + firstName),
+      ));
+      //append to the hashset the uniqueID
+      _scannedUids.add(userUniqueID);
     } else {
       Scaffold.of(context).showSnackBar(SnackBar(
         backgroundColor: Colors.redAccent,
@@ -98,89 +96,83 @@ class _ScannerState extends State<Scanner> {
     });
   }
 
-
   //get a list of permissions that are still denied
-  Future<List> getPermissionsThatNeedToBeChecked(PermissionGroup cameraPermission, PermissionGroup microphonePermission) async {
-    PermissionStatus cameraPermStatus = await PermissionHandler().checkPermissionStatus(cameraPermission);
-    PermissionStatus microphonePermStatus = await PermissionHandler().checkPermissionStatus(microphonePermission);
+  Future<List> getPermissionsThatNeedToBeChecked(
+      PermissionGroup cameraPermission,
+      PermissionGroup microphonePermission) async {
+    PermissionStatus cameraPermStatus =
+        await PermissionHandler().checkPermissionStatus(cameraPermission);
+    PermissionStatus microphonePermStatus =
+        await PermissionHandler().checkPermissionStatus(microphonePermission);
     List<PermissionGroup> stillNeedToBeGranted = [];
-    if(cameraPermStatus == PermissionStatus.denied){
+    if (cameraPermStatus == PermissionStatus.denied) {
       stillNeedToBeGranted.add(cameraPermission);
     }
-    if(microphonePermStatus == PermissionStatus.denied){
+    if (microphonePermStatus == PermissionStatus.denied) {
       stillNeedToBeGranted.add(microphonePermission);
     }
     return stillNeedToBeGranted;
   }
 
-
   //request permissions and check until all are requestsed
-  void requestPermStatus(List<PermissionGroup> permissionGroups){
+  void requestPermStatus(List<PermissionGroup> permissionGroups) {
     bool allAreAccepted = true;
-    PermissionHandler().requestPermissions(permissionGroups).then((permissionResult){
-      permissionResult.forEach((k,v){
-        if(v == PermissionStatus.denied){
+    PermissionHandler()
+        .requestPermissions(permissionGroups)
+        .then((permissionResult) {
+      permissionResult.forEach((k, v) {
+        if (v == PermissionStatus.denied) {
           allAreAccepted = false;
         }
-        
       });
-      if(allAreAccepted){
-        setState((){
+      if (allAreAccepted) {
+        setState(() {
           _cameraPermission = true;
-          
         });
         createCamera();
       }
-      
     });
-   
   }
 
-
-  //create camera based on permissions 
-  void createCamera(){
-    getPermissionsThatNeedToBeChecked(PermissionGroup.camera, PermissionGroup.microphone).then((permList){
-      if(permList.length == 0){
+  //create camera based on permissions
+  void createCamera() {
+    getPermissionsThatNeedToBeChecked(
+            PermissionGroup.camera, PermissionGroup.microphone)
+        .then((permList) {
+      if (permList.length == 0) {
         //get all the avaliable cameras
-    availableCameras().then((allCameras) {
-      _cameras = allCameras;
-      _mainCamera = CameraController(allCameras[0], ResolutionPreset.medium);
-      
-      _mainCamera.initialize().then((_) {
-        if (!mounted) {
-          return;
-        }
+        availableCameras().then((allCameras) {
+          _cameras = allCameras;
+          _mainCamera =
+              CameraController(allCameras[0], ResolutionPreset.medium);
+
+          _mainCamera.initialize().then((_) {
+            if (!mounted) {
+              return;
+            }
+            setState(() {
+              _isCameraInitalized = true;
+            }); //show the actual camera
+            runStream();
+          }).catchError((onError) {
+            //permission denied
+            if (onError.toString().contains("permission not granted")) {
+              setState(() {
+                _cameraPermission = false;
+              });
+            }
+          });
+        });
+      } else {
         setState(() {
-          _isCameraInitalized = true;
-        }); //show the actual camera
-        runStream();
-      }).
-    catchError((onError){
-      //permission denied 
-      if(onError.toString().contains("permission not granted")){
-        setState((){
           _cameraPermission = false;
         });
       }
     });
-  });
-      }
-      else{
-        setState((){
-          _cameraPermission = false;
-        });
-      }
-   
-    
-    
-    });
-    
-      
   }
 
   void initState() {
     super.initState();
-    
 
     //listening for changes in connection
     Connectivity().onConnectivityChanged.listen((connectionStatus) {
@@ -188,9 +180,8 @@ class _ScannerState extends State<Scanner> {
         _connectionState = connectionStatus.toString();
       });
     });
-    
-    createCamera();
 
+    createCamera();
   }
 
   void dispose() {
@@ -213,21 +204,19 @@ class _ScannerState extends State<Scanner> {
   }
 
   Widget build(BuildContext context) {
-
     //turn of image stream if searcher is selected
-    if(_isCameraInitalized){
-      if(_isQR){
-        if(!_mainCamera.value.isStreamingImages){
-            runStream();
+    if (_isCameraInitalized) {
+      if (_isQR) {
+        if (!_mainCamera.value.isStreamingImages) {
+          runStream();
         }
-      }
-      else{
-        if(_mainCamera.value.isStreamingImages){
+      } else {
+        if (_mainCamera.value.isStreamingImages) {
           _mainCamera.stopImageStream();
         }
       }
     }
-   
+
     double screenHeight = MediaQuery.of(context).size.height;
     double screenWidth = MediaQuery.of(context).size.width;
 
@@ -317,33 +306,32 @@ class _ScannerState extends State<Scanner> {
                   ),
                   if (_isQR)
                     Container(
-                        height: screenHeight - 350,
-                        width: screenWidth - 100,
-                        child: 
-                        
-                        _cameraPermission ?
-                        _isCameraInitalized
-                          
-                            ? 
-                            Platform.isAndroid
-                                ? RotationTransition(
-                                    child: CameraPreview(_mainCamera),
-                                    turns: AlwaysStoppedAnimation(270 / 360))
-                              : CameraPreview(_mainCamera)
-                            :
-                             Container(
-                                child: Text("Loading"),
-                              )
-                          :GestureDetector(
-                              onTap : (){
-                                getPermissionsThatNeedToBeChecked(PermissionGroup.camera, PermissionGroup.microphone).then((permGroupList){
+                      height: screenHeight - 350,
+                      width: screenWidth - 100,
+                      child: _cameraPermission
+                          ? _isCameraInitalized
+                              ? Platform.isAndroid
+                                  ? RotationTransition(
+                                      child: CameraPreview(_mainCamera),
+                                      turns: AlwaysStoppedAnimation(270 / 360))
+                                  : CameraPreview(_mainCamera)
+                              : Container(
+                                  child: Text("Loading"),
+                                )
+                          : GestureDetector(
+                              onTap: () {
+                                getPermissionsThatNeedToBeChecked(
+                                        PermissionGroup.camera,
+                                        PermissionGroup.microphone)
+                                    .then((permGroupList) {
                                   requestPermStatus(permGroupList);
                                 });
-                                
-                                
                               },
-                              child: Container(child: Text("You have denied camera permissions please accept them by clicking on this text"),)),),
-                           
+                              child: Container(
+                                child: Text(
+                                    "You have denied camera permissions please accept them by clicking on this text"),
+                              )),
+                    ),
                   Container(
                       padding: new EdgeInsets.only(top: 10.0, bottom: 10.0),
                       width: screenWidth - 200,
@@ -370,7 +358,34 @@ class _ScannerState extends State<Scanner> {
                       width: screenWidth - 50,
                       height: screenHeight - 250,
                       padding: EdgeInsets.fromLTRB(0, 0, 0, 20),
-                      child: Finder(),
+                      child: Finder(
+                          //call back function argument
+                        (BuildContext context, StateContainerState stateContainer, Map userInfo) {
+                        stateContainer.setUserData(userInfo);
+                        if (stateContainer.eventMetadata['enter_type'] ==
+                            'QE') {
+                          stateContainer.updateGP(userInfo['uid']);
+                          Scaffold.of(context).showSnackBar(SnackBar(
+                            content: Text(
+                              "Succesfully added ${stateContainer.eventMetadata['gold_points'].toString()} to ${userInfo['first_name']}",
+                              style: TextStyle(
+                                  fontFamily: 'Lato',
+                                  fontSize: 20,
+                                  color: Colors.white),
+                            ),
+                            backgroundColor: Colors.green,
+                          ));
+                        } else {
+                          stateContainer.setIsCardTapped(true);
+                        }
+                      },
+                          //alert widget argument, optional
+                          GestureDetector(
+                            onTap: () {
+                              container.setIsCardTapped(false);
+                            },
+                            child: Container(child: FinderPopup()),
+                          )),
                     ),
                 ],
               ),
