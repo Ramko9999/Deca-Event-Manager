@@ -14,8 +14,6 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
   bool _isRegisterButtonClicked = false;
 
   void createNewLoginTemplate() {
-    print("In createNewLoginTemplate");
-
     setState(() {
       _isLoginButtonClicked = !_isLoginButtonClicked;
       _isRegisterButtonClicked = false;
@@ -23,7 +21,6 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
   }
 
   void createNewRegisterTemplate() {
-    print("In Create new Register Template");
     setState(() {
       _isRegisterButtonClicked = !_isRegisterButtonClicked;
       _isLoginButtonClicked = false;

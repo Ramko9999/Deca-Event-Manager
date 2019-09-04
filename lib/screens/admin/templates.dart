@@ -12,6 +12,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:deca_app/utility/error_popup.dart';
 import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter/cupertino.dart';
 
 class CreateEventUI extends StatefulWidget {
   CreateEventUI();
@@ -239,8 +240,9 @@ class _CreateEventUIState extends State<CreateEventUI> {
                             eventDateText = new DateFormat('EEEE, MMMM d, y')
                                 .format(date)
                                 .toString();
-                            _eventDate =
-                                new DateFormat('yyyy-MM-dd').format(date).toString();
+                            _eventDate = new DateFormat('yyyy-MM-dd')
+                                .format(date)
+                                .toString();
                           });
                         }, currentTime: DateTime.now(), locale: LocaleType.en);
                       },
@@ -248,41 +250,94 @@ class _CreateEventUIState extends State<CreateEventUI> {
                           borderRadius: BorderRadius.circular(10)),
                     )),
                 Container(
-                  padding: new EdgeInsets.only(top: 10.0, bottom: 10.0),
-                  width: screenWidth - 50,
-                  child: DropdownButton<String>(
-                    isExpanded: true,
-                    iconEnabledColor: Colors.blue,
-                    iconDisabledColor: Colors.blue,
-                    hint: Text('Choose Event Type',
-                        style: new TextStyle(
-                            fontSize: 17,
-                            fontFamily: 'Lato',
-                            color: Colors.blue)),
-                    value: dropdownValue,
-                    onChanged: (String newValue) {
-                      setState(() {
-                        dropdownValue = newValue;
-                      });
-                    },
-                    items: <String>[
-                      'Meeting',
-                      'Social',
-                      'Event',
-                      'Competition',
-                      'Committee',
-                      'Cookie Store',
-                      'Miscellaneous'
-                    ].map<DropdownMenuItem<String>>((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value,
-                            style: new TextStyle(
-                                color: Colors.blue, fontFamily: 'Lato')),
-                      );
-                    }).toList(),
-                  ),
-                ),
+                    padding: new EdgeInsets.only(top: 10.0, bottom: 10.0),
+                    width: screenWidth - 50,
+                    height: 75,
+                    child: RaisedButton(
+                      child: Text((dropdownValue == null)?
+                        "Choose Event Type":dropdownValue,
+                        textAlign: TextAlign.center,
+                        style: new TextStyle(fontSize: 17, fontFamily: 'Lato'),
+                      ),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10)),
+                      color: Colors.blue,
+                      textColor: Colors.white,
+                      onPressed: () {
+                        showCupertinoModalPopup(
+                            context: context,
+                            builder: (context) {
+                              return CupertinoActionSheet(
+                                title: Text('Choose Event Type'),
+                                actions: <Widget>[
+                                  CupertinoActionSheetAction(
+                                    child: Text('Meeting'),
+                                    onPressed: () {
+                                      setState(() {
+                                        dropdownValue = 'Meeting';
+                                        Navigator.pop(context);
+                                      });
+                                    },
+                                  ),
+                                  CupertinoActionSheetAction(
+                                    child: Text('Social'),
+                                    onPressed: () {
+                                      setState(() {
+                                        dropdownValue = 'Social';
+                                        Navigator.pop(context);
+                                      });
+                                    },
+                                  ),
+                                  CupertinoActionSheetAction(
+                                    child: Text('Event'),
+                                    onPressed: () {
+                                      setState(() {
+                                        dropdownValue = 'Event';
+                                        Navigator.pop(context);
+                                      });
+                                    },
+                                  ),
+                                  CupertinoActionSheetAction(
+                                    child: Text('Competition'),
+                                    onPressed: () {
+                                      setState(() {
+                                        dropdownValue = 'Competition';
+                                        Navigator.pop(context);
+                                      });
+                                    },
+                                  ),
+                                  CupertinoActionSheetAction(
+                                    child: Text('Committee'),
+                                    onPressed: () {
+                                      setState(() {
+                                        dropdownValue = 'Committee';
+                                        Navigator.pop(context);
+                                      });
+                                    },
+                                  ),
+                                  CupertinoActionSheetAction(
+                                    child: Text('Cookie Store'),
+                                    onPressed: () {
+                                      setState(() {
+                                        dropdownValue = 'Cookie Store';
+                                        Navigator.pop(context);
+                                      });
+                                    },
+                                  ),
+                                  CupertinoActionSheetAction(
+                                    child: Text('Miscallaneous'),
+                                    onPressed: () {
+                                      setState(() {
+                                        dropdownValue = 'Miscallaneous';
+                                        Navigator.pop(context);
+                                      });
+                                    },
+                                  ),
+                                ],
+                              );
+                            });
+                      },
+                    )),
                 Container(
                   padding: new EdgeInsets.only(top: 10.0, bottom: 10.0),
                   width: screenWidth - 50,
@@ -428,8 +483,116 @@ class _AdminUIState extends State<AdminScreenUI> {
             Card(
                 child: ListTile(
               leading: Icon(Icons.supervisor_account),
-              title: Text('Edit Individual Members'),
+              title: Text('Create a Group'),
+              onTap: () => Navigator.push(
+                  context, NoTransition(builder: (context) => CreateGroupUI())),
             ))
+          ],
+        ));
+  }
+}
+
+class CreateGroupUI extends StatefulWidget {
+  CreateGroupUI();
+
+  State<CreateGroupUI> createState() {
+    return _CreateGroupUIState();
+  }
+}
+
+class _CreateGroupUIState extends State<CreateGroupUI> {
+  TextEditingController _groupName = TextEditingController();
+  bool _hasCreatedGroup = false;
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  _CreateGroupUIState();
+
+  Widget build(BuildContext context) {
+    return Scaffold(
+        key: _scaffoldKey,
+        appBar: AppBar(
+          leading: IconButton(
+            icon: Icon(
+              Icons.arrow_back_ios,
+            ),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          title: Text("Add Users to Group"),
+        ),
+        body: Stack(
+          children: <Widget>[
+            //add people to a group on callback
+            Finder(
+              (BuildContext context, StateContainerState stateContainer,
+                Map userData) {
+              Firestore.instance
+                  .collection("Users")
+                  .document(userData['uid'])
+                  .get()
+                  .then((document) {
+
+                    List data = document.data['groups'].toList();
+                    //check if the person is already in the group
+                    if(data.contains(stateContainer.group)){
+                      _scaffoldKey.currentState.showSnackBar(
+                      SnackBar(
+                            content: Text(
+                              "${userData['first_name']} is already in ${stateContainer.group}",
+                              style: TextStyle(
+                                  fontFamily: 'Lato',
+                                  fontSize: 20,
+                                  color: Colors.white),
+                            ),
+                            backgroundColor: Colors.red,
+                            duration: Duration(seconds: 1),
+                          )
+                    );
+                    }
+                    //add the person to the group
+                    else{
+                      data.add(stateContainer.group);
+                    document.reference.updateData({'groups': data});
+                    _scaffoldKey.currentState.showSnackBar(
+                      SnackBar(
+                            content: Text(
+                              "Succesfully added ${userData['first_name']} to ${stateContainer.group}",
+                              style: TextStyle(
+                                  fontFamily: 'Lato',
+                                  fontSize: 20,
+                                  color: Colors.white),
+                            ),
+                            backgroundColor: Colors.green,
+                            duration: Duration(seconds: 1),
+                          )
+                    );
+                    }
+                    
+              });
+            }),
+            if (!_hasCreatedGroup)
+              Container(
+                  color: Colors.black45,
+                  child: AlertDialog(
+                    title: Text(
+                      "Group Name",
+                    ),
+                    content: TextFormField(
+                      controller: _groupName,
+                      decoration: InputDecoration(labelText: "Group Name"),
+                    ),
+                    actions: <Widget>[
+                      FlatButton(
+                        child: Text("Create"),
+                        textColor: Colors.blue,
+                        onPressed: () {
+                          if (_groupName.text != null) {
+                            StateContainer.of(context).setGroup(_groupName.text);
+                            setState(() => _hasCreatedGroup = true);
+                          }
+                        },
+                      )
+                    ],
+                  ))
           ],
         ));
   }

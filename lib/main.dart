@@ -11,9 +11,8 @@ void main() {
     child: new MaterialApp(
         home: new AuthenticationScreen(),
         routes: <String, WidgetBuilder>{
-          '/Profile': (BuildContext context)=> ProfileScreen(),
-          '/Settings' : (BuildContext context) => SettingScreen(),
-          }
-          ),
+          '/Profile': (BuildContext context) => ProfileScreen(),
+          '/Settings': (BuildContext context) => SettingScreen(),
+        }),
   ));
 }

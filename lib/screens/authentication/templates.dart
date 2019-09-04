@@ -175,7 +175,7 @@ class _LoginTemplateState extends State<LoginTemplate> {
                           textAlign: TextAlign.center,
                           decoration: new InputDecoration(
                             icon: Icon(Icons.mail),
-                            labelText: "Email",
+                            labelText: "E-mail",
                           ),
                         ),
                       ),
@@ -303,13 +303,14 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
         "username": _username,
         "password": _password,
         "gold_points": 0,
-        "events":{},
+        "events": {},
         "groups": ['none'],
         "uid": userId,
         "device-token": messagingToken
-      }).then( (_){
+      }).then((_) {
         setState(() => _isTryingToRegister = false);
-      Navigator.of(context).push(MaterialPageRoute(builder: (context)=> ProfileScreen()));
+        Navigator.of(context)
+            .push(MaterialPageRoute(builder: (context) => ProfileScreen()));
       });
       //catching invalid email error
     }).catchError((error) {
@@ -440,7 +441,8 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
                           textAlign: TextAlign.center,
                           decoration: new InputDecoration(
                             icon: Icon(Icons.mail),
-                            labelText: "Email",
+                          
+                            labelText: "E-mail",
                           ),
                         ),
                       ),

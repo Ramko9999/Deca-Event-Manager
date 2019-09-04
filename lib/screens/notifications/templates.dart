@@ -1,48 +1,74 @@
+import 'dart:convert';
+import 'dart:io';
 
 import 'package:deca_app/utility/InheritedInfo.dart';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 
 //UI should simply be a list that contains notifications
 
-class NotificationUI extends StatefulWidget{
+class NotificationUI extends StatefulWidget {
   NotificationUI();
-    
-  
-  State<NotificationUI> createState(){
+
+  State<NotificationUI> createState() {
     return NotificationUIState();
   }
 }
 
-class NotificationUIState extends State<NotificationUI>{
+class NotificationUIState extends State<NotificationUI> {
   NotificationUIState();
+  File notificationFile;
 
-  void initState(){
+  void initState() {
+    setNotificationFile();
     super.initState();
   }
-  
 
-  Widget build(BuildContext context){
-    
+  void setNotificationFile() {
+    getApplicationDocumentsDirectory().then((directory) {
+      setState(() => notificationFile = File(directory.path + '/notify.json'));
+    });
+  }
+
+  Widget build(BuildContext context) {
     double screenHeight = MediaQuery.of(context).size.height;
     double screenWidth = MediaQuery.of(context).size.width;
     return Container(
-      height: screenHeight/1.1,
-      width: screenWidth,
-      child: getListItems(StateContainer.of(context).notifications));
+        height: screenHeight / 1.1,
+        width: screenWidth,
+        child: getListItems(StateContainer.of(context).notifications));
   }
 
-  Widget getListItems(documents){
+  Widget getListItems(documents) {
+    if (notificationFile == null) {
+      return Column(
+        children: <Widget>[
+          Text("Loading Notifications"),
+          CircularProgressIndicator(),
+        ],
+      );
+    }
+    if (StateContainer.of(context).notifications.length == 0) {
+      return Text("No notifications here");
+    }
+    notificationFile.writeAsStringSync(
+        json.encode(StateContainer.of(context).notifications));
     return ListView.builder(
       itemCount: documents.length,
-      itemBuilder: (context, i){
+      itemBuilder: (context, i) {
         return Card(
           child: ListTile(
-            title: Text(documents[i]['notification']['title'], style: TextStyle(fontFamily: 'Lato'),),
-            subtitle: Text(documents[i]['notification']['body'], style: TextStyle(fontFamily: 'Lato'),),
+            title: Text(
+              documents[i]['notification']['title'],
+              style: TextStyle(fontFamily: 'Lato'),
+            ),
+            subtitle: Text(
+              documents[i]['notification']['body'],
+              style: TextStyle(fontFamily: 'Lato'),
+            ),
           ),
         );
       },
     );
-    
   }
 }

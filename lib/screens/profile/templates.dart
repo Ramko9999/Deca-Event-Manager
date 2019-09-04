@@ -63,7 +63,7 @@ class DynamicProfileUI extends StatelessWidget {
                   ),
                 ),
                 Container(
-                    height: screenHeight - 400,
+                    height: screenHeight * 0.59,
                     width: screenWidth - 25,
                     child: ListView(
                       children: <Widget>[
@@ -166,7 +166,6 @@ class GPInfoScreenState extends State<GPInfoScreen> {
   String filterType;
 
   ListView _buildEventList(context, eventSnapshot, userSnapshot) {
-
     eventList = filter(eventSnapshot, userSnapshot);
 
     return ListView.builder(
@@ -186,7 +185,9 @@ class GPInfoScreenState extends State<GPInfoScreen> {
             trailing: Text(eventList[i].gp.toString(),
                 textAlign: TextAlign.center,
                 style: new TextStyle(
-                    fontSize: 20, color: Colors.black, fontWeight: FontWeight.bold)),
+                    fontSize: 20,
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold)),
           ),
         );
       },
@@ -200,14 +201,12 @@ class GPInfoScreenState extends State<GPInfoScreen> {
       for (DocumentSnapshot event in eventSnapshot) {
         for (String userEvent in userMetadata['events'].keys) {
           if (event['event_name'] == userEvent) {
-            if(event['enter_type'] == "ME")
-              {
-                eventList.add(new EventObject(event,userMetadata['events'][userEvent]));
-              }
-            else
-              {
-                eventList.add(new EventObject(event));
-              }
+            if (event['enter_type'] == "ME") {
+              eventList.add(
+                  new EventObject(event, userMetadata['events'][userEvent]));
+            } else {
+              eventList.add(new EventObject(event));
+            }
           }
         }
       }
@@ -229,37 +228,63 @@ class GPInfoScreenState extends State<GPInfoScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Events Attended'),
-        actions: <Widget>[
-          IconButton(
-            icon: Icon(Icons.filter_list),
-          )
-        ],
       ),
       body: Column(
         children: <Widget>[
+          Center(
+            child: Container(
+              padding: EdgeInsets.fromLTRB(0, 0,15,0),
+              child: ActionChip(
+                  avatar: (filterType == null)?
+                    Icon(Icons.event):(filterType == 'date')?
+                    Icon(Icons.event):
+                    Icon(Icons.access_time),
+                  label: (filterType == null)?
+                    Text('Filter by Event Type'):(filterType == 'date')?
+                    Text('Filter by Event Type'):
+                    Text('Filter Chronologically'),
+                  onPressed: () {
+                    if(filterType == null || filterType == 'date')
+                      {
+                        container.setFilterType('eventType');
+                      }
+                    else
+                      {
+                        container.setFilterType('date');
+                      }
+                  }
+                  ),
+            ),
+          ),
           StreamBuilder(
               stream: Firestore.instance.collection('Events').snapshots(),
               builder: (context, eventSnapshot) {
-                if(eventSnapshot.hasData) {
-                  List<DocumentSnapshot> eventSnap = eventSnapshot.data.documents;
+                if (eventSnapshot.hasData) {
+                  List<DocumentSnapshot> eventSnap =
+                      eventSnapshot.data.documents;
                   return StreamBuilder(
                       stream: Firestore.instance
                           .collection('Users')
                           .where("uid", isEqualTo: _uid)
                           .snapshots(),
                       builder: (context, userSnapshot) {
-                        if(userSnapshot.hasData) {
-                          DocumentSnapshot userSnap = userSnapshot.data.documents[0];
+                        if (userSnapshot.hasData) {
+                          DocumentSnapshot userSnap =
+                              userSnapshot.data.documents[0];
                           return Center(
                             child: Container(
+<<<<<<< HEAD
                               padding: EdgeInsets.fromLTRB(0, 10, 0, 0),
                               height: screenHeight - 80,
+=======
+                              height: screenHeight - 150,
+>>>>>>> Made some changes to adding gold points screen, currently not working, but made other changes
                               width: screenWidth - 25,
-                              child: _buildEventList(context, eventSnap, userSnap),
+                              child:
+                                  _buildEventList(context, eventSnap, userSnap),
                             ),
                           );
-                        }
-                        else {
+                        } else {
                           return Container(
                               alignment: Alignment.center,
                               child: Column(
@@ -278,8 +303,7 @@ class GPInfoScreenState extends State<GPInfoScreen> {
                               ));
                         }
                       });
-                }
-                else {
+                } else {
                   return Container(
                       alignment: Alignment.center,
                       child: Column(
@@ -311,21 +335,21 @@ class EventObject implements Comparable<EventObject> {
   int gp;
 
   final Map<String, Color> eventColors = {
-    'Meeting':Colors.blueAccent,
-    'Social':Colors.orange,
-    'Event':Colors.tealAccent,
-    'Competition':Colors.lightGreenAccent,
-    'Committee':Colors.redAccent,
-    'Cookie Store':Colors.yellowAccent,
-    'Miscellaneous':Colors.grey};
+    'Meeting': Colors.blueAccent,
+    'Social': Colors.orange,
+    'Event': Colors.tealAccent,
+    'Competition': Colors.lightGreenAccent,
+    'Committee': Colors.redAccent,
+    'Cookie Store': Colors.yellowAccent,
+    'Miscellaneous': Colors.grey
+  };
 
   EventObject(this.info, [this.gp]) {
     eventDate = DateTime.parse(info['event_date']);
     eventColor = eventColors[info['event_type']];
-    if(this.gp == null)
-      {
-        this.gp = info['gold_points'];
-      }
+    if (this.gp == null) {
+      this.gp = info['gold_points'];
+    }
   }
 
   int compareTo(EventObject other) {
