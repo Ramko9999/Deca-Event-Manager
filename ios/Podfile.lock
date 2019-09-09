@@ -28,6 +28,9 @@ PODS:
   - Firebase/Functions (6.6.0):
     - Firebase/CoreOnly
     - FirebaseFunctions (~> 2.5.1)
+  - Firebase/Messaging (6.6.0):
+    - Firebase/CoreOnly
+    - FirebaseMessaging (~> 4.1.2)
   - Firebase/MLVision (6.6.0):
     - Firebase/CoreOnly
     - FirebaseMLVision (~> 0.17.0)
@@ -40,6 +43,10 @@ PODS:
     - Flutter
   - firebase_core (0.0.1):
     - Firebase/Core
+    - Flutter
+  - firebase_messaging (0.0.1):
+    - Firebase/Core
+    - Firebase/Messaging
     - Flutter
   - firebase_ml_vision (0.1.1):
     - Firebase/Core
@@ -54,6 +61,7 @@ PODS:
     - GoogleUtilities/Network (~> 6.0)
     - "GoogleUtilities/NSData+zlib (~> 6.0)"
     - nanopb (~> 0.3)
+  - FirebaseAnalyticsInterop (1.3.0)
   - FirebaseAuth (6.2.2):
     - FirebaseAuthInterop (~> 1.0)
     - FirebaseCore (~> 6.2)
@@ -95,6 +103,15 @@ PODS:
     - FirebaseCore (~> 6.0)
     - GoogleUtilities/Environment (~> 6.0)
     - GoogleUtilities/UserDefaults (~> 6.0)
+  - FirebaseMessaging (4.1.2):
+    - FirebaseAnalyticsInterop (~> 1.3)
+    - FirebaseCore (~> 6.2)
+    - FirebaseInstanceID (~> 4.1)
+    - GoogleUtilities/AppDelegateSwizzler (~> 6.2)
+    - GoogleUtilities/Environment (~> 6.2)
+    - GoogleUtilities/Reachability (~> 6.2)
+    - GoogleUtilities/UserDefaults (~> 6.2)
+    - Protobuf (~> 3.1)
   - FirebaseMLCommon (0.17.0):
     - FirebaseCore (~> 6.0)
     - FirebaseInstanceID (~> 4.2)
@@ -109,6 +126,8 @@ PODS:
   - FirebaseMLVisionBarcodeModel (0.17.0):
     - GoogleMobileVision/BarcodeDetector (~> 1.4)
   - Flutter (1.0.0)
+  - flutter_local_notifications (0.0.1):
+    - Flutter
   - GoogleAPIClientForREST/Core (1.3.9):
     - GTMSessionFetcher (>= 1.1.7)
   - GoogleAPIClientForREST/Vision (1.3.9):
@@ -183,6 +202,8 @@ PODS:
   - nanopb/encode (0.3.901)
   - path_provider (0.0.1):
     - Flutter
+  - permission_handler (3.2.2):
+    - Flutter
   - Protobuf (3.9.0)
   - Reachability (3.2)
 
@@ -194,15 +215,19 @@ DEPENDENCIES:
   - Firebase/MLVisionBarcodeModel
   - firebase_auth (from `.symlinks/plugins/firebase_auth/ios`)
   - firebase_core (from `.symlinks/plugins/firebase_core/ios`)
+  - firebase_messaging (from `.symlinks/plugins/firebase_messaging/ios`)
   - firebase_ml_vision (from `.symlinks/plugins/firebase_ml_vision/ios`)
   - Flutter (from `.symlinks/flutter/ios`)
+  - flutter_local_notifications (from `.symlinks/plugins/flutter_local_notifications/ios`)
   - path_provider (from `.symlinks/plugins/path_provider/ios`)
+  - permission_handler (from `.symlinks/plugins/permission_handler/ios`)
 
 SPEC REPOS:
   https://github.com/cocoapods/specs.git:
     - BoringSSL-GRPC
     - Firebase
     - FirebaseAnalytics
+    - FirebaseAnalyticsInterop
     - FirebaseAuth
     - FirebaseAuthInterop
     - FirebaseCore
@@ -211,6 +236,7 @@ SPEC REPOS:
     - FirebaseFirestore
     - FirebaseFunctions
     - FirebaseInstanceID
+    - FirebaseMessaging
     - FirebaseMLCommon
     - FirebaseMLVision
     - FirebaseMLVisionBarcodeModel
@@ -240,12 +266,18 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/firebase_auth/ios"
   firebase_core:
     :path: ".symlinks/plugins/firebase_core/ios"
+  firebase_messaging:
+    :path: ".symlinks/plugins/firebase_messaging/ios"
   firebase_ml_vision:
     :path: ".symlinks/plugins/firebase_ml_vision/ios"
   Flutter:
     :path: ".symlinks/flutter/ios"
+  flutter_local_notifications:
+    :path: ".symlinks/plugins/flutter_local_notifications/ios"
   path_provider:
     :path: ".symlinks/plugins/path_provider/ios"
+  permission_handler:
+    :path: ".symlinks/plugins/permission_handler/ios"
 
 SPEC CHECKSUMS:
   BoringSSL-GRPC: db8764df3204ccea016e1c8dd15d9a9ad63ff318
@@ -255,8 +287,10 @@ SPEC CHECKSUMS:
   Firebase: a2b5951f30ff38fd3b3bdae9c7d340f940fd3c51
   firebase_auth: a40261b555156aefc809c353488f9b7ca94005f9
   firebase_core: b3b02d0b5e9d01aab5e50ba7cbcf84c73cb6883c
+  firebase_messaging: 74e9d76acfbdff96a3f9f570f463a2b2bc784bf5
   firebase_ml_vision: af45e6730db9be6b6fa2a50292899f65ecfa8777
   FirebaseAnalytics: 48414ae5cbf6976d8a2f7177e0466540e5ab33ce
+  FirebaseAnalyticsInterop: 0f250d71e8741352407a8db351e6de78c5c56d35
   FirebaseAuth: 2be1924ddbc741fe2a02cb6963ca747e09a2e05c
   FirebaseAuthInterop: 0ffa57668be100582bb7643d4fcb7615496c41fc
   FirebaseCore: 8c9e08bce0c72a3affd83927d8184cf244918bc8
@@ -265,10 +299,12 @@ SPEC CHECKSUMS:
   FirebaseFirestore: d65bd28e77a8cdc045be6353c6e1e146efdf92dc
   FirebaseFunctions: 5af7c35d1c5e41608fecbb667eb6c4e672e318d0
   FirebaseInstanceID: 8b42755db950682e7de0d167bc6fb26a57b244af
+  FirebaseMessaging: ddd74d13644ef24cc4e2d95cabd1cf408e99b7b0
   FirebaseMLCommon: b236f9bc8a020d4c36744d6e402b2fb9d6fe3f6d
   FirebaseMLVision: ff6a597d10017c5dfe1cc6d24293b77f84808060
   FirebaseMLVisionBarcodeModel: 4ac90a8ed5a92e1ed8d9278b92d794230a01dd16
   Flutter: 58dd7d1b27887414a370fcccb9e645c08ffd7a6a
+  flutter_local_notifications: 9e4738ce2471c5af910d961a6b7eadcf57c50186
   GoogleAPIClientForREST: 44c7b678cbab11d26a47eab7309d6179b1a61f0c
   GoogleAppMeasurement: 47285fa897e5a125df56b9ef8750a1d81e4598a8
   GoogleDataTransport: ffbadce4ab93c88fb9dd8e6366c47bfcb4a32193
@@ -282,6 +318,7 @@ SPEC CHECKSUMS:
   leveldb-library: 08cba283675b7ed2d99629a4bc5fd052cd2bb6a5
   nanopb: 2901f78ea1b7b4015c860c2fdd1ea2fee1a18d48
   path_provider: f96fff6166a8867510d2c25fdcc346327cc4b259
+  permission_handler: d59f41439f5bc6c4d1005f3355e98f05ddc68ece
   Protobuf: 1097ca58584c8d9be81bfbf2c5ff5975648dd87a
   Reachability: 33e18b67625424e47b6cde6d202dce689ad7af96
 

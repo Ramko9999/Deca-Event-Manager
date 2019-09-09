@@ -32,43 +32,16 @@ class _ScannerState extends State<Scanner> {
   int pointVal;
   int scanCount;
   bool isInfo = false;
-<<<<<<< HEAD
   bool _cameraPermission = true;
   final _scaffoldKey = new GlobalKey<ScaffoldState>();
-
-  void pushToDB(String userUniqueID) async {
-    final gpContainer = StateContainer.of(context);
-=======
   bool isManualEnter;
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-
-  void pushToDB(String userUniqueID) {
+ 
+  void pushToDB(String userUniqueID) async {
     final gpContainer = StateContainer.of(_scaffoldKey.currentContext);
->>>>>>> Made some changes to adding gold points screen, currently not working, but made other changes
     if (!_scannedUids.contains(userUniqueID)) {
       final userData = await Firestore.instance
           .collection("Users")
           .document(userUniqueID)
-<<<<<<< HEAD
-          .get();
-
-      gpContainer.setUserData(userData.data);
-      //update the events field for the user
-      gpContainer.updateGP(userUniqueID);
-      String firstName = userData.data['first_name'];
-      //update the scaffold
-      _scaffoldKey.currentState.showSnackBar(SnackBar(
-        backgroundColor: Color.fromRGBO(46, 204, 113, 1),
-        content: Text("Scanned " + firstName),
-      ));
-      //append to the hashset the uniqueID
-      _scannedUids.add(userUniqueID);
-    } else {
-      Scaffold.of(context).showSnackBar(SnackBar(
-        backgroundColor: Colors.redAccent,
-        content: Text('Already Scanned This Person'),
-      ));
-=======
           .get()
           .then((userData) {
         gpContainer.setUserData(userData.data);
@@ -77,20 +50,24 @@ class _ScannerState extends State<Scanner> {
         } else {
           gpContainer.updateGP(userUniqueID);
           String firstName = gpContainer.userData['first_name'];
+          print("Scanned + $firstName");
+
+
           _scaffoldKey.currentState.showSnackBar(SnackBar(
             backgroundColor: Color.fromRGBO(46, 204, 113, 1),
             content: Text("Scanned " + firstName),
           ));
+
         }
         //append to the hashset the uniqueID
         _scannedUids.add(userUniqueID);
       }).catchError((onError) => print(onError));
->>>>>>> Made some changes to adding gold points screen, currently not working, but made other changes
     }
   }
 
   void runStream() {
     _mainCamera.startImageStream((image) {
+
       FirebaseVisionImageMetadata metadata;
       //metadata tag for the for image format.
       //source https://github.com/flutter/flutter/issues/26348
@@ -110,7 +87,9 @@ class _ScannerState extends State<Scanner> {
           .barcodeDetector()
           .detectInImage(visionImage)
           .then((barcodes) {
+
         for (Barcode barcode in barcodes) {
+
           pushToDB(barcode.rawValue);
         }
       });
@@ -141,27 +120,7 @@ class _ScannerState extends State<Scanner> {
     return stillNeedToBeGranted;
   }
 
-  //request permissions and check until all are requestsed
-  void requestPermStatus(List<PermissionGroup> permissionGroups) {
-    bool allAreAccepted = true;
-    PermissionHandler()
-        .requestPermissions(permissionGroups)
-        .then((permissionResult) {
-      permissionResult.forEach((k, v) {
-        if (v == PermissionStatus.denied) {
-          allAreAccepted = false;
-        }
-      });
-      if (allAreAccepted) {
-        setState(() {
-          _cameraPermission = true;
-        });
-        createCamera();
-      }
-    });
-  }
-
-  //create camera based on permissions
+    //create camera based on permissions
   void createCamera() {
     getPermissionsThatNeedToBeChecked(
             PermissionGroup.camera, PermissionGroup.microphone)
@@ -194,6 +153,25 @@ class _ScannerState extends State<Scanner> {
         setState(() {
           _cameraPermission = false;
         });
+      }
+    });
+  }
+  //request permissions and check until all are requestsed
+  void requestPermStatus(List<PermissionGroup> permissionGroups) {
+    bool allAreAccepted = true;
+    PermissionHandler()
+        .requestPermissions(permissionGroups)
+        .then((permissionResult) {
+      permissionResult.forEach((k, v) {
+        if (v == PermissionStatus.denied) {
+          allAreAccepted = false;
+        }
+      });
+      if (allAreAccepted) {
+        setState(() {
+          _cameraPermission = true;
+        });
+        createCamera();
       }
     });
   }
@@ -412,7 +390,7 @@ class _ScannerState extends State<Scanner> {
                             onTap: () {
                               container.setIsCardTapped(false);
                             },
-                            child: Container(child: FinderPopup()),
+                            child: Container(child: ManualEnterPopup()),
                           )),
                     ),
                 ],

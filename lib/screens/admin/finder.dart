@@ -154,18 +154,18 @@ class FinderState extends State<Finder> {
   }
 }
 
-class FinderPopup extends StatefulWidget {
-  FinderPopup();
-  State<FinderPopup> createState() {
-    return FinderPopupState();
+class ManualEnterPopup extends StatefulWidget {
+  ManualEnterPopup();
+  State<ManualEnterPopup> createState() {
+    return ManualEnterPopupState();
   }
 }
 
-class FinderPopupState extends State<FinderPopup> {
+class ManualEnterPopupState extends State<ManualEnterPopup> {
   TextEditingController pointController = new TextEditingController();
   Map userData;
 
-  FinderPopupState() {
+  ManualEnterPopupState() {
     pointController.text = 0.toString();
   }
 

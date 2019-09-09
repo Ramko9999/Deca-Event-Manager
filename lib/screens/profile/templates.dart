@@ -273,12 +273,8 @@ class GPInfoScreenState extends State<GPInfoScreen> {
                               userSnapshot.data.documents[0];
                           return Center(
                             child: Container(
-<<<<<<< HEAD
                               padding: EdgeInsets.fromLTRB(0, 10, 0, 0),
                               height: screenHeight - 80,
-=======
-                              height: screenHeight - 150,
->>>>>>> Made some changes to adding gold points screen, currently not working, but made other changes
                               width: screenWidth - 25,
                               child:
                                   _buildEventList(context, eventSnap, userSnap),
