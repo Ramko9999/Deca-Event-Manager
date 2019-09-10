@@ -51,7 +51,6 @@ class _ScannerState extends State<Scanner> {
           String firstName = gpContainer.userData['first_name'];
           print("Scanned + $firstName");
 
-
           _scaffoldKey.currentState.showSnackBar(SnackBar(
             backgroundColor: Color.fromRGBO(46, 204, 113, 1),
             content: Text("Scanned " + firstName),
@@ -390,24 +389,25 @@ class _ScannerState extends State<Scanner> {
                               container.setIsCardTapped(false);
                             },
                             child: Container(child: ManualEnterPopup()),
-                          )),
+                          ),
+                      ),
                     ),
                 ],
               ),
             ),
           ),
           if (isManualEnter)
-            Stack(children: [
               GestureDetector(
-                child: Container(color: Colors.black45),
+                child: Center(
+                  child: Container(
+                    width: screenWidth - 50,
+                    height: screenHeight - 250,
+                    padding: EdgeInsets.fromLTRB(0, 0, 0, 20),
+                    child: new ManualEnterPopup(),),
+                ),
                 onTap: () {
                   container.setIsManualEnter(false);
                 },
-              ),
-              Container(
-                child: new ManualEnterPopup(),
-              ),
-            ]
             ),
           if (_connectionState.contains("none"))
             Container(
