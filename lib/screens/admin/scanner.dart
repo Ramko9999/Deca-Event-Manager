@@ -2,7 +2,6 @@ import 'dart:collection';
 import 'dart:io';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:camera/camera.dart';
-import 'package:camera/camera.dart' as prefix0;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity/connectivity.dart';
 import 'package:deca_app/screens/admin/finder.dart';

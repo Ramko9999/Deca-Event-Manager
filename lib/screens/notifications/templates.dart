@@ -48,11 +48,11 @@ class NotificationUIState extends State<NotificationUI> {
         ],
       );
     }
-    if (StateContainer.of(context).notifications.length == 0) {
+    if (documents == 0) {
       return Text("No notifications here");
     }
     notificationFile.writeAsStringSync(
-        json.encode(StateContainer.of(context).notifications));
+        json.encode(documents));
     return ListView.builder(
       itemCount: documents.length,
       itemBuilder: (context, i) {

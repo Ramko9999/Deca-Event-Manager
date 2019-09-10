@@ -57,7 +57,6 @@ class ProfileScreenState extends State<ProfileScreen> {
       print(notification);
       scheduleLocalNotification(notification);
     }, onResume: (notification) {
-      print(notification);
       scheduleLocalNotification(notification);
     });
   }
@@ -72,8 +71,6 @@ class ProfileScreenState extends State<ProfileScreen> {
       } else {
         File file = File(appDirec.path + "/notify.json");
         file.writeAsStringSync(json.encode([
-          {"Hi": "Bye"},
-          {"Lovely day": "Mate"}
         ])); //dummy writing
       }
     });

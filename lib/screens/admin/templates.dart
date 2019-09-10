@@ -1,5 +1,6 @@
 import 'package:connectivity/connectivity.dart';
 import 'package:deca_app/screens/admin/finder.dart';
+import 'package:deca_app/screens/admin/notification_sender.dart';
 import 'package:deca_app/screens/admin/scanner.dart';
 import 'package:deca_app/screens/admin/searcher.dart';
 import 'package:deca_app/screens/profile/profile_screen.dart';
@@ -486,8 +487,15 @@ class _AdminUIState extends State<AdminScreenUI> {
               title: Text('Create a Group'),
               onTap: () => Navigator.push(
                   context, NoTransition(builder: (context) => CreateGroupUI())),
-            ))
-          ],
+            )),
+            Card(
+              child: ListTile(
+              leading: Icon(Icons.supervisor_account),
+              title: Text('Push Notifications'),
+              onTap: () => Navigator.push(
+                  context, NoTransition(builder: (context) => Sender())),
+              )
+            )],
         ));
   }
 }
