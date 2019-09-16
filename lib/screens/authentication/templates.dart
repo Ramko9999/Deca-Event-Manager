@@ -44,9 +44,7 @@ class _LoginTemplateState extends State<LoginTemplate> {
 
     Map userInfo = json.decode(File(appDirectory.path + "/user.json")
         .readAsStringSync()); //read data from file
-
-    print(userInfo);
-
+        
     //alter UI with the autofill information
     setState(() {
       _desiresAutoLogin = userInfo['auto'];
