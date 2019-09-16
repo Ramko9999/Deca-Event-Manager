@@ -31,7 +31,9 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
   Widget build(BuildContext context) {
     // TODO: implement build
     double screenWidth = MediaQuery.of(context).size.width;
+    double screenHeight = MediaQuery.of(context).size.height;
     return Scaffold(
+        resizeToAvoidBottomInset: false,
         backgroundColor: Colors.white,
         body: Stack(children: [
           new Column(children: [
@@ -55,8 +57,8 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
                         alignment: Alignment.bottomCenter,
                         child: Column(children: [
                           Container(
-                              width: screenWidth - 100,
-                              height: 50,
+                              width: screenWidth * 0.85,
+                              height: screenHeight * 0.08,
                               child: new RaisedButton(
                                 child: Text('Sign In',
                                     style: new TextStyle(
@@ -72,8 +74,8 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
                             height: 15,
                           ),
                           Container(
-                              width: screenWidth - 100,
-                              height: 50,
+                              width: screenWidth * 0.85,
+                              height: screenHeight * 0.08,
                               child: new RaisedButton(
                                   child: Text('Sign Up',
                                       style: new TextStyle(
@@ -90,27 +92,36 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
           if (_isLoginButtonClicked)
             Stack(children: [
               GestureDetector(
-                child: Container(color: Colors.black45),
+                child: Container(
+                  color: Colors.black45,
+                  width: screenWidth,
+                  height: screenHeight,
+                ),
                 onTap: () {
                   setState(() {
+                    FocusScope.of(context).requestFocus(FocusNode());
                     _isLoginButtonClicked = false;
                   });
                 },
               ),
-              SingleChildScrollView(
-                child: Padding(
-                  padding: new EdgeInsets.only(top: 100, bottom: 75),
-                  child: Align(
-                    alignment: Alignment.bottomCenter,
-                    child: Container(
-                      child: new LoginTemplate(),
-                      decoration: new BoxDecoration(
-                          borderRadius: BorderRadius.circular(15),
-                          color: Colors.white),
+              Container(
+                child: Align(
+                  alignment: Alignment.center,
+                  child: SingleChildScrollView(
+                    child: GestureDetector(
+                      child: Container(
+                        child: new LoginTemplate(),
+                        decoration: new BoxDecoration(
+                            borderRadius: BorderRadius.circular(15),
+                            color: Colors.white),
+                      ),
+                      onTap: () {
+                        FocusScope.of(context).requestFocus(FocusNode());
+                      },
                     ),
                   ),
                 ),
-              ),
+              )
             ]),
           if (_isRegisterButtonClicked)
             Stack(
@@ -125,14 +136,20 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
                 ),
                 SingleChildScrollView(
                   child: Padding(
-                    padding: EdgeInsetsDirectional.only(top: 70),
+                    padding:
+                        EdgeInsetsDirectional.only(top: screenHeight * 0.10),
                     child: Align(
                         alignment: Alignment.bottomCenter,
-                        child: Container(
-                          child: new RegisterTemplate(),
-                          decoration: new BoxDecoration(
-                              borderRadius: BorderRadius.circular(15),
-                              color: Colors.white),
+                        child: GestureDetector(
+                          onTap: () {
+                            FocusScope.of(context).requestFocus(FocusNode());
+                          },
+                          child: Container(
+                            child: new RegisterTemplate(),
+                            decoration: new BoxDecoration(
+                                borderRadius: BorderRadius.circular(15),
+                                color: Colors.white),
+                          ),
                         )),
                   ),
                 )

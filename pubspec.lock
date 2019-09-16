@@ -7,7 +7,7 @@ packages:
       name: async
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.2.0"
+    version: "2.3.0"
   auto_size_text:
     dependency: "direct main"
     description:
@@ -21,7 +21,7 @@ packages:
       name: boolean_selector
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.0.4"
+    version: "1.0.5"
   camera:
     dependency: "direct main"
     description:
@@ -143,14 +143,21 @@ packages:
       name: meta
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.1.6"
+    version: "1.1.7"
+  overlay_support:
+    dependency: "direct main"
+    description:
+      name: overlay_support
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.1"
   path:
     dependency: transitive
     description:
       name: path
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.6.2"
+    version: "1.6.4"
   path_provider:
     dependency: "direct main"
     description:
@@ -164,7 +171,7 @@ packages:
       name: pedantic
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.7.0"
+    version: "1.8.0+1"
   permission_handler:
     dependency: "direct main"
     description:
@@ -199,7 +206,7 @@ packages:
       name: quiver
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.0.3"
+    version: "2.0.5"
   sky_engine:
     dependency: transitive
     description: flutter
@@ -232,7 +239,7 @@ packages:
       name: string_scanner
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.0.4"
+    version: "1.0.5"
   term_glyph:
     dependency: transitive
     description:

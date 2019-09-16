@@ -1,18 +1,26 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class StateContainerState extends State<StateContainer> {
-  // Whichever properties you wanna pass around your app as state
+  /* Properities that will be persisted on the side of the Admin */
   String uid;
   Map eventMetadata;
   Map userData; //this is not the app user's UID, but the data of the person who is getting changed
   bool isCardTapped = false;
   String filterType;
-  List notifications = [];
+  bool isManualEnter = false;
   String group; //this is the group that might be created or edited
+
+  /*Properties that will be persisted on the side of the user */
+  File userDataFile;
+  File notificationDataFile;
+  String userUID;
+  List notifications = [];
   bool hasSeenNotification =
       false; //supposed to be use to change the notification icon when a notification comes up NOT WORKING!
-  bool isManualEnter = false;
+  bool isThereConnectionError = false;
 
   // You can (and probably will) have methods on your StateContainer
   // These methods are then used through our your app to
@@ -21,21 +29,32 @@ class StateContainerState extends State<StateContainer> {
   // Widgets in the app that rely on the state you've changed.
 
   //-----methods go here-----
+  void setConnectionErrorStatus(bool e) {
+    setState(() {
+      isThereConnectionError = e;
+    });
+  }
+
   void setEventMetadata(Map newMetadata) {
     setState(() {
       eventMetadata = newMetadata;
     });
   }
 
-  void setIsManualEnter(bool value)
-  {
+  //keep the files and refrences in one place
+  void initUserData(File userData) {
+    setState(() {
+      userDataFile = userData;
+    });
+  }
+
+  void setIsManualEnter(bool value) {
     setState(() {
       isManualEnter = value;
     });
   }
 
-  void setUserData(Map newUserData)
-  {
+  void setUserData(Map newUserData) {
     setState(() {
       userData = newUserData;
     });
@@ -53,8 +72,8 @@ class StateContainerState extends State<StateContainer> {
     });
   }
 
-  void setGroup(String g){
-    setState((){
+  void setGroup(String g) {
+    setState(() {
       group = g;
     });
   }
@@ -91,7 +110,7 @@ class StateContainerState extends State<StateContainer> {
               for (var gp in eventsList.keys) {
                 totalGP += eventsList[gp];
               }
-              print(totalGP);
+
               Firestore.instance
                   .collection('Users')
                   .document(userUniqueId)
@@ -112,37 +131,30 @@ class StateContainerState extends State<StateContainer> {
       userSnapshot = data.data;
     }).whenComplete(() {
       for (String eventName in userSnapshot['events'].keys) {
-        print(eventName);
-        print("Line 75 Inherited Info: $userSnapshot");
-        for(String eventName in userSnapshot['events'].keys)
-        {
-          print("Event Name: $eventName");
-          print(eventMetadata['event_name']);
+        for (String eventName in userSnapshot['events'].keys) {
           if (eventName == eventMetadata['event_name']) {
             hasAttended = true;
             break;
           }
         }
-      print(hasAttended);
-      if(!hasAttended)
-      {
-        print('Incrementing attendees');
-        int scanCount = eventMetadata['attendee_count'];
-        //update the events
-        Firestore.instance
-            .collection('Events')
-            .document(eventMetadata['event_name'])
-            .updateData({'attendee_count': FieldValue.increment(1)});
-        setState(() {
-          scanCount += 1;
-        });
+
+        if (!hasAttended) {
+          int scanCount = eventMetadata['attendee_count'];
+          //update the events
+          Firestore.instance
+              .collection('Events')
+              .document(eventMetadata['event_name'])
+              .updateData({'attendee_count': FieldValue.increment(1)});
+          setState(() {
+            scanCount += 1;
+          });
         }
-      }});
+      }
+    });
   }
 
   //adds the current event in eventMetadata state to events field for the user that is parameterized
   Future addToEvents(String userUniqueId, [int manualGP]) async {
-    print("adding events");
     int pointVal = eventMetadata['gold_points'];
     Map finalEvents = userData['events'];
 
@@ -159,7 +171,6 @@ class StateContainerState extends State<StateContainer> {
         .collection('Users')
         .document(userUniqueId)
         .updateData({'events': finalEvents});
-    print('finished adding to events');
   }
 
   void setIsCardTapped(bool newVal) {
@@ -205,15 +216,14 @@ class StateContainer extends StatefulWidget {
   final String filterType;
   final bool isManualEnter;
 
-  StateContainer({
-    @required this.child,
-    this.uid,
-    this.eventMetadata,
-    this.userData,
-    this.isCardTapped,
-    this.filterType,
-    this.isManualEnter
-  });
+  StateContainer(
+      {@required this.child,
+      this.uid,
+      this.eventMetadata,
+      this.userData,
+      this.isCardTapped,
+      this.filterType,
+      this.isManualEnter});
 
   // This is the secret sauce. Write your own 'of' method that will behave
   // Exactly like MediaQuery.of and Theme.of

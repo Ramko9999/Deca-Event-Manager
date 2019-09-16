@@ -1,3 +1,4 @@
+import 'package:deca_app/containers/user_container.dart';
 import 'package:deca_app/screens/admin/templates.dart';
 import 'package:deca_app/screens/profile/profile_screen.dart';
 import 'package:deca_app/utility/InheritedInfo.dart';
@@ -8,19 +9,19 @@ import 'package:material_design_icons_flutter/material_design_icons_flutter.dart
 class DynamicProfileUI extends StatelessWidget {
   String _uid;
   String _firstName;
-  String _lastName;
   int _goldPoints;
   String _memberLevel;
-  List _groups;
 
-  DynamicProfileUI() {}
+  DynamicProfileUI();
 
   Widget build(BuildContext context) {
     final container = StateContainer.of(context);
     _uid = container.uid;
-
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
+    double pixelTwoWidth = 411.42857142857144;
+    double pixelTwoHeight = 683.4285714285714;
+
     return StreamBuilder(
         //connecting to firebase and gathering user data
         stream: Firestore.instance
@@ -33,7 +34,6 @@ class DynamicProfileUI extends StatelessWidget {
             //grab the data and populate the fields as such
             DocumentSnapshot userInfo = snapshot.data.documents[0];
             _firstName = userInfo.data['first_name'] as String;
-            _lastName = userInfo.data['last_name'] as String;
             _goldPoints = userInfo.data['gold_points'];
             //setting memberLevel based on gold points
             if (_goldPoints < 75) {
@@ -46,25 +46,25 @@ class DynamicProfileUI extends StatelessWidget {
               _memberLevel = "Gold";
             }
 
-            _groups = userInfo.data['groups'];
-
             //setting the new UI
             return Center(
                 child: Column(
               children: <Widget>[
                 Container(
-                  padding: new EdgeInsets.fromLTRB(20.0, 20.0, 30.0, 15.0),
+                  padding: new EdgeInsets.fromLTRB(screenWidth / 20,
+                      screenHeight / 40, screenWidth / 20, screenHeight / 80),
                   width: double.infinity,
                   child: Text(
                     "Hello " + _firstName + '.',
                     textAlign: TextAlign.left,
-                    style:
-                        new TextStyle(fontSize: 36, fontFamily: 'Lato-Regular'),
+                    style: new TextStyle(
+                        fontSize: 36 * screenWidth / pixelTwoWidth,
+                        fontFamily: 'Lato-Regular'),
                   ),
                 ),
                 Container(
                     height: screenHeight * 0.59,
-                    width: screenWidth - 25,
+                    width: screenWidth * 0.95,
                     child: ListView(
                       children: <Widget>[
                         Card(
@@ -74,8 +74,13 @@ class DynamicProfileUI extends StatelessWidget {
                           title: Text('Gold Points',
                               textAlign: TextAlign.left,
                               style: new TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 20)),
-                          subtitle: Text('Click to view attended events!'),
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 20 * screenWidth / pixelTwoWidth)),
+                          subtitle: Text(
+                            'Click to view attended events!',
+                            style: TextStyle(
+                                fontSize: 16 * screenWidth / pixelTwoWidth),
+                          ),
                           onTap: () => Navigator.push(
                               context,
                               NoTransition(
@@ -84,7 +89,7 @@ class DynamicProfileUI extends StatelessWidget {
                             _goldPoints.toString(),
                             textAlign: TextAlign.center,
                             style: new TextStyle(
-                                fontSize: 20,
+                                fontSize: 20 * screenWidth / pixelTwoWidth,
                                 color: Color.fromARGB(255, 249, 166, 22)),
                           ),
                         )),
@@ -101,22 +106,39 @@ class DynamicProfileUI extends StatelessWidget {
                           title: Text('Member Status',
                               textAlign: TextAlign.left,
                               style: new TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 20)),
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 20 * screenWidth / pixelTwoWidth)),
                           subtitle: (_memberLevel == 'N/A')
-                              ? Text((75 - _goldPoints).toString() +
-                                  ' GP until you\'re a member!')
+                              ? Text(
+                                  (75 - _goldPoints).toString() +
+                                      ' GP until you\'re a member!',
+                                  style: TextStyle(
+                                      fontSize:
+                                          16 * screenWidth / pixelTwoWidth),
+                                )
                               : (_memberLevel == 'Member')
-                                  ? Text((125 - _goldPoints).toString() +
-                                      ' GP until you\'re a SILVER member!')
+                                  ? Text(
+                                      (125 - _goldPoints).toString() +
+                                          ' GP until you\'re a SILVER member!',
+                                      style: TextStyle(
+                                          fontSize:
+                                              16 * screenWidth / pixelTwoWidth),
+                                    )
                                   : (_memberLevel == 'Silver')
-                                      ? Text((200 - _goldPoints).toString() +
-                                          ' GP until you\'re a GOLD member!')
+                                      ? Text(
+                                          (200 - _goldPoints).toString() +
+                                              ' GP until you\'re a GOLD member!',
+                                          style: TextStyle(
+                                              fontSize: 16 *
+                                                  screenWidth /
+                                                  pixelTwoWidth),
+                                        )
                                       : null,
                           trailing: Text(
                             _memberLevel,
                             textAlign: TextAlign.center,
                             style: new TextStyle(
-                                fontSize: 20,
+                                fontSize: 20 * screenWidth / pixelTwoWidth,
                                 color: (_memberLevel == 'Member')
                                     ? Colors.blueAccent
                                     : (_memberLevel == 'Silver')
@@ -125,7 +147,21 @@ class DynamicProfileUI extends StatelessWidget {
                                             ? Color.fromARGB(255, 249, 166, 22)
                                             : Colors.black),
                           ),
-                        ))
+                        )),
+                        Card(
+                          child: ListTile(
+                            leading: Icon(Icons.group, color: Colors.lightBlue),
+                            title: Text('List of Committees',
+                                textAlign: TextAlign.left,
+                                style: new TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize:
+                                        20 * screenWidth / pixelTwoWidth)),
+                            subtitle: Column(
+                                children:
+                                    createColumn(userInfo.data['groups'])),
+                          ),
+                        )
                       ],
                     )),
               ],
@@ -141,7 +177,7 @@ class DynamicProfileUI extends StatelessWidget {
                       style: TextStyle(
                         fontFamily: "Lato",
                         color: Colors.grey,
-                        fontSize: 32,
+                        fontSize: 32 * screenWidth / pixelTwoWidth,
                       ),
                     ),
                     CircularProgressIndicator()
@@ -149,6 +185,18 @@ class DynamicProfileUI extends StatelessWidget {
                 ));
           }
         });
+  }
+
+  List<Widget> createColumn(List data) {
+    List<Widget> groups = new List();
+    for (String g in data) {
+      groups.add(Text(
+        g,
+        textAlign: TextAlign.left,
+        style: TextStyle(color: Colors.black),
+      ));
+    }
+    return groups;
   }
 }
 
@@ -166,6 +214,11 @@ class GPInfoScreenState extends State<GPInfoScreen> {
   String filterType;
 
   ListView _buildEventList(context, eventSnapshot, userSnapshot) {
+    double screenWidth = MediaQuery.of(context).size.width;
+    double screenHeight = MediaQuery.of(context).size.height;
+    double pixelTwoWidth = 411.42857142857144;
+    double pixelTwoHeight = 683.4285714285714;
+
     eventList = filter(eventSnapshot, userSnapshot);
 
     return ListView.builder(
@@ -179,13 +232,14 @@ class GPInfoScreenState extends State<GPInfoScreen> {
           child: ListTile(
             title: Text(event['event_name'],
                 textAlign: TextAlign.left,
-                style:
-                    new TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+                style: new TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20 * screenWidth / pixelTwoWidth)),
             subtitle: Text(event['event_type']),
             trailing: Text(eventList[i].gp.toString(),
                 textAlign: TextAlign.center,
                 style: new TextStyle(
-                    fontSize: 20,
+                    fontSize: 20 * screenWidth / pixelTwoWidth,
                     color: Colors.black,
                     fontWeight: FontWeight.bold)),
           ),
@@ -197,7 +251,7 @@ class GPInfoScreenState extends State<GPInfoScreen> {
   List<EventObject> filter(eventSnapshot, DocumentSnapshot userSnapshot) {
     List<EventObject> eventList = [];
     Map userMetadata = userSnapshot.data as Map;
-    if (!userMetadata.isEmpty) {
+    if (userMetadata.isNotEmpty) {
       for (DocumentSnapshot event in eventSnapshot) {
         for (String userEvent in userMetadata['events'].keys) {
           if (event['event_name'] == userEvent) {
@@ -223,102 +277,105 @@ class GPInfoScreenState extends State<GPInfoScreen> {
 
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
+    double pixelTwoWidth = 411.42857142857144;
+    double pixelTwoHeight = 683.4285714285714;
 
     // TODO: implement build
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Events Attended'),
-      ),
-      body: Column(
-        children: <Widget>[
-          Center(
-            child: Container(
-              padding: EdgeInsets.fromLTRB(0, 0,15,0),
-              child: ActionChip(
-                  avatar: (filterType == null)?
-                    Icon(Icons.event):(filterType == 'date')?
-                    Icon(Icons.event):
-                    Icon(Icons.access_time),
-                  label: (filterType == null)?
-                    Text('Filter by Event Type'):(filterType == 'date')?
-                    Text('Filter by Event Type'):
-                    Text('Filter Chronologically'),
-                  onPressed: () {
-                    if(filterType == null || filterType == 'date')
-                      {
+    return UserData(
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text('Events Attended'),
+        ),
+        body: Column(
+          children: <Widget>[
+            Center(
+              child: Container(
+                padding: EdgeInsets.fromLTRB(0, 0, 15, 0),
+                child: ActionChip(
+                    avatar: (filterType == null)
+                        ? Icon(Icons.event)
+                        : (filterType == 'date')
+                            ? Icon(Icons.event)
+                            : Icon(Icons.access_time),
+                    label: (filterType == null)
+                        ? Text('Filter by Event Type')
+                        : (filterType == 'date')
+                            ? Text('Filter by Event Type')
+                            : Text('Filter Chronologically'),
+                    onPressed: () {
+                      if (filterType == null || filterType == 'date') {
                         container.setFilterType('eventType');
-                      }
-                    else
-                      {
+                      } else {
                         container.setFilterType('date');
                       }
-                  }
-                  ),
+                    }),
+              ),
             ),
-          ),
-          StreamBuilder(
-              stream: Firestore.instance.collection('Events').snapshots(),
-              builder: (context, eventSnapshot) {
-                if (eventSnapshot.hasData) {
-                  List<DocumentSnapshot> eventSnap =
-                      eventSnapshot.data.documents;
-                  return StreamBuilder(
-                      stream: Firestore.instance
-                          .collection('Users')
-                          .where("uid", isEqualTo: _uid)
-                          .snapshots(),
-                      builder: (context, userSnapshot) {
-                        if (userSnapshot.hasData) {
-                          DocumentSnapshot userSnap =
-                              userSnapshot.data.documents[0];
-                          return Center(
-                            child: Container(
-                              padding: EdgeInsets.fromLTRB(0, 10, 0, 0),
-                              height: screenHeight - 80,
-                              width: screenWidth - 25,
-                              child:
-                                  _buildEventList(context, eventSnap, userSnap),
-                            ),
-                          );
-                        } else {
-                          return Container(
-                              alignment: Alignment.center,
-                              child: Column(
-                                children: <Widget>[
-                                  Text(
-                                    "Connecting...",
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      fontFamily: "Lato",
-                                      color: Colors.grey,
-                                      fontSize: 32,
+            StreamBuilder(
+                stream: Firestore.instance.collection('Events').snapshots(),
+                builder: (context, eventSnapshot) {
+                  if (eventSnapshot.hasData) {
+                    List<DocumentSnapshot> eventSnap =
+                        eventSnapshot.data.documents;
+                    return StreamBuilder(
+                        stream: Firestore.instance
+                            .collection('Users')
+                            .where("uid", isEqualTo: _uid)
+                            .snapshots(),
+                        builder: (context, userSnapshot) {
+                          if (userSnapshot.hasData) {
+                            DocumentSnapshot userSnap =
+                                userSnapshot.data.documents[0];
+                            return Center(
+                              child: Container(
+                                padding: EdgeInsets.fromLTRB(0, 10, 0, 0),
+                                height: screenHeight * 0.8,
+                                width: screenWidth * 0.9,
+                                child: _buildEventList(
+                                    context, eventSnap, userSnap),
+                              ),
+                            );
+                          } else {
+                            return Container(
+                                alignment: Alignment.center,
+                                child: Column(
+                                  children: <Widget>[
+                                    Text(
+                                      "Connecting...",
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        fontFamily: "Lato",
+                                        color: Colors.grey,
+                                        fontSize:
+                                            32 * screenWidth / pixelTwoWidth,
+                                      ),
                                     ),
-                                  ),
-                                  CircularProgressIndicator()
-                                ],
-                              ));
-                        }
-                      });
-                } else {
-                  return Container(
-                      alignment: Alignment.center,
-                      child: Column(
-                        children: <Widget>[
-                          Text(
-                            "Connecting...",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontFamily: "Lato",
-                              color: Colors.grey,
-                              fontSize: 32,
+                                    CircularProgressIndicator()
+                                  ],
+                                ));
+                          }
+                        });
+                  } else {
+                    return Container(
+                        alignment: Alignment.center,
+                        child: Column(
+                          children: <Widget>[
+                            Text(
+                              "Connecting...",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontFamily: "Lato",
+                                color: Colors.grey,
+                                fontSize: 32 * screenWidth / pixelTwoWidth,
+                              ),
                             ),
-                          ),
-                          CircularProgressIndicator()
-                        ],
-                      ));
-                }
-              }),
-        ],
+                            CircularProgressIndicator()
+                          ],
+                        ));
+                  }
+                }),
+          ],
+        ),
       ),
     );
   }

@@ -1,6 +1,5 @@
 import 'package:deca_app/utility/InheritedInfo.dart';
 import 'package:flutter/material.dart';
-import 'package:deca_app/utility/navigation_drawer.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 class QrScreen extends StatelessWidget {

@@ -2,15 +2,12 @@ import 'package:connectivity/connectivity.dart';
 import 'package:deca_app/screens/admin/finder.dart';
 import 'package:deca_app/screens/admin/notification_sender.dart';
 import 'package:deca_app/screens/admin/scanner.dart';
-import 'package:deca_app/screens/admin/searcher.dart';
 import 'package:deca_app/screens/profile/profile_screen.dart';
 import 'package:deca_app/screens/settings/setting_screen.dart';
 import 'package:deca_app/utility/InheritedInfo.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:deca_app/utility/notifiers.dart';
 import 'package:flutter/material.dart';
-import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:deca_app/utility/error_popup.dart';
 import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/cupertino.dart';
@@ -124,29 +121,12 @@ class _CreateEventUIState extends State<CreateEventUI> {
     return false;
   }
 
-  //handles registration of user
-  void tryToRegister(BuildContext context) async {
+  
+  void tryToCreateEvent(BuildContext context) async {
     setState(() => _isTryingToCreateEvent = true);
     if (validateForm(context)) {
-      Connectivity().checkConnectivity().then((connectionState) {
-        if (connectionState == ConnectivityResult.none) {
-          throw Exception("Phone is not connected to wifi");
-        } else {
-          executeEventCreation(context);
-        }
-      }).catchError((connectionError) {
-        setState(() => _isTryingToCreateEvent = false);
-        if (connectionError.toString().contains("none")) {
-          showDialog(
-              context: context,
-              builder: (context) {
-                return ErrorPopup("Phone is not connected to wifi", () {
-                  Navigator.of(context).pop();
-                  tryToRegister(context);
-                });
-              });
-        }
-      });
+        executeEventCreation(context);
+        
     } else {
       setState(() => _isTryingToCreateEvent = false);
     }
@@ -196,237 +176,246 @@ class _CreateEventUIState extends State<CreateEventUI> {
             ),
           ],
         ),
-        body: SingleChildScrollView(
-          child: Center(
-            child: Column(
-              children: <Widget>[
-                Container(
-                  padding: new EdgeInsets.fromLTRB(30.0, 20.0, 30.0, 15.0),
-                  width: double.infinity,
-                  child: Text(
-                    "Create an Event",
-                    textAlign: TextAlign.left,
-                    style: new TextStyle(fontSize: 25, fontFamily: 'Lato'),
-                  ),
-                ),
-                Container(
-                    padding: new EdgeInsets.only(top: 10.0, bottom: 10.0),
-                    width: screenWidth - 50,
-                    child: TextFormField(
-                        controller: _eventName,
+        body: Stack(
+          children: <Widget>[
+            SingleChildScrollView(
+              child: Center(
+                child: Column(
+                  children: <Widget>[
+                    Container(
+                      padding: new EdgeInsets.fromLTRB(30.0, 20.0, 30.0, 15.0),
+                      width: double.infinity,
+                      child: Text(
+                        "Create an Event",
                         textAlign: TextAlign.left,
-                        style: TextStyle(fontFamily: 'Lato'),
-                        decoration: new InputDecoration(
-                          labelText: "Event Name",
-                          border: new OutlineInputBorder(
-                            borderRadius: new BorderRadius.circular(10.0),
-                            borderSide: new BorderSide(color: Colors.blue),
-                          ),
-                        ))),
-                Container(
-                    padding: new EdgeInsets.only(top: 10.0, bottom: 10.0),
-                    width: screenWidth - 50,
-                    height: 75,
-                    child: new RaisedButton(
-                      child: Text(updateDateButton(),
-                          style:
-                              new TextStyle(fontSize: 17, fontFamily: 'Lato')),
-                      textColor: Colors.white,
-                      color: Colors.blue,
-                      onPressed: () {
-                        DatePicker.showDatePicker(context,
-                            showTitleActions: true,
-                            minTime: DateTime(2019, 1, 1), onConfirm: (date) {
-                          setState(() {
-                            eventDateText = new DateFormat('EEEE, MMMM d, y')
-                                .format(date)
-                                .toString();
-                            _eventDate = new DateFormat('yyyy-MM-dd')
-                                .format(date)
-                                .toString();
-                          });
-                        }, currentTime: DateTime.now(), locale: LocaleType.en);
-                      },
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10)),
-                    )),
-                Container(
-                    padding: new EdgeInsets.only(top: 10.0, bottom: 10.0),
-                    width: screenWidth - 50,
-                    height: 75,
-                    child: RaisedButton(
-                      child: Text((dropdownValue == null)?
-                        "Choose Event Type":dropdownValue,
-                        textAlign: TextAlign.center,
-                        style: new TextStyle(fontSize: 17, fontFamily: 'Lato'),
+                        style: new TextStyle(fontSize: 25, fontFamily: 'Lato'),
                       ),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10)),
-                      color: Colors.blue,
-                      textColor: Colors.white,
-                      onPressed: () {
-                        showCupertinoModalPopup(
-                            context: context,
-                            builder: (context) {
-                              return CupertinoActionSheet(
-                                title: Text('Choose Event Type'),
-                                actions: <Widget>[
-                                  CupertinoActionSheetAction(
-                                    child: Text('Meeting'),
-                                    onPressed: () {
-                                      setState(() {
-                                        dropdownValue = 'Meeting';
-                                        Navigator.pop(context);
-                                      });
-                                    },
-                                  ),
-                                  CupertinoActionSheetAction(
-                                    child: Text('Social'),
-                                    onPressed: () {
-                                      setState(() {
-                                        dropdownValue = 'Social';
-                                        Navigator.pop(context);
-                                      });
-                                    },
-                                  ),
-                                  CupertinoActionSheetAction(
-                                    child: Text('Event'),
-                                    onPressed: () {
-                                      setState(() {
-                                        dropdownValue = 'Event';
-                                        Navigator.pop(context);
-                                      });
-                                    },
-                                  ),
-                                  CupertinoActionSheetAction(
-                                    child: Text('Competition'),
-                                    onPressed: () {
-                                      setState(() {
-                                        dropdownValue = 'Competition';
-                                        Navigator.pop(context);
-                                      });
-                                    },
-                                  ),
-                                  CupertinoActionSheetAction(
-                                    child: Text('Committee'),
-                                    onPressed: () {
-                                      setState(() {
-                                        dropdownValue = 'Committee';
-                                        Navigator.pop(context);
-                                      });
-                                    },
-                                  ),
-                                  CupertinoActionSheetAction(
-                                    child: Text('Cookie Store'),
-                                    onPressed: () {
-                                      setState(() {
-                                        dropdownValue = 'Cookie Store';
-                                        Navigator.pop(context);
-                                      });
-                                    },
-                                  ),
-                                  CupertinoActionSheetAction(
-                                    child: Text('Miscallaneous'),
-                                    onPressed: () {
-                                      setState(() {
-                                        dropdownValue = 'Miscallaneous';
-                                        Navigator.pop(context);
-                                      });
-                                    },
-                                  ),
-                                ],
-                              );
-                            });
-                      },
-                    )),
-                Container(
-                  padding: new EdgeInsets.only(top: 10.0, bottom: 10.0),
-                  width: screenWidth - 50,
-                  height: 75,
-                  child: Row(
-                    children: <Widget>[
-                      Expanded(
-                          flex: 7,
-                          child: Container(
-                            height: 75,
-                            child: RaisedButton(
-                              onPressed: () => setState(
-                                  () => this.updateButtons('Quick Enter')),
-                              child: Text(
-                                "Quick Enter",
-                                textAlign: TextAlign.center,
-                                style: new TextStyle(
-                                  fontSize: 15,
-                                ),
+                    ),
+                    Container(
+                        padding: new EdgeInsets.only(top: 10.0, bottom: 10.0),
+                        width: screenWidth - 50,
+                        child: TextFormField(
+                            controller: _eventName,
+                            textAlign: TextAlign.left,
+                            style: TextStyle(fontFamily: 'Lato'),
+                            decoration: new InputDecoration(
+                              labelText: "Event Name",
+                              border: new OutlineInputBorder(
+                                borderRadius: new BorderRadius.circular(10.0),
+                                borderSide: new BorderSide(color: Colors.blue),
                               ),
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10)),
-                              color: _isQuickEnter ? Colors.blue : Colors.grey,
-                              textColor: Colors.white,
-                            ),
-                          )),
-                      Spacer(flex: 1),
-                      Expanded(
-                          flex: 7,
-                          child: Container(
-                            height: 75,
-                            child: RaisedButton(
-                              onPressed: () => setState(
-                                  () => this.updateButtons('Manual Enter')),
-                              child: Text("Manual Enter",
-                                  textAlign: TextAlign.center,
-                                  style: new TextStyle(
-                                    fontSize: 15,
-                                  )),
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10)),
-                              color: _isManualEnter ? Colors.blue : Colors.grey,
-                              textColor: Colors.white,
-                            ),
-                          ))
-                    ],
-                  ),
-                ),
-                if (_isQuickEnter)
-                  Container(
+                            ))),
+                    Container(
+                        padding: new EdgeInsets.only(top: 10.0, bottom: 10.0),
+                        width: screenWidth - 50,
+                        height: 75,
+                        child: new RaisedButton(
+                          child: Text(updateDateButton(),
+                              style:
+                                  new TextStyle(fontSize: 17, fontFamily: 'Lato')),
+                          textColor: Colors.white,
+                          color: Colors.blue,
+                          onPressed: () {
+                            DatePicker.showDatePicker(context,
+                                showTitleActions: true,
+                                minTime: DateTime(2019, 1, 1), onConfirm: (date) {
+                              setState(() {
+                                eventDateText = new DateFormat('EEEE, MMMM d, y')
+                                    .format(date)
+                                    .toString();
+                                _eventDate = new DateFormat('yyyy-MM-dd')
+                                    .format(date)
+                                    .toString();
+                              });
+                            }, currentTime: DateTime.now(), locale: LocaleType.en);
+                          },
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10)),
+                        )),
+                    Container(
+                        padding: new EdgeInsets.only(top: 10.0, bottom: 10.0),
+                        width: screenWidth - 50,
+                        height: 75,
+                        child: RaisedButton(
+                          child: Text(
+                            (dropdownValue == null)
+                                ? "Choose Event Type"
+                                : dropdownValue,
+                            textAlign: TextAlign.center,
+                            style: new TextStyle(fontSize: 17, fontFamily: 'Lato'),
+                          ),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10)),
+                          color: Colors.blue,
+                          textColor: Colors.white,
+                          onPressed: () {
+                            showCupertinoModalPopup(
+                                context: context,
+                                builder: (context) {
+                                  return CupertinoActionSheet(
+                                    title: Text('Choose Event Type'),
+                                    actions: <Widget>[
+                                      CupertinoActionSheetAction(
+                                        child: Text('Meeting'),
+                                        onPressed: () {
+                                          setState(() {
+                                            dropdownValue = 'Meeting';
+                                            Navigator.pop(context);
+                                          });
+                                        },
+                                      ),
+                                      CupertinoActionSheetAction(
+                                        child: Text('Social'),
+                                        onPressed: () {
+                                          setState(() {
+                                            dropdownValue = 'Social';
+                                            Navigator.pop(context);
+                                          });
+                                        },
+                                      ),
+                                      CupertinoActionSheetAction(
+                                        child: Text('Event'),
+                                        onPressed: () {
+                                          setState(() {
+                                            dropdownValue = 'Event';
+                                            Navigator.pop(context);
+                                          });
+                                        },
+                                      ),
+                                      CupertinoActionSheetAction(
+                                        child: Text('Competition'),
+                                        onPressed: () {
+                                          setState(() {
+                                            dropdownValue = 'Competition';
+                                            Navigator.pop(context);
+                                          });
+                                        },
+                                      ),
+                                      CupertinoActionSheetAction(
+                                        child: Text('Committee'),
+                                        onPressed: () {
+                                          setState(() {
+                                            dropdownValue = 'Committee';
+                                            Navigator.pop(context);
+                                          });
+                                        },
+                                      ),
+                                      CupertinoActionSheetAction(
+                                        child: Text('Cookie Store'),
+                                        onPressed: () {
+                                          setState(() {
+                                            dropdownValue = 'Cookie Store';
+                                            Navigator.pop(context);
+                                          });
+                                        },
+                                      ),
+                                      CupertinoActionSheetAction(
+                                        child: Text('Miscallaneous'),
+                                        onPressed: () {
+                                          setState(() {
+                                            dropdownValue = 'Miscallaneous';
+                                            Navigator.pop(context);
+                                          });
+                                        },
+                                      ),
+                                    ],
+                                  );
+                                });
+                          },
+                        )),
+                    Container(
                       padding: new EdgeInsets.only(top: 10.0, bottom: 10.0),
-                      width: 125,
-                      child: TextFormField(
-                          keyboardType: TextInputType.number,
-                          controller: _goldPoints,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(fontFamily: 'Lato'),
-                          decoration: new InputDecoration(
-                            labelText: "Gold Points",
-                            border: new OutlineInputBorder(
-                              borderRadius: new BorderRadius.circular(10.0),
-                              borderSide: new BorderSide(color: Colors.blue),
-                            ),
-                          ))),
-                Container(
-                    padding: new EdgeInsets.only(top: 10.0, bottom: 10.0),
-                    width: screenWidth - 200,
-                    height: 75,
-                    child: new RaisedButton(
-                      child: Text('Create',
-                          style:
-                              new TextStyle(fontSize: 17, fontFamily: 'Lato')),
-                      textColor: Colors.white,
-                      color: Color.fromRGBO(46, 204, 113, 1),
-                      onPressed: () {
-                        tryToRegister(context);
-                      },
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10)),
-                    )),
-                if (_isTryingToCreateEvent) //to add the progress indicator
-                  Container(
                       width: screenWidth - 50,
-                      alignment: Alignment.center,
-                      child: CircularProgressIndicator())
-              ],
+                      height: 75,
+                      child: Row(
+                        children: <Widget>[
+                          Expanded(
+                              flex: 7,
+                              child: Container(
+                                height: 75,
+                                child: RaisedButton(
+                                  onPressed: () => setState(
+                                      () => this.updateButtons('Quick Enter')),
+                                  child: Text(
+                                    "Quick Enter",
+                                    textAlign: TextAlign.center,
+                                    style: new TextStyle(
+                                      fontSize: 15,
+                                    ),
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10)),
+                                  color: _isQuickEnter ? Colors.blue : Colors.grey,
+                                  textColor: Colors.white,
+                                ),
+                              )),
+                          Spacer(flex: 1),
+                          Expanded(
+                              flex: 7,
+                              child: Container(
+                                height: 75,
+                                child: RaisedButton(
+                                  onPressed: () => setState(
+                                      () => this.updateButtons('Manual Enter')),
+                                  child: Text("Manual Enter",
+                                      textAlign: TextAlign.center,
+                                      style: new TextStyle(
+                                        fontSize: 15,
+                                      )),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10)),
+                                  color: _isManualEnter ? Colors.blue : Colors.grey,
+                                  textColor: Colors.white,
+                                ),
+                              ))
+                        ],
+                      ),
+                    ),
+                    if (_isQuickEnter)
+                      Container(
+                          padding: new EdgeInsets.only(top: 10.0, bottom: 10.0),
+                          width: 125,
+                          child: TextFormField(
+                              keyboardType: TextInputType.number,
+                              controller: _goldPoints,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(fontFamily: 'Lato'),
+                              decoration: new InputDecoration(
+                                labelText: "Gold Points",
+                                border: new OutlineInputBorder(
+                                  borderRadius: new BorderRadius.circular(10.0),
+                                  borderSide: new BorderSide(color: Colors.blue),
+                                ),
+                              ))),
+                    Container(
+                        padding: new EdgeInsets.only(top: 10.0, bottom: 10.0),
+                        width: screenWidth - 200,
+                        height: 75,
+                        child: new RaisedButton(
+                          child: Text('Create',
+                              style:
+                                  new TextStyle(fontSize: 17, fontFamily: 'Lato')),
+                          textColor: Colors.white,
+                          color: Color.fromRGBO(46, 204, 113, 1),
+                          onPressed: () {
+                            tryToCreateEvent(context);
+                          },
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10)),
+                        )),
+                    if (_isTryingToCreateEvent) //to add the progress indicator
+                      Container(
+                          width: screenWidth - 50,
+                          alignment: Alignment.center,
+                          child: CircularProgressIndicator())
+                  ],
+                ),
+              ),
             ),
-          ),
+          if(StateContainer.of(context).isThereConnectionError)
+            ConnectionError()
+          
+          ],
         ));
   }
 }
@@ -464,38 +453,45 @@ class _AdminUIState extends State<AdminScreenUI> {
             ),
           ],
         ),
-        body: ListView(
+        body: Stack(
           children: <Widget>[
-            Card(
-                child: ListTile(
-                    leading: Icon(Icons.create),
-                    title: Text('Create an Event'),
-                    onTap: () => Navigator.push(
-                        context,
-                        NoTransition(
-                            builder: (context) => new CreateEventUI())))),
-            Card(
-                child: ListTile(
-              leading: Icon(Icons.library_books),
-              title: Text('Edit Events'),
-              onTap: () => Navigator.push(context,
-                  NoTransition(builder: (context) => new EditEventUI())),
-            )),
-            Card(
-                child: ListTile(
-              leading: Icon(Icons.supervisor_account),
-              title: Text('Create a Group'),
-              onTap: () => Navigator.push(
-                  context, NoTransition(builder: (context) => CreateGroupUI())),
-            )),
-            Card(
-              child: ListTile(
-              leading: Icon(Icons.supervisor_account),
-              title: Text('Push Notifications'),
-              onTap: () => Navigator.push(
-                  context, NoTransition(builder: (context) => Sender())),
-              )
-            )],
+            ListView(
+              children: <Widget>[
+                Card(
+                    child: ListTile(
+                        leading: Icon(Icons.create),
+                        title: Text('Create an Event'),
+                        onTap: () => Navigator.push(
+                            context,
+                            NoTransition(
+                                builder: (context) => new CreateEventUI())))),
+                Card(
+                    child: ListTile(
+                  leading: Icon(Icons.library_books),
+                  title: Text('Edit Events'),
+                  onTap: () => Navigator.push(context,
+                      NoTransition(builder: (context) => new EditEventUI())),
+                )),
+                Card(
+                    child: ListTile(
+                  leading: Icon(Icons.supervisor_account),
+                  title: Text('Create a Group'),
+                  onTap: () => Navigator.push(
+                      context, NoTransition(builder: (context) => CreateGroupUI())),
+                )),
+                Card(
+                    child: ListTile(
+                  leading: Icon(Icons.notifications),
+                  title: Text('Push Notifications'),
+                  onTap: () => Navigator.push(
+                      context, NoTransition(builder: (context) => Sender())),
+                ))
+              ],
+            ),
+          if(StateContainer.of(context).isThereConnectionError)
+            OfflineNotifier()
+          
+          ],
         ));
   }
 }
@@ -517,92 +513,112 @@ class _CreateGroupUIState extends State<CreateGroupUI> {
 
   Widget build(BuildContext context) {
     return Scaffold(
-        key: _scaffoldKey,
-        appBar: AppBar(
-          leading: IconButton(
-            icon: Icon(
-              Icons.arrow_back_ios,
-            ),
-            onPressed: () => Navigator.of(context).pop(),
+      key: _scaffoldKey,
+      appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(
+            Icons.arrow_back_ios,
           ),
-          title: Text("Add Users to Group"),
+          onPressed: () => Navigator.of(context).pop(),
         ),
-        body: Stack(
-          children: <Widget>[
-            //add people to a group on callback
-            Finder(
-              (BuildContext context, StateContainerState stateContainer,
-                Map userData) {
-              Firestore.instance
-                  .collection("Users")
-                  .document(userData['uid'])
-                  .get()
-                  .then((document) {
+        title: Text("Add Users to Group"),
+      ),
+      body: Stack(
+        children: <Widget>[
+          //add people to a group on callback
+          Finder((BuildContext context, StateContainerState stateContainer,
+              Map userData) {
+            Firestore.instance
+                .collection("Users")
+                .document(userData['uid'])
+                .get()
+                .then((document) {
+              List data = document.data['groups'].toList();
+              //check if the person is already in the group
+              if (data.contains(stateContainer.group)) {
+                _scaffoldKey.currentState.showSnackBar(SnackBar(
+                  content: Text(
+                    "${userData['first_name']} is already in ${stateContainer.group}",
+                    style: TextStyle(
+                        fontFamily: 'Lato', fontSize: 20, color: Colors.white),
+                  ),
+                  backgroundColor: Colors.red,
+                  duration: Duration(seconds: 3),
+                  action: SnackBarAction(
+                    label: "REMOVE",
+                    textColor: Colors.amber,
+                    onPressed: () {
+                      //remove the group
+                      data.remove(stateContainer.group);
 
-                    List data = document.data['groups'].toList();
-                    //check if the person is already in the group
-                    if(data.contains(stateContainer.group)){
-                      _scaffoldKey.currentState.showSnackBar(
-                      SnackBar(
+                      //remove user from firestore and show confirmation
+                      Firestore.instance
+                          .collection("Users")
+                          .document(userData['uid'])
+                          .updateData({'groups': data}).then((_) {
+                        _scaffoldKey.currentState.showSnackBar(
+                          SnackBar(
                             content: Text(
-                              "${userData['first_name']} is already in ${stateContainer.group}",
+                              "${userData['first_name']} removed from ${stateContainer.group}",
                               style: TextStyle(
                                   fontFamily: 'Lato',
                                   fontSize: 20,
                                   color: Colors.white),
                             ),
-                            backgroundColor: Colors.red,
                             duration: Duration(seconds: 1),
-                          )
-                    );
-                    }
-                    //add the person to the group
-                    else{
-                      data.add(stateContainer.group);
-                    document.reference.updateData({'groups': data});
-                    _scaffoldKey.currentState.showSnackBar(
-                      SnackBar(
-                            content: Text(
-                              "Succesfully added ${userData['first_name']} to ${stateContainer.group}",
-                              style: TextStyle(
-                                  fontFamily: 'Lato',
-                                  fontSize: 20,
-                                  color: Colors.white),
-                            ),
-                            backgroundColor: Colors.green,
-                            duration: Duration(seconds: 1),
-                          )
-                    );
-                    }
-                    
-              });
-            }),
-            if (!_hasCreatedGroup)
-              Container(
-                  color: Colors.black45,
-                  child: AlertDialog(
-                    title: Text(
-                      "Group Name",
-                    ),
-                    content: TextFormField(
-                      controller: _groupName,
-                      decoration: InputDecoration(labelText: "Group Name"),
-                    ),
-                    actions: <Widget>[
-                      FlatButton(
-                        child: Text("Create"),
-                        textColor: Colors.blue,
-                        onPressed: () {
-                          if (_groupName.text != null) {
-                            StateContainer.of(context).setGroup(_groupName.text);
-                            setState(() => _hasCreatedGroup = true);
-                          }
-                        },
-                      )
-                    ],
-                  ))
-          ],
-        ));
+                          ),
+                        );
+                      });
+                    },
+                  ),
+                ));
+              }
+              //add the person to the group
+              else {
+                data.add(stateContainer.group);
+                document.reference.updateData({'groups': data});
+                _scaffoldKey.currentState.showSnackBar(SnackBar(
+                  content: Text(
+                    "Succesfully added ${userData['first_name']} to ${stateContainer.group}",
+                    style: TextStyle(
+                        fontFamily: 'Lato', fontSize: 20, color: Colors.white),
+                  ),
+                  backgroundColor: Colors.green,
+                  duration: Duration(seconds: 1),
+                ));
+              }
+            });
+          }),
+          if (!_hasCreatedGroup)
+            Container(
+                color: Colors.black45,
+                child: AlertDialog(
+                  title: Text(
+                    "Group Name",
+                  ),
+                  content: TextFormField(
+                    controller: _groupName,
+                    decoration: InputDecoration(labelText: "Group Name"),
+                  ),
+                  actions: <Widget>[
+                    FlatButton(
+                      child: Text("Create"),
+                      textColor: Colors.blue,
+                      onPressed: () {
+                        if (_groupName.text != null) {
+                          StateContainer.of(context).setGroup(_groupName.text);
+
+                          setState(() => _hasCreatedGroup = true);
+                        }
+                      },
+                    )
+                  ],
+                )),
+          if (StateContainer.of(context).isThereConnectionError)
+            ConnectionError()
+        ],
+      ),
+    );
   }
 }
 
@@ -618,6 +634,7 @@ class _EditEventUIState extends State<EditEventUI> {
   _EditEventUIState();
 
   ListView _buildEventList(context, snapshot) {
+    
     return ListView.builder(
       // Must have an item count equal to the number of items!
       itemCount: snapshot.data.documents.length,
@@ -689,6 +706,9 @@ class _EditEventUIState extends State<EditEventUI> {
               ],
             ),
           ),
+        if(StateContainer.of(context).isThereConnectionError)
+          OfflineNotifier()
+        
         ],
       ),
     );

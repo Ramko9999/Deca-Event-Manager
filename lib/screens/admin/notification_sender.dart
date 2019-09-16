@@ -1,10 +1,8 @@
-import 'dart:async';
-import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:deca_app/utility/InheritedInfo.dart';
+import 'package:deca_app/utility/notifiers.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:connectivity/connectivity.dart';
 import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'package:intl/intl.dart';
 
@@ -19,27 +17,12 @@ class Sender extends StatefulWidget {
 class SenderState extends State<Sender> {
   String filter = "Any"; //used to only send notifications to certain committies
   String date;
-  String connectionState = "wifi";
   TextEditingController header = new TextEditingController();
   TextEditingController message = new TextEditingController();
   GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   SenderState();
-  StreamSubscription connectionStream;
 
-  void initState() {
-    connectionStream =
-        Connectivity().onConnectivityChanged.listen((recentState) {
-      setState(() {
-        connectionState = recentState.toString();
-      });
-    });
-  }
-
-  void dispose() {
-    super.dispose();
-    connectionStream.cancel();
-  }
-
+  //creates a new notification in the cloud firestore database
   void executeNotification() {
     Map<String, dynamic> notificationData = {
       'header': header.text,
@@ -61,6 +44,14 @@ class SenderState extends State<Sender> {
         .collection("Notifications")
         .add(notificationData)
         .then((_) {
+      setState(() {
+        //reset the notifications
+        header.text = "";
+        message.text = "";
+        date = null;
+        filter = 'Any';
+      });
+
       _scaffoldKey.currentState.showSnackBar(
         SnackBar(
           content: Text("Pushed!", style: TextStyle(color: Colors.white)),
@@ -73,6 +64,8 @@ class SenderState extends State<Sender> {
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
+    double wRatio = screenWidth / 411.42857142857144;
+    double hRatio = screenHeight / 683.4285714285714;
     return Scaffold(
         key: _scaffoldKey,
         appBar: AppBar(
@@ -97,18 +90,11 @@ class SenderState extends State<Sender> {
                     child: Column(
                       children: <Widget>[
                         Padding(
-                          padding: EdgeInsets.only(top: 30),
-                          child: Text(
-                            "Send a Notification",
-                            style: TextStyle(fontFamily: 'Lato', fontSize: 25),
-                            textAlign: TextAlign.left,
-                          ),
-                        ),
-                        Padding(
-                          padding: EdgeInsets.only(top: 15),
+                          padding: EdgeInsets.only(top: screenHeight * 0.04),
                           child: TextFormField(
                               controller: header,
-                              style: TextStyle(fontFamily: 'Lato'),
+                              style: TextStyle(
+                                  fontFamily: 'Lato', fontSize: wRatio * 16),
                               decoration: InputDecoration(
                                   labelText: "Notification Header",
                                   errorBorder: OutlineInputBorder(
@@ -125,12 +111,13 @@ class SenderState extends State<Sender> {
                                   ))),
                         ),
                         Padding(
-                          padding: EdgeInsets.only(top: 15),
+                          padding: EdgeInsets.only(top: screenHeight * 0.03),
                           child: TextFormField(
                               controller: message,
-                              keyboardType: TextInputType.multiline,
+                              keyboardType: TextInputType.text,
                               maxLines: null,
-                              style: TextStyle(fontFamily: 'Lato'),
+                              style: TextStyle(
+                                  fontFamily: 'Lato', fontSize: 16 * wRatio),
                               decoration: InputDecoration(
                                   labelText: "Notification Body",
                                   errorBorder: OutlineInputBorder(
@@ -147,7 +134,7 @@ class SenderState extends State<Sender> {
                                   ))),
                         ),
                         Padding(
-                          padding: EdgeInsets.only(top: 15),
+                          padding: EdgeInsets.only(top: screenHeight * 0.03),
                           child: Container(
                             width: screenWidth / 1.7,
                             child: DropdownButton(
@@ -163,6 +150,8 @@ class SenderState extends State<Sender> {
                                 'Gold Point',
                                 'Website',
                                 'none',
+                                'Jameson Curry',
+                                'random int',
                               ].map((String group) {
                                 return DropdownMenuItem(
                                   value: group,
@@ -170,7 +159,7 @@ class SenderState extends State<Sender> {
                                     group,
                                     style: TextStyle(
                                         fontFamily: 'Lato',
-                                        fontSize: 17,
+                                        fontSize: 17 * wRatio,
                                         color: Colors.blue),
                                     textAlign: TextAlign.center,
                                   ),
@@ -180,16 +169,15 @@ class SenderState extends State<Sender> {
                           ),
                         ),
                         Padding(
-                          padding: EdgeInsets.only(top: 15),
+                          padding: EdgeInsets.only(top: screenHeight * 0.03),
                           child: Container(
-                            height: 50,
                             width: screenWidth / 1.1,
                             child: FlatButton(
                               child: Text(
-                                date == null ? "Send as a Remainder" : date,
+                                date == null ? "Send as a Reminder" : date,
                                 style: TextStyle(
                                   fontFamily: 'Lato',
-                                  fontSize: 17,
+                                  fontSize: 18 * wRatio,
                                 ),
                               ),
                               textColor: Colors.blue,
@@ -202,7 +190,6 @@ class SenderState extends State<Sender> {
                                     date = new DateFormat('yyyy-MM-dd')
                                         .format(dateTime)
                                         .toString();
-                                    ;
                                   });
                                 });
                               },
@@ -214,12 +201,13 @@ class SenderState extends State<Sender> {
                               ? Text(
                                   "Optional Feature",
                                   style: TextStyle(
-                                      color: Colors.grey, fontSize: 14),
+                                      color: Colors.grey,
+                                      fontSize: 14 * wRatio),
                                 )
                               : Text(
                                   "Don't send as reminder",
                                   style: TextStyle(
-                                      color: Colors.red, fontSize: 14),
+                                      color: Colors.red, fontSize: 14 * wRatio),
                                 ),
                           onPressed: date == null
                               ? () => print("Nothing shall happen")
@@ -228,7 +216,7 @@ class SenderState extends State<Sender> {
                                 },
                         ),
                         Padding(
-                          padding: EdgeInsets.only(top: 70),
+                          padding: EdgeInsets.only(top: screenHeight * 0.10),
                           child: Container(
                             width: screenWidth / 1.1,
                             child: FlatButton(
@@ -236,7 +224,7 @@ class SenderState extends State<Sender> {
                                 "Push",
                                 style: TextStyle(
                                     fontFamily: 'Lato',
-                                    fontSize: 24,
+                                    fontSize: 24 * wRatio,
                                     color: Colors.green),
                               ),
                               onPressed: () {
@@ -267,39 +255,8 @@ class SenderState extends State<Sender> {
                 ),
               ),
             ),
-            if (connectionState.contains("none"))
-              if (Platform.isAndroid)
-                AlertDialog(
-                  title: Container(
-                    height: MediaQuery.of(context).size.height / 15,
-                    child: Text(
-                      "Connecting...",
-                      style: TextStyle(fontSize: 26),
-                    ),
-                  ),
-                  content: Text(
-                    'This will automatically dissapear when we connect you back to the servers',
-                    style: TextStyle(
-                      fontSize: 16,
-                    ),
-                  ),
-                )
-              else
-                CupertinoAlertDialog(
-                  title: Container(
-                    height: MediaQuery.of(context).size.height / 15,
-                    child: Text(
-                      "Connecting...",
-                      style: TextStyle(fontSize: 26),
-                    ),
-                  ),
-                  content: Text(
-                    'This will automatically dissapear when we connect you back to the servers',
-                    style: TextStyle(
-                      fontSize: 16,
-                    ),
-                  ),
-                )
+            if (StateContainer.of(context).isThereConnectionError)
+              ConnectionError()
           ],
         ));
   }

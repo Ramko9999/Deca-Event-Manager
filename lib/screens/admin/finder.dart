@@ -4,9 +4,11 @@ import 'package:deca_app/utility/InheritedInfo.dart';
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 
+//Finder is a widget that will show search results of users based on names
 class Finder extends StatefulWidget {
-  Widget alert;
-  Function tapCallback;
+  Widget alert; //an alert widget to pop up when a card is tapped
+  Function tapCallback; // a callback when a card is tapped
+
   Finder(Function t, [Widget a]) {
     this.alert = a;
     this.tapCallback = t;
@@ -18,11 +20,9 @@ class Finder extends StatefulWidget {
 }
 
 class FinderState extends State<Finder> {
-  Map eventMetaData;
   final _firstName = TextEditingController();
   final _lastName = TextEditingController();
   bool hasSearched = false;
-  bool isCardTapped;
   Map recentCardInfo;
   List<DocumentSnapshot> userDocs;
 
@@ -42,22 +42,19 @@ class FinderState extends State<Finder> {
     });
   }
 
-  void dispose() {
-    super.dispose();
-  }
-
   Widget build(BuildContext context) {
     final container = StateContainer.of(context);
-    eventMetaData = container.eventMetadata;
-    isCardTapped = container.isCardTapped;
+
+    //query and update documents based on additions and deletions
     Firestore.instance.collection("Users").getDocuments().then((documents) {
-      if(this.mounted){
-          setState(() => userDocs = documents.documents);
+      if (this.mounted) {
+        setState(() => userDocs = documents.documents);
       }
     });
 
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
+
     return Stack(
       children: <Widget>[
         Container(
@@ -71,8 +68,7 @@ class FinderState extends State<Finder> {
                     child: Container(
                       child: TextField(
                         controller: _firstName,
-                        decoration: InputDecoration(
-                          labelText: "First Name"),
+                        decoration: InputDecoration(labelText: "First Name"),
                       ),
                     ),
                   ),
@@ -91,7 +87,7 @@ class FinderState extends State<Finder> {
                     : getList(context)),
           ]),
         ),
-        if (isCardTapped)
+        if (container.isCardTapped)
           //this will most likely execute for gold points and never will execute for adding groups
           if (widget.alert != null)
             widget.alert //build alert widget
@@ -99,6 +95,7 @@ class FinderState extends State<Finder> {
     );
   }
 
+  //fetches the users in an order relevant way
   MaxList getData() {
     List<Map> userList = [];
     //turn this into map with uid and names
@@ -106,11 +103,13 @@ class FinderState extends State<Finder> {
       Map userData = userDocs[i].data;
       userList.add(userData);
     }
+
     Searcher searcher = new Searcher(userList, _firstName.text, _lastName.text);
     MaxList relevanceList = searcher.search();
     return relevanceList;
   }
 
+  //builds list
   Widget getList(BuildContext context) {
     MaxList list = getData();
     final infoContainer = StateContainer.of(context);
@@ -122,11 +121,12 @@ class FinderState extends State<Finder> {
           if (list.getSize() == 0) {
             return CircularProgressIndicator();
           }
-          if(current == null){
+          if (current == null) {
             return CircularProgressIndicator();
           }
           Map userInfo = current.element['info'];
-          GestureDetector c = GestureDetector(
+          Card c = Card(
+            child: ListTile(
               onTap: () {
                 FocusScope.of(context)
                     .requestFocus(FocusNode()); //remove the keyboard
@@ -134,20 +134,18 @@ class FinderState extends State<Finder> {
                 //checking what the purpose of the finder is
                 widget.tapCallback(context, infoContainer, userInfo);
               },
-              child: Card(
-                child: ListTile(
-                  leading: Icon(Icons.person, color: Colors.black),
-                  title: Text(
-                    userInfo['first_name'] + " " + userInfo['last_name'],
-                    style: TextStyle(fontFamily: 'Lato', fontSize: 20),
-                  ),
-                  subtitle: Text(
-                    userInfo['gold_points'].toString(),
-                    style: TextStyle(fontFamily: 'Lato', fontSize: 15),
-                  ),
-                  trailing: Icon(Icons.add, color: Colors.black),
-                ),
-              ));
+              leading: Icon(Icons.person, color: Colors.black),
+              title: Text(
+                userInfo['first_name'] + " " + userInfo['last_name'],
+                style: TextStyle(fontFamily: 'Lato', fontSize: 20),
+              ),
+              subtitle: Text(
+                userInfo['gold_points'].toString(),
+                style: TextStyle(fontFamily: 'Lato', fontSize: 15),
+              ),
+              trailing: Icon(Icons.add, color: Colors.black),
+            ),
+          );
           current = current.next;
           return c;
         });

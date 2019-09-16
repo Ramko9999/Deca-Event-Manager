@@ -3,11 +3,10 @@ import 'dart:io';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:camera/camera.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connectivity/connectivity.dart';
 import 'package:deca_app/screens/admin/finder.dart';
 import 'package:deca_app/screens/admin/templates.dart';
-import 'package:deca_app/screens/settings/setting_screen.dart';
 import 'package:deca_app/utility/InheritedInfo.dart';
+import 'package:deca_app/utility/notifiers.dart';
 import 'package:firebase_ml_vision/firebase_ml_vision.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -21,8 +20,6 @@ class Scanner extends StatefulWidget {
 
 class _ScannerState extends State<Scanner> {
   HashSet<String> _scannedUids; //used to keep track of already scanned codes
-  String _connectionState; //used to listen to connection changes
-  List _cameras; //used to grab cameras
   CameraController _mainCamera; //camera that will give us the feed
   bool _isCameraInitalized = false;
   Map eventMetadata;
@@ -34,39 +31,38 @@ class _ScannerState extends State<Scanner> {
   bool _cameraPermission = true;
   final _scaffoldKey = new GlobalKey<ScaffoldState>();
   bool isManualEnter;
- 
+  bool isInProcessOfScanning = false;
+
   void pushToDB(String userUniqueID) async {
-    final gpContainer = StateContainer.of(_scaffoldKey.currentContext);
-    if (!_scannedUids.contains(userUniqueID)) {
-      final userData = await Firestore.instance
-          .collection("Users")
-          .document(userUniqueID)
-          .get()
-          .then((userData) {
-        gpContainer.setUserData(userData.data);
-        if (gpContainer.eventMetadata['enter_type'] == 'ME') {
-          gpContainer.setIsManualEnter(true);
-        } else {
-          gpContainer.updateGP(userUniqueID);
-          String firstName = gpContainer.userData['first_name'];
-          print("Scanned + $firstName");
+    isInProcessOfScanning = true;
+    final gpContainer = StateContainer.of(
+        _scaffoldKey.currentContext); //This is actually smart as hell
+    Firestore.instance
+        .collection("Users")
+        .document(userUniqueID)
+        .get()
+        .then((userData) {
+      gpContainer.setUserData(userData.data);
 
+      if (gpContainer.eventMetadata['enter_type'] == 'ME') {
+        gpContainer.setIsManualEnter(true);
+      } else {
+        gpContainer.updateGP(userUniqueID);
+        String firstName = gpContainer.userData['first_name'];
 
-          _scaffoldKey.currentState.showSnackBar(SnackBar(
-            backgroundColor: Color.fromRGBO(46, 204, 113, 1),
-            content: Text("Scanned " + firstName),
-          ));
-
-        }
-        //append to the hashset the uniqueID
-        _scannedUids.add(userUniqueID);
-      }).catchError((onError) => print(onError));
-    }
+        _scaffoldKey.currentState.showSnackBar(SnackBar(
+          backgroundColor: Color.fromRGBO(46, 204, 113, 1),
+          content: Text("Scanned " + firstName),
+          duration: Duration(seconds: 1),
+        ));
+      }
+      isInProcessOfScanning = false;
+    }).catchError((onError) => print(onError));
   }
 
   void runStream() {
+    _scannedUids = new HashSet();
     _mainCamera.startImageStream((image) {
-
       FirebaseVisionImageMetadata metadata;
       //metadata tag for the for image format.
       //source https://github.com/flutter/flutter/issues/26348
@@ -82,22 +78,33 @@ class _ScannerState extends State<Scanner> {
 
       FirebaseVisionImage visionImage =
           FirebaseVisionImage.fromBytes(image.planes[0].bytes, metadata);
+
       FirebaseVision.instance
           .barcodeDetector()
           .detectInImage(visionImage)
           .then((barcodes) {
-
         for (Barcode barcode in barcodes) {
-
-          pushToDB(barcode.rawValue);
+          if (!_scannedUids.contains(barcode.rawValue) &&
+              !isInProcessOfScanning) {
+            _scannedUids.add(barcode.rawValue);
+            pushToDB(barcode.rawValue);
+          } else {
+            if (!isInProcessOfScanning) {
+              _scaffoldKey.currentState.showSnackBar(SnackBar(
+                backgroundColor: Color.fromRGBO(255, 0, 0, 1),
+                content: Text("Already Scanned"),
+                duration: Duration(seconds: 1),
+              ));
+            }
+          }
+        }
+      }).catchError((error) {
+        if (error.runtimeType == CameraException) {
+          _scaffoldKey.currentState.showSnackBar(SnackBar(
+            content: Text("Issues with Camera"),
+          ));
         }
       });
-    }).catchError((error) {
-      if (error.runtimeType == CameraException) {
-        _scaffoldKey.currentState.showSnackBar(SnackBar(
-          content: Text("Issues with Camera"),
-        ));
-      }
     });
   }
 
@@ -119,7 +126,7 @@ class _ScannerState extends State<Scanner> {
     return stillNeedToBeGranted;
   }
 
-    //create camera based on permissions
+  //create camera based on permissions
   void createCamera() {
     getPermissionsThatNeedToBeChecked(
             PermissionGroup.camera, PermissionGroup.microphone)
@@ -127,9 +134,7 @@ class _ScannerState extends State<Scanner> {
       if (permList.length == 0) {
         //get all the avaliable cameras
         availableCameras().then((allCameras) {
-          _cameras = allCameras;
-          _mainCamera =
-              CameraController(allCameras[0], ResolutionPreset.medium);
+          _mainCamera = CameraController(allCameras[0], ResolutionPreset.low);
 
           _mainCamera.initialize().then((_) {
             if (!mounted) {
@@ -155,6 +160,7 @@ class _ScannerState extends State<Scanner> {
       }
     });
   }
+
   //request permissions and check until all are requestsed
   void requestPermStatus(List<PermissionGroup> permissionGroups) {
     bool allAreAccepted = true;
@@ -177,14 +183,6 @@ class _ScannerState extends State<Scanner> {
 
   void initState() {
     super.initState();
-
-    //listening for changes in connection
-    Connectivity().onConnectivityChanged.listen((connectionStatus) {
-      setState(() {
-        _connectionState = connectionStatus.toString();
-      });
-    });
-
     createCamera();
   }
 
@@ -213,6 +211,8 @@ class _ScannerState extends State<Scanner> {
       if (_isQR) {
         if (!_mainCamera.value.isStreamingImages) {
           runStream();
+        } else if (StateContainer.of(context).isThereConnectionError) {
+          _mainCamera.stopImageStream();
         }
       } else {
         if (_mainCamera.value.isStreamingImages) {
@@ -229,7 +229,6 @@ class _ScannerState extends State<Scanner> {
     isManualEnter = container.isManualEnter;
 
     _scannedUids = new HashSet();
-    _connectionState = "Unknown Connection";
 
     pointVal = eventMetadata['gold_points'];
     scanCount = eventMetadata['attendee_count'];
@@ -333,31 +332,11 @@ class _ScannerState extends State<Scanner> {
                                 });
                               },
                               child: Container(
-                                child: Text(
-                                    "You have denied camera permissions please accept them by clicking on this text"),
+                                child: Text(Platform.isAndroid
+                                    ? "You have denied camera permissions, please accept them by clicking on this text"
+                                    : "You have denied camera permissions, please go to settings to activate them"),
                               )),
                     ),
-                  Container(
-                      padding: new EdgeInsets.only(top: 10.0, bottom: 10.0),
-                      width: screenWidth - 200,
-                      height: 75,
-                      child: new RaisedButton(
-                        child: Text('Finish',
-                            style: new TextStyle(
-                                fontSize: 17, fontFamily: 'Lato')),
-                        textColor: Colors.white,
-                        color: Color.fromRGBO(46, 204, 113, 1),
-                        onPressed: () {
-                          _mainCamera.stopImageStream();
-                          Navigator.pop(context);
-                          Navigator.push(
-                              context,
-                              NoTransition(
-                                  builder: (context) => new EditEventUI()));
-                        },
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10)),
-                      )),
                   if (_isSearcher)
                     Container(
                       width: screenWidth - 50,
@@ -365,7 +344,9 @@ class _ScannerState extends State<Scanner> {
                       padding: EdgeInsets.fromLTRB(0, 0, 0, 20),
                       child: Finder(
                           //call back function argument
-                        (BuildContext context, StateContainerState stateContainer, Map userInfo) {
+                          (BuildContext context,
+                              StateContainerState stateContainer,
+                              Map userInfo) {
                         stateContainer.setUserData(userInfo);
                         if (stateContainer.eventMetadata['enter_type'] ==
                             'QE') {
@@ -407,18 +388,9 @@ class _ScannerState extends State<Scanner> {
               Container(
                 child: new ManualEnterPopup(),
               ),
-            ]
-            ),
-          if (_connectionState.contains("none"))
-            Container(
-              color: Colors.black45,
-              child: AlertDialog(
-                title: Text("Network Error",
-                    style: TextStyle(fontFamily: 'Lato', color: Colors.red)),
-                content: Text(
-                    "There is an error connecting to network. Once we detect a connecton, this page will automatically disappear."),
-              ),
-            ),
+            ]),
+          if (StateContainer.of(context).isThereConnectionError)
+            ConnectionError(),
           if (isInfo)
             GestureDetector(
               onTap: () {

@@ -51,20 +51,29 @@ class NotificationUIState extends State<NotificationUI> {
     if (documents == 0) {
       return Text("No notifications here");
     }
-    notificationFile.writeAsStringSync(
-        json.encode(documents));
+    notificationFile.writeAsStringSync(json.encode(documents));
     return ListView.builder(
       itemCount: documents.length,
       itemBuilder: (context, i) {
-        return Card(
-          child: ListTile(
-            title: Text(
-              documents[i]['notification']['title'],
-              style: TextStyle(fontFamily: 'Lato'),
-            ),
-            subtitle: Text(
-              documents[i]['notification']['body'],
-              style: TextStyle(fontFamily: 'Lato'),
+        //gives the dismiss animation, still working on the dismiss
+        return Dismissible(
+          background: Container(color: Colors.red),
+          key: Key(UniqueKey().toString()),
+          onDismissed: (direction) {
+            if (direction == DismissDirection.horizontal) {
+              StateContainer.of(context).notifications.removeAt(i);
+            }
+          },
+          child: Card(
+            child: ListTile(
+              title: Text(
+                documents[i]['notification']['title'],
+                style: TextStyle(fontFamily: 'Lato'),
+              ),
+              subtitle: Text(
+                documents[i]['notification']['body'],
+                style: TextStyle(fontFamily: 'Lato'),
+              ),
             ),
           ),
         );
