@@ -310,8 +310,8 @@ class _ScannerState extends State<Scanner> {
                   ),
                   if (_isQR)
                     Container(
-                      height: screenHeight - 350,
-                      width: screenWidth - 100,
+                      height: screenHeight * 0.75,
+                      width: screenWidth * 0.9,
                       child: _cameraPermission
                           ? _isCameraInitalized
                               ? Platform.isAndroid
@@ -378,6 +378,10 @@ class _ScannerState extends State<Scanner> {
               ),
             ),
           ),
+          if (StateContainer.of(context).isThereConnectionError)
+  
+            ConnectionError(),
+          
           if (isManualEnter)
               GestureDetector(
                 child: Center(
@@ -391,11 +395,7 @@ class _ScannerState extends State<Scanner> {
                   container.setIsManualEnter(false);
                 },
               ),
-              Container(
-                child: new ManualEnterPopup(),
-              ),
-             if (StateContainer.of(context).isThereConnectionError)
-            ConnectionError(),
+             
           if (isInfo)
             GestureDetector(
               onTap: () {
