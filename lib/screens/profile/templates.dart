@@ -1,4 +1,4 @@
-import 'package:deca_app/containers/user_container.dart';
+
 import 'package:deca_app/screens/admin/templates.dart';
 import 'package:deca_app/screens/profile/profile_screen.dart';
 import 'package:deca_app/utility/InheritedInfo.dart';
@@ -11,8 +11,6 @@ class DynamicProfileUI extends StatelessWidget {
   String _firstName;
   int _goldPoints;
   String _memberLevel;
-
-  DynamicProfileUI();
 
   Widget build(BuildContext context) {
     final container = StateContainer.of(context);
@@ -299,8 +297,8 @@ class GPInfoScreenState extends State<GPInfoScreen> {
     double pixelTwoHeight = 683.4285714285714;
 
     // TODO: implement build
-    return UserData(
-      child: Scaffold(
+    return 
+      Scaffold(
         appBar: AppBar(
           title: Text('Events Attended'),
         ),
@@ -394,7 +392,7 @@ class GPInfoScreenState extends State<GPInfoScreen> {
                 }),
           ],
         ),
-      ),
+      
     );
   }
 }
