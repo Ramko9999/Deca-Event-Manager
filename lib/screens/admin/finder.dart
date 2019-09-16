@@ -213,6 +213,7 @@ class ManualEnterPopupState extends State<ManualEnterPopup> {
               backgroundColor: Colors.green,
             ));
             container.setIsCardTapped(false);
+            container.setIsManualEnter(false);
           },
         )
       ],

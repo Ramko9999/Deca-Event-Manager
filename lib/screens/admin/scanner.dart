@@ -371,16 +371,22 @@ class _ScannerState extends State<Scanner> {
                               container.setIsCardTapped(false);
                             },
                             child: Container(child: ManualEnterPopup()),
-                          )),
+                          ),
+                      ),
                     ),
                 ],
               ),
             ),
           ),
           if (isManualEnter)
-            Stack(children: [
               GestureDetector(
-                child: Container(color: Colors.black45),
+                child: Center(
+                  child: Container(
+                    width: screenWidth - 50,
+                    height: screenHeight - 250,
+                    padding: EdgeInsets.fromLTRB(0, 0, 0, 20),
+                    child: new ManualEnterPopup(),),
+                ),
                 onTap: () {
                   container.setIsManualEnter(false);
                 },
@@ -388,8 +394,7 @@ class _ScannerState extends State<Scanner> {
               Container(
                 child: new ManualEnterPopup(),
               ),
-            ]),
-          if (StateContainer.of(context).isThereConnectionError)
+             if (StateContainer.of(context).isThereConnectionError)
             ConnectionError(),
           if (isInfo)
             GestureDetector(
@@ -406,8 +411,10 @@ class _ScannerState extends State<Scanner> {
                     alignment: Alignment.center, child: new EventInfoUI()),
               ),
             )
-        ],
-      ),
-    );
-  }
+            
+            ]));
+         
+    
+  
+}
 }

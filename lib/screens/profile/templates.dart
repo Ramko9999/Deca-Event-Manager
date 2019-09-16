@@ -251,7 +251,8 @@ class GPInfoScreenState extends State<GPInfoScreen> {
   List<EventObject> filter(eventSnapshot, DocumentSnapshot userSnapshot) {
     List<EventObject> eventList = [];
     Map userMetadata = userSnapshot.data as Map;
-    if (userMetadata.isNotEmpty) {
+
+    if (!userMetadata.isEmpty) {
       for (DocumentSnapshot event in eventSnapshot) {
         for (String userEvent in userMetadata['events'].keys) {
           if (event['event_name'] == userEvent) {
@@ -265,6 +266,23 @@ class GPInfoScreenState extends State<GPInfoScreen> {
         }
       }
       eventList.sort();
+      if(filterType == 'eventType')
+        {
+          Map<String, List<EventObject>> eventSortedList = {'Meeting':[],'Social':[],'Event':[],'Competition':[],'Committee':[],'Cookie Store':[],'Miscellaneous':[]};
+          for(EventObject element in eventList)
+            {
+              eventSortedList[element.eventType].add(element);
+            }
+          List<EventObject> finalEventSortedList = [];
+          for(List<EventObject> value in eventSortedList.values)
+            {
+              if(value != [])
+                {
+                  finalEventSortedList.addAll(value);
+                }
+            }
+          return finalEventSortedList;
+        }
     }
     return eventList;
   }
@@ -386,6 +404,7 @@ class EventObject implements Comparable<EventObject> {
   DateTime eventDate;
   Color eventColor;
   int gp;
+  String eventType;
 
   final Map<String, Color> eventColors = {
     'Meeting': Colors.blueAccent,
@@ -398,6 +417,7 @@ class EventObject implements Comparable<EventObject> {
   };
 
   EventObject(this.info, [this.gp]) {
+    eventType = info['event_type'];
     eventDate = DateTime.parse(info['event_date']);
     eventColor = eventColors[info['event_type']];
     if (this.gp == null) {
