@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
 
+//these file contains classes that are used to alert the viewer if an error has occured or an event has occured
 class ConnectionError extends StatelessWidget {
   String message;
 

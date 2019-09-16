@@ -89,7 +89,7 @@ class ProfileScreenState extends State<ProfileScreen> {
         StateContainer.of(context).initNotifications(localNotifications);
       } else {
         File file = File(appDirec.path + "/notify.json");
-        file.writeAsStringSync(json.encode([])); //dummy writing
+        file.writeAsStringSync(json.encode([])); //dummy writing to intialize the file
       }
     });
   }

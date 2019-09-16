@@ -206,15 +206,24 @@ class _ScannerState extends State<Scanner> {
   }
 
   Widget build(BuildContext context) {
-    //turn of image stream if searcher is selected
+    //check first whether camera is init
     if (_isCameraInitalized) {
+      
+      //check whether the option is Quick or Manual, if its Manual it must turn off 
       if (_isQR) {
+
+        //check whether camera is already is streaming images
         if (!_mainCamera.value.isStreamingImages) {
           runStream();
-        } else if (StateContainer.of(context).isThereConnectionError) {
+
+        } 
+        //if there is an error, then stop the stream
+        else if (StateContainer.of(context).isThereConnectionError) {
           _mainCamera.stopImageStream();
         }
       } else {
+
+        //turn of stream if the option is manual enter and the camera is still streaming
         if (_mainCamera.value.isStreamingImages) {
           _mainCamera.stopImageStream();
         }
@@ -379,7 +388,6 @@ class _ScannerState extends State<Scanner> {
             ),
           ),
           if (StateContainer.of(context).isThereConnectionError)
-  
             ConnectionError(),
           
           if (isManualEnter)

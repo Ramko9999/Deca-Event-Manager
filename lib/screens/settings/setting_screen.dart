@@ -1,4 +1,4 @@
-import 'package:connectivity/connectivity.dart';
+
 import 'package:deca_app/utility/InheritedInfo.dart';
 import 'package:deca_app/utility/global.dart';
 import 'package:deca_app/utility/notifiers.dart';
@@ -96,6 +96,8 @@ class SettingScreenState extends State<SettingScreen> {
         connectAndChange();
       }
     } catch (error) {
+      
+      //show error
       showDialog(
           context: context,
           builder: (context) {

@@ -39,6 +39,8 @@ class NotificationUIState extends State<NotificationUI> {
         child: getListItems(StateContainer.of(context).notifications));
   }
 
+
+  //build the notifications when a new notification is recieved 
   Widget getListItems(documents) {
     if (notificationFile == null) {
       return Column(

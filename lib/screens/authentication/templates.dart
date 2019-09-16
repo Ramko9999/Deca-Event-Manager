@@ -414,6 +414,22 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
                   "Email is already in use", "ERROR!", Colors.red);
             });
       }
+
+      //catch a network timed out error
+      if(error.toString().contains("NETWORK")){
+        showDialog(
+          context: context,
+          builder: (context){
+            return ErrorPopup("Network timed out, please check your wifi connection", (){
+                Navigator.of(context).pop();
+                setState(() {
+                 _isTryingToRegister = true; 
+                });
+                executeRegistration();
+            });
+          }
+        );
+      }
     });
   }
 
@@ -423,6 +439,7 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
 
     if (_registrationFormKey.currentState
         .validate()) /*check whether form is valid */ {
+      
       Connectivity().checkConnectivity().then(
           (connectionState) /* check whether connection is established */ {
         if (connectionState == ConnectivityResult.none) {
