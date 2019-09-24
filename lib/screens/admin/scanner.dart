@@ -208,21 +208,17 @@ class _ScannerState extends State<Scanner> {
   Widget build(BuildContext context) {
     //check first whether camera is init
     if (_isCameraInitalized) {
-      
-      //check whether the option is Quick or Manual, if its Manual it must turn off 
+      //check whether the option is Quick or Manual, if its Manual it must turn off
       if (_isQR) {
-
         //check whether camera is already is streaming images
         if (!_mainCamera.value.isStreamingImages) {
           runStream();
-
-        } 
+        }
         //if there is an error, then stop the stream
         else if (StateContainer.of(context).isThereConnectionError) {
           _mainCamera.stopImageStream();
         }
       } else {
-
         //turn of stream if the option is manual enter and the camera is still streaming
         if (_mainCamera.value.isStreamingImages) {
           _mainCamera.stopImageStream();
@@ -243,28 +239,27 @@ class _ScannerState extends State<Scanner> {
     scanCount = eventMetadata['attendee_count'];
 
     return Scaffold(
-      key: _scaffoldKey,
-      appBar: new AppBar(
-        title: AutoSizeText(
-          "Add Members to \'" + eventMetadata['event_name'] + "\'",
-          maxLines: 1,
-        ),
-        leading: IconButton(
-            icon: Icon(Icons.arrow_back_ios),
-            onPressed: () => {Navigator.of(context).pop()}),
-        actions: <Widget>[
-          IconButton(
-            icon: Icon(Icons.info),
-            onPressed: () {
-              setState(() {
-                isInfo = true;
-              });
-            },
+        key: _scaffoldKey,
+        appBar: new AppBar(
+          title: AutoSizeText(
+            "Add Members to \'" + eventMetadata['event_name'] + "\'",
+            maxLines: 1,
           ),
-        ],
-      ),
-      body: Stack(
-        children: <Widget>[
+          leading: IconButton(
+              icon: Icon(Icons.arrow_back_ios),
+              onPressed: () => {Navigator.of(context).pop()}),
+          actions: <Widget>[
+            IconButton(
+              icon: Icon(Icons.info),
+              onPressed: () {
+                setState(() {
+                  isInfo = true;
+                });
+              },
+            ),
+          ],
+        ),
+        body: Stack(children: <Widget>[
           SingleChildScrollView(
             child: Center(
               child: Column(
@@ -352,35 +347,34 @@ class _ScannerState extends State<Scanner> {
                       height: screenHeight - 250,
                       padding: EdgeInsets.fromLTRB(0, 0, 0, 20),
                       child: Finder(
-                          //call back function argument
-                          (BuildContext context,
-                              StateContainerState stateContainer,
-                              Map userInfo) {
-                        stateContainer.setUserData(userInfo);
-                        if (stateContainer.eventMetadata['enter_type'] ==
-                            'QE') {
-                          stateContainer.updateGP(userInfo['uid']);
-                          Scaffold.of(context).showSnackBar(SnackBar(
-                            content: Text(
-                              "Succesfully added ${stateContainer.eventMetadata['gold_points'].toString()} to ${userInfo['first_name']}",
-                              style: TextStyle(
-                                  fontFamily: 'Lato',
-                                  fontSize: 20,
-                                  color: Colors.white),
-                            ),
-                            backgroundColor: Colors.green,
-                          ));
-                        } else {
-                          stateContainer.setIsCardTapped(true);
-                        }
-                      },
-                          //alert widget argument, optional
-                          GestureDetector(
-                            onTap: () {
-                              container.setIsCardTapped(false);
-                            },
-                            child: Container(child: ManualEnterPopup()),
-                          ),
+                        //call back function argument
+                        (BuildContext context,
+                            StateContainerState stateContainer, Map userInfo) {
+                          stateContainer.setUserData(userInfo);
+                          if (stateContainer.eventMetadata['enter_type'] ==
+                              'QE') {
+                            stateContainer.updateGP(userInfo['uid']);
+                            Scaffold.of(context).showSnackBar(SnackBar(
+                              content: Text(
+                                "Succesfully added ${stateContainer.eventMetadata['gold_points'].toString()} to ${userInfo['first_name']}",
+                                style: TextStyle(
+                                    fontFamily: 'Lato',
+                                    fontSize: 20,
+                                    color: Colors.white),
+                              ),
+                              backgroundColor: Colors.green,
+                            ));
+                          } else {
+                            stateContainer.setIsCardTapped(true);
+                          }
+                        },
+                        //alert widget argument, optional
+                        GestureDetector(
+                          onTap: () {
+                            container.setIsCardTapped(false);
+                          },
+                          child: Container(child: ManualEnterPopup()),
+                        ),
                       ),
                     ),
                 ],
@@ -389,21 +383,20 @@ class _ScannerState extends State<Scanner> {
           ),
           if (StateContainer.of(context).isThereConnectionError)
             ConnectionError(),
-          
           if (isManualEnter)
-              GestureDetector(
-                child: Center(
-                  child: Container(
-                    width: screenWidth - 50,
-                    height: screenHeight - 250,
-                    padding: EdgeInsets.fromLTRB(0, 0, 0, 20),
-                    child: new ManualEnterPopup(),),
+            GestureDetector(
+              child: Center(
+                child: Container(
+                  width: screenWidth - 50,
+                  height: screenHeight - 250,
+                  padding: EdgeInsets.fromLTRB(0, 0, 0, 20),
+                  child: new ManualEnterPopup(),
                 ),
-                onTap: () {
-                  container.setIsManualEnter(false);
-                },
               ),
-             
+              onTap: () {
+                container.setIsManualEnter(false);
+              },
+            ),
           if (isInfo)
             GestureDetector(
               onTap: () {
@@ -419,10 +412,6 @@ class _ScannerState extends State<Scanner> {
                     alignment: Alignment.center, child: new EventInfoUI()),
               ),
             )
-            
-            ]));
-         
-    
-  
-}
+        ]));
+  }
 }

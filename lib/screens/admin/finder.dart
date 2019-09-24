@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:deca_app/screens/admin/searcher.dart';
 import 'package:deca_app/utility/InheritedInfo.dart';
+import 'package:deca_app/utility/format.dart';
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 
@@ -175,6 +176,7 @@ class ManualEnterPopupState extends State<ManualEnterPopup> {
     final container = StateContainer.of(context);
     userData = container.userData;
     double screenWidth = MediaQuery.of(context).size.width;
+    double screenHeight = MediaQuery.of(context).size.height;
 
     return AlertDialog(
       title: AutoSizeText(
@@ -208,7 +210,7 @@ class ManualEnterPopupState extends State<ManualEnterPopup> {
               content: Text(
                 "Succesfully added ${points.toString()} to ${userData['first_name']}",
                 style: TextStyle(
-                    fontFamily: 'Lato', fontSize: 20, color: Colors.white),
+                    fontFamily: 'Lato', fontSize: Sizer.getTextSize(screenWidth, screenHeight, 20), color: Colors.white),
               ),
               backgroundColor: Colors.green,
             ));

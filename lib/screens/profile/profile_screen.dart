@@ -3,10 +3,10 @@ import 'dart:io';
 
 import 'package:connectivity/connectivity.dart';
 import 'package:deca_app/screens/admin/admin_main.dart';
-import 'package:deca_app/screens/admin/notification_sender.dart';
 import 'package:deca_app/screens/admin/templates.dart';
 import 'package:deca_app/screens/notifications/templates.dart';
 import 'package:deca_app/utility/InheritedInfo.dart';
+import 'package:deca_app/utility/global.dart';
 import 'package:deca_app/utility/notifiers.dart';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -30,34 +30,8 @@ class ProfileScreen extends StatefulWidget {
 
 class ProfileScreenState extends State<ProfileScreen> {
   int _selectedIndex = 0;
-  FlutterLocalNotificationsPlugin _localNotificationsPlugin =
-      FlutterLocalNotificationsPlugin();
 
   ProfileScreenState();
-
-  //streams
-
-  void startNotificationStream() {
-    //put in our app logo here
-    AndroidInitializationSettings androidInitSettings =
-        AndroidInitializationSettings("@mipmap/ic_launcher");
-    IOSInitializationSettings iosInitSettings = IOSInitializationSettings();
-
-    FlutterLocalNotificationsPlugin().initialize(
-        InitializationSettings(androidInitSettings, iosInitSettings),
-        onSelectNotification: (String payload) =>
-            notificationOnSelect(payload));
-
-    //listen for notifications on profile screen due to the fact profile screen will never be popped out of navigator
-    final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
-    _firebaseMessaging.configure(onLaunch: (notification) {
-      //start up app
-    }, onMessage: (notification) {
-      //pop till profile screen
-    }, onResume: (notification) {
-      scheduleLocalNotification(notification);
-    });
-  }
 
   //listens to and changes connection status
   void startConnectionStream() {
@@ -76,21 +50,64 @@ class ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     initNotifications();
-    startNotificationStream();
+
+    //put in our app logo here
+    AndroidInitializationSettings androidInitSettings =
+        AndroidInitializationSettings("@mipmap/ic_launcher");
+    IOSInitializationSettings iosInitSettings = IOSInitializationSettings();
+
+    FlutterLocalNotificationsPlugin().initialize(
+        InitializationSettings(androidInitSettings, iosInitSettings),
+        onSelectNotification: (String payload) =>
+            notificationOnSelect(payload));
+
+    //listen for notifications on profile screen due to the fact profile screen will never be popped out of navigator
+    final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
+
+    _firebaseMessaging.configure(
+      onLaunch: (notification) {
+      print("On Launch");
+     
+     //append notification
+    StateContainer.of(context).addToNotifications(notification);
+    Global.notificationDataFile.writeAsStringSync(json.encode(StateContainer.of(context).notifications));
+
+
+    }, onMessage: (notification) {
+      print("On Message");
+      scheduleLocalNotification(notification);
+     
+    }, onResume: (notification) {
+      print("On Resume");
+    
+    //append notification
+    StateContainer.of(context).addToNotifications(notification);
+    Global.notificationDataFile.writeAsStringSync(json.encode(StateContainer.of(context).notifications));
+ 
+    });
+
     startConnectionStream();
   }
 
   //used to get the locally stored notifications
   void initNotifications() {
-    getApplicationDocumentsDirectory().then((appDirec) {
-      if (File(appDirec.path + "/notify.json").existsSync()) {
-        List localNotifications = json
-            .decode(File(appDirec.path + "/notify.json").readAsStringSync());
+    getApplicationDocumentsDirectory().then((appDirec) async {
+      String userInformation = Global.userDataFile.readAsStringSync();
+      String username = json.decode(userInformation)['username'];
+
+      //so different accounts don't collide
+      File notificationFile = File(appDirec.path + "/$username-notify.json");
+
+      if (notificationFile.existsSync()) {
+        List localNotifications =
+            json.decode(notificationFile.readAsStringSync());
         StateContainer.of(context).initNotifications(localNotifications);
       } else {
-        File file = File(appDirec.path + "/notify.json");
-        file.writeAsStringSync(json.encode([])); //dummy writing to intialize the file
+        notificationFile.createSync();
+        //encode a dummy list
+        notificationFile.writeAsStringSync(json.encode([]));
       }
+      Global.notificationDataFile = notificationFile;
     });
   }
 
@@ -101,8 +118,9 @@ class ProfileScreenState extends State<ProfileScreen> {
   void scheduleLocalNotification(Map notification) async {
     //used for scheduling as well as displaying notifications
     StateContainer.of(context).addToNotifications(notification);
+    Global.notificationDataFile.writeAsStringSync(json.encode(StateContainer.of(context).notifications));
 
-    //init settins
+    //init settings
     AndroidNotificationDetails androidSettings = AndroidNotificationDetails(
         "channel id", "channel NAME", "CHANNEL DESCRIPTION");
     IOSNotificationDetails iosSettings = IOSNotificationDetails();
@@ -110,16 +128,16 @@ class ProfileScreenState extends State<ProfileScreen> {
         NotificationDetails(androidSettings, iosSettings);
 
     //show the actual notification
-    showSimpleNotification(Text(notification['body']),
-        subtitle: Text(notification['title']));
+    showSimpleNotification(Text(notification['data']['header']),
+        subtitle: Text(notification['data']['body']));
     //schedule a notification for future
 
     //not working right now on android
-    if (true) {
+    if (notification['data'].keys.contains("date")) {
       await FlutterLocalNotificationsPlugin().schedule(
           0,
-          notification['title'],
-          notification['body'],
+          notification['data']['header'],
+          notification['data']['body'],
           DateTime.now().add(Duration(seconds: 10)),
           platformSettings);
     }
@@ -144,37 +162,15 @@ class ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget build(BuildContext context) {
+    int numOfNotifications = StateContainer.of(context).notificationCounter;
     return Scaffold(
       body: Stack(
         children: <Widget>[
           changeScreen(_selectedIndex),
-
           if (StateContainer.of(context).isThereConnectionError)
             OfflineNotifier()
         ],
       ),
-      drawer: Container(
-          width: MediaQuery.of(context).size.width * 0.6,
-          child: Drawer(
-            child: ListView(
-              children: <Widget>[
-                ListTile(
-                    title: Text(
-                      "Admin Functions",
-                      textAlign: TextAlign.center,
-                    ),
-                    onTap: () async => Navigator.push(context,
-                        NoTransition(builder: (context) => new AdminScreen()))),
-                ListTile(
-                    title: Text(
-                      "Push Notifications",
-                      textAlign: TextAlign.center,
-                    ),
-                    onTap: () async => Navigator.push(context,
-                        NoTransition(builder: (context) => new Sender())))
-              ],
-            ),
-          )),
       appBar: new AppBar(
         title: (_selectedIndex == 0)
             ? Text("Profile")
@@ -193,59 +189,64 @@ class ProfileScreenState extends State<ProfileScreen> {
           )
         ],
       ),
-      bottomNavigationBar:
-          BottomNavigationBar(
-            items: <BottomNavigationBarItem>[
-              const BottomNavigationBarItem(
-                icon: Icon(Icons.account_circle),
-                title: Text('Profile'),
-              ),
-              const BottomNavigationBarItem(
-                icon: Icon(MdiIcons.qrcode),
-                title: Text('Check-In'),
-              ),
-              
-              BottomNavigationBarItem(
-                icon: Stack(
-                  children: <Widget>[
-                    Icon(StateContainer.of(context).hasSeenNotification
-                        ? Icons.notification_important
-                        : Icons.notifications),
-                    Positioned(
-                      right: 0,
-                      top: 11,
-                      child: Container(
-                        
-                        width: MediaQuery.of(context).size.width * 0.04,
-                        height: MediaQuery.of(context).size.height * 0.03,
-                        decoration: BoxDecoration(
-                          color: Colors.red,
-                          borderRadius: BorderRadius.circular(12)
-                        ),
-                        child: Text("4", 
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontFamily: 'Lato',
-                          fontSize: 10
-
-                        ),),
-                      ),
-                    )
-                  ],
-                ),
-                title: 
-                    Text('Notifications'),
-              ),
-            ],
-            currentIndex: _selectedIndex,
-            selectedItemColor: Colors.blue,
-            unselectedItemColor: Colors.grey,
-            onTap: _onItemTapped,
+      bottomNavigationBar: BottomNavigationBar(
+        items: <BottomNavigationBarItem>[
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.account_circle),
+            title: Text('Profile'),
           ),
-        
-        
-      
+          const BottomNavigationBarItem(
+            icon: Icon(MdiIcons.qrcode),
+            title: Text('Check-In'),
+          ),
+          BottomNavigationBarItem(
+            icon: numOfNotifications != 0
+                ? Stack(
+                    children: <Widget>[
+                      Icon(Icons.notifications, color: Colors.blue,),
+                      Positioned(
+                        right: 0,
+                        top: 10,
+                        child: ClipOval(
+                          child: Container(
+                            width: 13,
+                            height: 13,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+
+                      //create the notification circle
+                      Positioned(
+                        right: 0,
+                        top: 11,
+                        child: ClipOval(
+                          child: Container(
+                            width: 11,
+                            height: 11,
+                            color: Colors.red,
+                            child: Text(
+                              "$numOfNotifications",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontFamily: 'Lato',
+                                  fontSize: 8),
+                            ),
+                          ),
+                        ),
+                      )
+                    ],
+                  )
+                : Icon(Icons.notifications_none),
+            title: Text('Notifications'),
+          ),
+        ],
+        currentIndex: _selectedIndex,
+        selectedItemColor: Colors.blue,
+        unselectedItemColor: Colors.grey,
+        onTap: _onItemTapped,
+      ),
     );
   }
 }

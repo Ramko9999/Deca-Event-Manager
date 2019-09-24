@@ -1,4 +1,3 @@
-
 import 'package:deca_app/utility/InheritedInfo.dart';
 import 'package:deca_app/utility/global.dart';
 import 'package:deca_app/utility/notifiers.dart';
@@ -96,7 +95,6 @@ class SettingScreenState extends State<SettingScreen> {
         connectAndChange();
       }
     } catch (error) {
-      
       //show error
       showDialog(
           context: context,
@@ -155,7 +153,8 @@ class SettingScreenState extends State<SettingScreen> {
                             icon: Icon(Icons.remove),
                             onPressed: () {
                               setState(() {
-                                _wantsToChangePassword = !_wantsToChangePassword;
+                                _wantsToChangePassword =
+                                    !_wantsToChangePassword;
                               });
                             },
                           ),
@@ -196,7 +195,8 @@ class SettingScreenState extends State<SettingScreen> {
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
                                         fontFamily: 'Lato',
-                                        fontSize: 18 * screenWidth / pixelTwoWidth),
+                                        fontSize:
+                                            18 * screenWidth / pixelTwoWidth),
                                     obscureText: true,
                                     decoration: new InputDecoration(
                                         labelText: "Enter New Password"),
@@ -218,7 +218,8 @@ class SettingScreenState extends State<SettingScreen> {
                                   "Apply",
                                   style: TextStyle(
                                       fontFamily: 'Lato',
-                                      fontSize: 18 * screenWidth / pixelTwoWidth,
+                                      fontSize:
+                                          18 * screenWidth / pixelTwoWidth,
                                       color: Colors.blue),
                                 ),
                                 onPressed: () {
@@ -232,8 +233,8 @@ class SettingScreenState extends State<SettingScreen> {
                         ),
                       ]))
                     : GestureDetector(
-                        onTap: () => setState(
-                            () => _wantsToChangePassword = !_wantsToChangePassword),
+                        onTap: () => setState(() =>
+                            _wantsToChangePassword = !_wantsToChangePassword),
                         child: Container(
                           child: Card(
                               child: ListTile(
@@ -262,7 +263,8 @@ class SettingScreenState extends State<SettingScreen> {
                               icon: Icon(Icons.remove, color: Colors.black),
                               onPressed: () {
                                 setState(() {
-                                  _wantsToChangeAutoFill = !_wantsToChangeAutoFill;
+                                  _wantsToChangeAutoFill =
+                                      !_wantsToChangeAutoFill;
                                 });
                               },
                             ),
@@ -279,11 +281,11 @@ class SettingScreenState extends State<SettingScreen> {
 
                                     userFile['auto'] = !userFile['auto'];
 
-                                    Global.userDataFile
-                                        .writeAsStringSync(json.encode(userFile));
+                                    Global.userDataFile.writeAsStringSync(
+                                        json.encode(userFile));
 
-                                    setState(() =>
-                                        _isAutoLoginEnabled = !_isAutoLoginEnabled);
+                                    setState(() => _isAutoLoginEnabled =
+                                        !_isAutoLoginEnabled);
                                   },
                                 ),
                                 Text(
@@ -293,7 +295,8 @@ class SettingScreenState extends State<SettingScreen> {
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                       fontFamily: 'Lato',
-                                      fontSize: 18 * screenWidth / pixelTwoWidth,
+                                      fontSize:
+                                          18 * screenWidth / pixelTwoWidth,
                                       color: _isAutoLoginEnabled
                                           ? Colors.blue
                                           : Colors.red),
@@ -310,8 +313,8 @@ class SettingScreenState extends State<SettingScreen> {
                         },
                         child: Card(
                             child: ListTile(
-                          leading:
-                              Icon(Icons.radio_button_checked, color: Colors.black),
+                          leading: Icon(Icons.radio_button_checked,
+                              color: Colors.black),
                           title: Text(
                             "Change Autofill Settings",
                             style: TextStyle(
@@ -321,9 +324,8 @@ class SettingScreenState extends State<SettingScreen> {
                       )
               ],
             ),
-          if (StateContainer.of(context).isThereConnectionError)
-            OfflineNotifier()
-          
+            if (StateContainer.of(context).isThereConnectionError)
+              OfflineNotifier()
           ],
         ));
   }

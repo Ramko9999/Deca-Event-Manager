@@ -1,3 +1,4 @@
+import 'package:deca_app/utility/format.dart';
 import 'package:flutter/material.dart';
 import 'package:deca_app/screens/authentication/templates.dart';
 
@@ -12,18 +13,29 @@ class AuthenticationScreen extends StatefulWidget {
 class _AuthenticationScreenState extends State<AuthenticationScreen> {
   bool _isLoginButtonClicked = false;
   bool _isRegisterButtonClicked = false;
+  bool _isForgotPasswordClicked = false;
 
   void createNewLoginTemplate() {
     setState(() {
-      _isLoginButtonClicked = !_isLoginButtonClicked;
+      _isLoginButtonClicked = true;
       _isRegisterButtonClicked = false;
+      _isForgotPasswordClicked = false;
     });
   }
 
   void createNewRegisterTemplate() {
     setState(() {
-      _isRegisterButtonClicked = !_isRegisterButtonClicked;
+      _isRegisterButtonClicked = true;
       _isLoginButtonClicked = false;
+      _isForgotPasswordClicked = false;
+    });
+  }
+
+  void createNewForgotPasswordTemplate() {
+    setState(() {
+      _isForgotPasswordClicked = true;
+      _isLoginButtonClicked = false;
+      _isRegisterButtonClicked = false;
     });
   }
 
@@ -85,7 +97,20 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
                                   color: Colors.white,
                                   onPressed: createNewRegisterTemplate,
                                   shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(30))))
+                                      borderRadius:
+                                          BorderRadius.circular(30)))),
+                          FlatButton(
+                            textColor: Colors.blue,
+                            child: Text(
+                              "Forgot Password?",
+                              style: TextStyle(
+                                fontFamily: 'Lato',
+                                fontSize: Sizer.getTextSize(
+                                    screenWidth, screenHeight, 16),
+                              ),
+                            ),
+                            onPressed: createNewForgotPasswordTemplate,
+                          )
                         ])))),
           ]),
           //handles pulling up the login template
@@ -124,37 +149,64 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
               )
             ]),
           if (_isRegisterButtonClicked)
+            Stack(children: <Widget>[
+              GestureDetector(
+                child: Container(color: Colors.black45),
+                onTap: () {
+                  setState(() {
+                    FocusScope.of(context).requestFocus(FocusNode());
+                    _isRegisterButtonClicked = false;
+                  });
+                },
+              ),
+              Align(
+                alignment: Alignment.center,
+                child: SingleChildScrollView(
+                    child: GestureDetector(
+                  onTap: () {
+                    FocusScope.of(context).requestFocus(FocusNode());
+                  },
+                  child: Container(
+                    child: new RegisterTemplate(),
+                    decoration: new BoxDecoration(
+                        borderRadius: BorderRadius.circular(15),
+                        color: Colors.white),
+                  ),
+                )),
+              )
+            ]),
+
+          if (_isForgotPasswordClicked)
             Stack(
               children: <Widget>[
                 GestureDetector(
                   child: Container(color: Colors.black45),
                   onTap: () {
                     setState(() {
-                      _isRegisterButtonClicked = false;
+                      FocusScope.of(context).requestFocus(FocusNode());
+                      _isForgotPasswordClicked = false;
                     });
                   },
                 ),
-                SingleChildScrollView(
-                  child: Padding(
-                    padding:
-                        EdgeInsetsDirectional.only(top: screenHeight * 0.10),
-                    child: Align(
-                        alignment: Alignment.bottomCenter,
-                        child: GestureDetector(
-                          onTap: () {
-                            FocusScope.of(context).requestFocus(FocusNode());
-                          },
-                          child: Container(
-                            child: new RegisterTemplate(),
-                            decoration: new BoxDecoration(
-                                borderRadius: BorderRadius.circular(15),
-                                color: Colors.white),
-                          ),
-                        )),
-                  ),
-                )
+                Align(
+                  alignment: Alignment.center,
+                  child: SingleChildScrollView(
+                      child: GestureDetector(
+                    onTap: () {
+                      FocusScope.of(context).requestFocus(FocusNode());
+                    },
+                    child: Container(
+                      child: ForgotPasswordTemplate(),
+                      decoration: new BoxDecoration(
+                          borderRadius: BorderRadius.circular(15),
+                          color: Colors.white),
+                    ),
+                  )),
+                ),
               ],
             )
         ]));
   }
 }
+
+

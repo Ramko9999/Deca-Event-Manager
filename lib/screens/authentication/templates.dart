@@ -1,5 +1,6 @@
 import 'package:connectivity/connectivity.dart';
 import 'package:deca_app/utility/InheritedInfo.dart';
+import 'package:deca_app/utility/format.dart';
 import 'package:deca_app/utility/global.dart';
 import 'package:deca_app/utility/notifiers.dart';
 import 'package:flutter/material.dart';
@@ -42,25 +43,27 @@ class _LoginTemplateState extends State<LoginTemplate> {
     final appDirectory =
         await getApplicationDocumentsDirectory(); //get app directory
 
-    Map userInfo = json.decode(File(appDirectory.path + "/user.json")
-        .readAsStringSync()); //read data from file
-        
-    //alter UI with the autofill information
-    setState(() {
-      _desiresAutoLogin = userInfo['auto'];
-      print("Desires auto login $_desiresAutoLogin");
+    //check whether the file exists
+    if (File(appDirectory.path + "/user.json").existsSync()) {
+      Map userInfo = json.decode(File(appDirectory.path + "/user.json")
+          .readAsStringSync()); //read data from file
 
-      if (_desiresAutoLogin) {
-        _username.text = userInfo['username'];
-        _password.text = userInfo['password'];
-      }
-    });
+      //alter UI with the autofill information
+      setState(() {
+        _desiresAutoLogin = userInfo['auto'];
+
+        if (_desiresAutoLogin) {
+          _username.text = userInfo['username'];
+          _password.text = userInfo['password'];
+        }
+      });
+    } else {
+      Global.userDataFile = File(appDirectory.path + "/user.json");
+    }
   }
 
   //try executing the actual login process
   void executeLogin() async {
-    final container = StateContainer.of(context); //use for persistance
-
     FirebaseAuth.instance
         .signInWithEmailAndPassword(
             email: _username.text, password: _password.text)
@@ -68,11 +71,12 @@ class _LoginTemplateState extends State<LoginTemplate> {
       String userId =
           authResult.user.uid; //used to query for the user data in firestore
 
-      container.setUID(userId);
+      Global.uid = userId;
 
       final appDirectory = await getApplicationDocumentsDirectory();
 
       //write to json file
+
       final userStorageFile = File(appDirectory.path + "/user.json");
 
       //setting the state container file to the userStorageFile
@@ -93,10 +97,7 @@ class _LoginTemplateState extends State<LoginTemplate> {
       //changes screen to profile screen
       Navigator.push(context,
           MaterialPageRoute(builder: (context) => new ProfileScreen()));
-    }).catchError((error) 
-    
-    {
-    
+    }).catchError((error) {
       setState(() => _isLogginIn = false);
       //if credentials are invalid then throw the error
       if (error.toString().contains("INVALID") ||
@@ -111,19 +112,19 @@ class _LoginTemplateState extends State<LoginTemplate> {
       }
 
       //if network times out, throw error
-      else if(error.toString().contains("NETWORK")){
+      else if (error.toString().contains("NETWORK")) {
         showDialog(
-          context: context,
-          builder: (context){
-            return ErrorPopup("Network timed out, please check your wifi connection", (){
+            context: context,
+            builder: (context) {
+              return ErrorPopup(
+                  "Network timed out, please check your wifi connection", () {
                 Navigator.of(context).pop();
                 setState(() {
-                 _isLogginIn = true; 
+                  _isLogginIn = true;
                 });
                 executeLogin();
+              });
             });
-          }
-        );
       }
     });
   }
@@ -303,7 +304,8 @@ class _LoginTemplateState extends State<LoginTemplate> {
                             ),
                             onPressed: () {
                               //logging into firebase
-                              if (_loginFormKey.currentState.validate()) {
+                              if (_loginFormKey.currentState.validate() &&
+                                  !_isLogginIn) {
                                 tryToLogin();
                               }
                             },
@@ -355,15 +357,14 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
       String userId =
           result.user.uid; //grabds user's unique id from Firebase Auth
 
-      final container = StateContainer.of(context); //persist UID
-      container.setUID(userId);
+      Global.uid = userId;
       //write to json file
       final userStorageFile = File(appDirectory.path + "/user.json");
 
       //create local storage map
 
       Map jsonInformation = {
-        'auto': false,
+        'auto': true,
         'username': _username,
         'password': _password
       };
@@ -375,9 +376,6 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
       Global.userDataFile = userStorageFile;
 
       assert(Global.userDataFile != null);
-
-      //check whether something is actually written to file
-      assert(json.decode(Global.userDataFile.readAsStringSync()) != null);
 
       String messagingToken = await _firebaseMessaging.getToken();
 
@@ -392,9 +390,6 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
         "device-token": messagingToken
       }).then((_) /* call back for creating a users document*/ {
         setState(() => _isTryingToRegister = false);
-
-        print(Global.program);
-        Global.program = "Login";
 
         Navigator.of(context).push(MaterialPageRoute(
             builder: (context) => ProfileScreen())); //go to profile screen
@@ -414,54 +409,56 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
       }
 
       //catch a network timed out error
-      if(error.toString().contains("NETWORK")){
+      if (error.toString().contains("NETWORK")) {
         showDialog(
-          context: context,
-          builder: (context){
-            return ErrorPopup("Network timed out, please check your wifi connection", (){
+            context: context,
+            builder: (context) {
+              return ErrorPopup(
+                  "Network timed out, please check your wifi connection", () {
                 Navigator.of(context).pop();
                 setState(() {
-                 _isTryingToRegister = true; 
+                  _isTryingToRegister = true;
                 });
                 executeRegistration();
+              });
             });
-          }
-        );
       }
     });
   }
 
   //handles registration of user
   void tryToRegister() async {
-    setState(() => _isTryingToRegister = true);
+    //checking to make sure multiple attempts at registering doesn't occur
+    if (!_isTryingToRegister) {
+      setState(() => _isTryingToRegister = true);
 
-    if (_registrationFormKey.currentState
-        .validate()) /*check whether form is valid */ {
-      
-      Connectivity().checkConnectivity().then(
-          (connectionState) /* check whether connection is established */ {
-        if (connectionState == ConnectivityResult.none) {
-          throw Exception("Phone is not connected to wifi");
-        } else {
-          executeRegistration();
-        }
-      }).catchError((connectionError) {
-        setState(() => _isTryingToRegister = false);
+      if (_registrationFormKey.currentState
+          .validate()) /*check whether form is valid */ {
+        Connectivity().checkConnectivity().then(
+            (connectionState) /* check whether connection is established */ {
+          if (connectionState == ConnectivityResult.none) {
+            throw Exception("Phone is not connected to wifi");
+          } else {
+            executeRegistration();
+          }
+        }).catchError((connectionError) {
+          setState(() => _isTryingToRegister = false);
 
-        //show error on UI
-        if (connectionError.toString().contains("wifi")) {
-          showDialog(
-              context: context,
-              builder: (context) {
-                return ErrorPopup("Phone is not connected to wifi", () {
-                  Navigator.of(context).pop();
-                  tryToRegister();
+          //show error on UI
+          if (connectionError.toString().contains("wifi")) {
+            showDialog(
+                context: context,
+                builder: (context) {
+                  return ErrorPopup("Phone is not connected to wifi", () {
+                    Navigator.of(context).pop();
+                    tryToRegister();
+                  });
                 });
-              });
-        }
-      });
-    } else {
-      setState(() => _isTryingToRegister = false);
+          }
+        });
+      } else {
+        setState(() => _isTryingToRegister = false);
+      }
     }
   }
 
@@ -629,5 +626,132 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
               ))
       ],
     );
+  }
+}
+
+class ForgotPasswordTemplate extends StatefulWidget {
+  State<ForgotPasswordTemplate> createState() {
+    return ForgotPasswordTemplateState();
+  }
+}
+
+class ForgotPasswordTemplateState extends State<ForgotPasswordTemplate> {
+  TextEditingController email = TextEditingController();
+  GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  bool _isEmailSent = false;
+
+  //sends reset email
+  void sendEmail() {
+    FirebaseAuth.instance
+        .sendPasswordResetEmail(email: this.email.text)
+        .then((_) {
+      setState(() => _isEmailSent = true);
+    }).catchError((error) {
+      if (error.toString().contains("USER_NOT")) {
+        showDialog(
+            context: context,
+            builder: (context) {
+              return SingleActionPopup("This email is not in our system",
+                  "Auth Error", Colors.black);
+            });
+      }
+    });
+  }
+
+  Widget build(BuildContext context) {
+    double screenWidth = MediaQuery.of(context).size.width;
+    double screenHeight = MediaQuery.of(context).size.height;
+
+    return Container(
+        width: screenWidth * 0.8,
+        child: Column(children: <Widget>[
+          Padding(
+            padding: EdgeInsets.only(top: screenHeight * 0.06),
+            child: Container(
+              child: Text(
+                "Forgot Password",
+                style: new TextStyle(
+                  fontFamily: 'Lato',
+                  fontSize: Sizer.getTextSize(screenWidth, screenHeight, 32),
+                ),
+              ),
+            ),
+          ),
+        
+         if(_isEmailSent)
+            Padding(
+                padding: EdgeInsets.only(top: screenHeight * 0.03, bottom: screenHeight * 0.06),
+                child: Container(
+                  child: Text(
+                    "We have sent an email to ${email.text}. It should have intrsuctions on how to reset your password.",
+                    textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontFamily: "Lato",
+                    fontSize: Sizer.getTextSize(screenWidth, screenHeight, 14)
+                  ),),
+                ),
+              ),
+         
+         if(!_isEmailSent)
+          Column(
+            children: <Widget>[
+              Padding(
+                padding: EdgeInsets.only(top: screenHeight * 0.03),
+                child: Container(
+                  child: Text(
+                    "Provide us your email address, so that we send you an email to reset your password.",
+                    textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontFamily: "Lato",
+                    fontSize: Sizer.getTextSize(screenWidth, screenHeight, 15)
+                  ),),
+                ),
+              ),
+            Form(
+              key: _formKey,
+              child: Column(
+                children: <Widget>[
+                  Container(
+                    padding: EdgeInsets.only(bottom: screenHeight *0.06, top: screenHeight * 0.06),
+                    width: screenWidth * 0.75,
+                    child: TextFormField(
+                      controller: email,
+                      keyboardType: TextInputType.emailAddress,
+                      decoration: InputDecoration(
+                        icon: Icon(Icons.email),
+                        labelText: "Email"
+                      ),
+                      validator: (val) {
+                        bool isThereAnAt = val.contains('@');
+                        bool isThereADot = val.contains(".");
+                        if(val.length == 0){
+                          return "No Email";
+                        }
+                        if (!isThereADot || !isThereAnAt) {
+                          return "Invalid Email";
+                        }
+
+                        return null;
+                      },
+                    ),
+                  ),
+                ],
+              )),
+            FlatButton(
+              onPressed: (){
+                if(_formKey.currentState.validate()){
+                  sendEmail();
+                }
+              },
+              child: Text(
+                "Send Email",
+                style: TextStyle(fontFamily: "Lato", fontSize: Sizer.getTextSize(screenWidth, screenHeight, 16))
+                ,),
+              textColor: Colors.blue,
+            )
+            ],
+          ),
+          
+        ]));
   }
 }

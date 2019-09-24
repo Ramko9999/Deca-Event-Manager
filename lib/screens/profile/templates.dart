@@ -1,7 +1,7 @@
-
 import 'package:deca_app/screens/admin/templates.dart';
 import 'package:deca_app/screens/profile/profile_screen.dart';
 import 'package:deca_app/utility/InheritedInfo.dart';
+import 'package:deca_app/utility/global.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
@@ -13,8 +13,6 @@ class DynamicProfileUI extends StatelessWidget {
   String _memberLevel;
 
   Widget build(BuildContext context) {
-    final container = StateContainer.of(context);
-    _uid = container.uid;
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
     double pixelTwoWidth = 411.42857142857144;
@@ -24,7 +22,7 @@ class DynamicProfileUI extends StatelessWidget {
         //connecting to firebase and gathering user data
         stream: Firestore.instance
             .collection('Users')
-            .where("uid", isEqualTo: _uid)
+            .where("uid", isEqualTo: Global.uid)
             .snapshots(),
         builder: (context, snapshot) {
           //if data has been updated
@@ -173,7 +171,6 @@ class DynamicProfileUI extends StatelessWidget {
                       "Connecting...",
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontFamily: "Lato",
                         color: Colors.grey,
                         fontSize: 32 * screenWidth / pixelTwoWidth,
                       ),
@@ -264,23 +261,27 @@ class GPInfoScreenState extends State<GPInfoScreen> {
         }
       }
       eventList.sort();
-      if(filterType == 'eventType')
-        {
-          Map<String, List<EventObject>> eventSortedList = {'Meeting':[],'Social':[],'Event':[],'Competition':[],'Committee':[],'Cookie Store':[],'Miscellaneous':[]};
-          for(EventObject element in eventList)
-            {
-              eventSortedList[element.eventType].add(element);
-            }
-          List<EventObject> finalEventSortedList = [];
-          for(List<EventObject> value in eventSortedList.values)
-            {
-              if(value != [])
-                {
-                  finalEventSortedList.addAll(value);
-                }
-            }
-          return finalEventSortedList;
+      if (filterType == 'eventType') {
+        Map<String, List<EventObject>> eventSortedList = {
+          'Meeting': [],
+          'Social': [],
+          'Event': [],
+          'Competition': [],
+          'Committee': [],
+          'Cookie Store': [],
+          'Miscellaneous': []
+        };
+        for (EventObject element in eventList) {
+          eventSortedList[element.eventType].add(element);
         }
+        List<EventObject> finalEventSortedList = [];
+        for (List<EventObject> value in eventSortedList.values) {
+          if (value != []) {
+            finalEventSortedList.addAll(value);
+          }
+        }
+        return finalEventSortedList;
+      }
     }
     return eventList;
   }
@@ -297,102 +298,100 @@ class GPInfoScreenState extends State<GPInfoScreen> {
     double pixelTwoHeight = 683.4285714285714;
 
     // TODO: implement build
-    return 
-      Scaffold(
-        appBar: AppBar(
-          title: Text('Events Attended'),
-        ),
-        body: Column(
-          children: <Widget>[
-            Center(
-              child: Container(
-                padding: EdgeInsets.fromLTRB(0, 0, 15, 0),
-                child: ActionChip(
-                    avatar: (filterType == null)
-                        ? Icon(Icons.event)
-                        : (filterType == 'date')
-                            ? Icon(Icons.event)
-                            : Icon(Icons.access_time),
-                    label: (filterType == null)
-                        ? Text('Filter by Event Type')
-                        : (filterType == 'date')
-                            ? Text('Filter by Event Type')
-                            : Text('Filter Chronologically'),
-                    onPressed: () {
-                      if (filterType == null || filterType == 'date') {
-                        container.setFilterType('eventType');
-                      } else {
-                        container.setFilterType('date');
-                      }
-                    }),
-              ),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Events Attended'),
+      ),
+      body: Column(
+        children: <Widget>[
+          Center(
+            child: Container(
+              padding: EdgeInsets.fromLTRB(0, 0, 15, 0),
+              child: ActionChip(
+                  avatar: (filterType == null)
+                      ? Icon(Icons.event)
+                      : (filterType == 'date')
+                          ? Icon(Icons.event)
+                          : Icon(Icons.access_time),
+                  label: (filterType == null)
+                      ? Text('Filter by Event Type')
+                      : (filterType == 'date')
+                          ? Text('Filter by Event Type')
+                          : Text('Filter Chronologically'),
+                  onPressed: () {
+                    if (filterType == null || filterType == 'date') {
+                      container.setFilterType('eventType');
+                    } else {
+                      container.setFilterType('date');
+                    }
+                  }),
             ),
-            StreamBuilder(
-                stream: Firestore.instance.collection('Events').snapshots(),
-                builder: (context, eventSnapshot) {
-                  if (eventSnapshot.hasData) {
-                    List<DocumentSnapshot> eventSnap =
-                        eventSnapshot.data.documents;
-                    return StreamBuilder(
-                        stream: Firestore.instance
-                            .collection('Users')
-                            .where("uid", isEqualTo: _uid)
-                            .snapshots(),
-                        builder: (context, userSnapshot) {
-                          if (userSnapshot.hasData) {
-                            DocumentSnapshot userSnap =
-                                userSnapshot.data.documents[0];
-                            return Center(
-                              child: Container(
-                                padding: EdgeInsets.fromLTRB(0, 10, 0, 0),
-                                height: screenHeight * 0.8,
-                                width: screenWidth * 0.9,
-                                child: _buildEventList(
-                                    context, eventSnap, userSnap),
-                              ),
-                            );
-                          } else {
-                            return Container(
-                                alignment: Alignment.center,
-                                child: Column(
-                                  children: <Widget>[
-                                    Text(
-                                      "Connecting...",
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        fontFamily: "Lato",
-                                        color: Colors.grey,
-                                        fontSize:
-                                            32 * screenWidth / pixelTwoWidth,
-                                      ),
-                                    ),
-                                    CircularProgressIndicator()
-                                  ],
-                                ));
-                          }
-                        });
-                  } else {
-                    return Container(
-                        alignment: Alignment.center,
-                        child: Column(
-                          children: <Widget>[
-                            Text(
-                              "Connecting...",
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontFamily: "Lato",
-                                color: Colors.grey,
-                                fontSize: 32 * screenWidth / pixelTwoWidth,
-                              ),
+          ),
+          StreamBuilder(
+              stream: Firestore.instance.collection('Events').snapshots(),
+              builder: (context, eventSnapshot) {
+                if (eventSnapshot.hasData) {
+                  List<DocumentSnapshot> eventSnap =
+                      eventSnapshot.data.documents;
+                  return StreamBuilder(
+                      stream: Firestore.instance
+                          .collection('Users')
+                          .where("uid", isEqualTo: _uid)
+                          .snapshots(),
+                      builder: (context, userSnapshot) {
+                        if (userSnapshot.hasData) {
+                          DocumentSnapshot userSnap =
+                              userSnapshot.data.documents[0];
+                          return Center(
+                            child: Container(
+                              padding: EdgeInsets.fromLTRB(0, 10, 0, 0),
+                              height: screenHeight * 0.8,
+                              width: screenWidth * 0.9,
+                              child:
+                                  _buildEventList(context, eventSnap, userSnap),
                             ),
-                            CircularProgressIndicator()
-                          ],
-                        ));
-                  }
-                }),
-          ],
-        ),
-      
+                          );
+                        } else {
+                          return Container(
+                              alignment: Alignment.center,
+                              child: Column(
+                                children: <Widget>[
+                                  Text(
+                                    "Connecting...",
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontFamily: "Lato",
+                                      color: Colors.grey,
+                                      fontSize:
+                                          32 * screenWidth / pixelTwoWidth,
+                                    ),
+                                  ),
+                                  CircularProgressIndicator()
+                                ],
+                              ));
+                        }
+                      });
+                } else {
+                  return Container(
+                      alignment: Alignment.center,
+                      child: Column(
+                        children: <Widget>[
+                          Text(
+                            "Connecting...",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontFamily: "Lato",
+                              color: Colors.grey,
+                              fontSize: 32 * screenWidth / pixelTwoWidth,
+                            ),
+                          ),
+                          CircularProgressIndicator()
+                        ],
+                      ));
+                }
+              }),
+        ],
+      ),
     );
   }
 }

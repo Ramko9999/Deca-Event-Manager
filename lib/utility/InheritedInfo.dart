@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
@@ -12,14 +10,12 @@ class StateContainerState extends State<StateContainer> {
   String filterType;
   bool isManualEnter = false;
   String group; //this is the group that might be created or edited
+  int counter = 0;
 
   /*Properties that will be persisted on the side of the user */
-  File userDataFile;
-  File notificationDataFile;
-  String userUID;
   List notifications = [];
-  bool hasSeenNotification =
-      false; //supposed to be use to change the notification icon when a notification comes up NOT WORKING!
+  int notificationCounter =
+      0; //used to show the number of notifications at the bottom
   bool isThereConnectionError = false;
 
   // You can (and probably will) have methods on your StateContainer
@@ -41,13 +37,6 @@ class StateContainerState extends State<StateContainer> {
     });
   }
 
-  //keep the files and refrences in one place
-  void initUserData(File userData) {
-    setState(() {
-      userDataFile = userData;
-    });
-  }
-
   void setIsManualEnter(bool value) {
     setState(() {
       isManualEnter = value;
@@ -66,12 +55,6 @@ class StateContainerState extends State<StateContainer> {
     });
   }
 
-  void hasSawNotification() {
-    setState(() {
-      hasSeenNotification = true;
-    });
-  }
-
   void setGroup(String g) {
     setState(() {
       group = g;
@@ -82,15 +65,22 @@ class StateContainerState extends State<StateContainer> {
   void addToNotifications(Map notification) {
     setState(() {
       this.notifications.add(notification);
-      hasSeenNotification = true;
+      this.notificationCounter += 1;
     });
   }
 
+  void removeNotification(Map notification){
+    setState((){
+      this.notifications.remove(notification);
+    });
+  }
   void initNotifications(List notifications) {
     setState(() {
       this.notifications = notifications;
     });
   }
+
+
 
   void setFilterType(String newFilterType) {
     setState(() {
@@ -131,11 +121,9 @@ class StateContainerState extends State<StateContainer> {
       userSnapshot = data.data;
     }).whenComplete(() {
       for (String eventName in userSnapshot['events'].keys) {
-        for (String eventName in userSnapshot['events'].keys) {
-          if (eventName == eventMetadata['event_name']) {
-            hasAttended = true;
-            break;
-          }
+        if (eventName == eventMetadata['event_name']) {
+          hasAttended = true;
+          break;
         }
 
         if (!hasAttended) {

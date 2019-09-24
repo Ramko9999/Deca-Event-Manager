@@ -5,6 +5,7 @@ import 'package:deca_app/screens/admin/scanner.dart';
 import 'package:deca_app/screens/profile/profile_screen.dart';
 import 'package:deca_app/screens/settings/setting_screen.dart';
 import 'package:deca_app/utility/InheritedInfo.dart';
+import 'package:deca_app/utility/format.dart';
 import 'package:deca_app/utility/notifiers.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -121,12 +122,10 @@ class _CreateEventUIState extends State<CreateEventUI> {
     return false;
   }
 
-  
   void tryToCreateEvent(BuildContext context) async {
     setState(() => _isTryingToCreateEvent = true);
     if (validateForm(context)) {
-        executeEventCreation(context);
-        
+      executeEventCreation(context);
     } else {
       setState(() => _isTryingToCreateEvent = false);
     }
@@ -211,23 +210,27 @@ class _CreateEventUIState extends State<CreateEventUI> {
                         height: 75,
                         child: new RaisedButton(
                           child: Text(updateDateButton(),
-                              style:
-                                  new TextStyle(fontSize: 17, fontFamily: 'Lato')),
+                              style: new TextStyle(
+                                  fontSize: 17, fontFamily: 'Lato')),
                           textColor: Colors.white,
                           color: Colors.blue,
                           onPressed: () {
                             DatePicker.showDatePicker(context,
                                 showTitleActions: true,
-                                minTime: DateTime(2019, 1, 1), onConfirm: (date) {
+                                minTime: DateTime(2019, 1, 1),
+                                onConfirm: (date) {
                               setState(() {
-                                eventDateText = new DateFormat('EEEE, MMMM d, y')
-                                    .format(date)
-                                    .toString();
+                                eventDateText =
+                                    new DateFormat('EEEE, MMMM d, y')
+                                        .format(date)
+                                        .toString();
                                 _eventDate = new DateFormat('yyyy-MM-dd')
                                     .format(date)
                                     .toString();
                               });
-                            }, currentTime: DateTime.now(), locale: LocaleType.en);
+                            },
+                                currentTime: DateTime.now(),
+                                locale: LocaleType.en);
                           },
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10)),
@@ -242,7 +245,8 @@ class _CreateEventUIState extends State<CreateEventUI> {
                                 ? "Choose Event Type"
                                 : dropdownValue,
                             textAlign: TextAlign.center,
-                            style: new TextStyle(fontSize: 17, fontFamily: 'Lato'),
+                            style:
+                                new TextStyle(fontSize: 17, fontFamily: 'Lato'),
                           ),
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10)),
@@ -345,7 +349,8 @@ class _CreateEventUIState extends State<CreateEventUI> {
                                   ),
                                   shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(10)),
-                                  color: _isQuickEnter ? Colors.blue : Colors.grey,
+                                  color:
+                                      _isQuickEnter ? Colors.blue : Colors.grey,
                                   textColor: Colors.white,
                                 ),
                               )),
@@ -364,7 +369,9 @@ class _CreateEventUIState extends State<CreateEventUI> {
                                       )),
                                   shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(10)),
-                                  color: _isManualEnter ? Colors.blue : Colors.grey,
+                                  color: _isManualEnter
+                                      ? Colors.blue
+                                      : Colors.grey,
                                   textColor: Colors.white,
                                 ),
                               ))
@@ -384,7 +391,8 @@ class _CreateEventUIState extends State<CreateEventUI> {
                                 labelText: "Gold Points",
                                 border: new OutlineInputBorder(
                                   borderRadius: new BorderRadius.circular(10.0),
-                                  borderSide: new BorderSide(color: Colors.blue),
+                                  borderSide:
+                                      new BorderSide(color: Colors.blue),
                                 ),
                               ))),
                     Container(
@@ -393,8 +401,8 @@ class _CreateEventUIState extends State<CreateEventUI> {
                         height: 75,
                         child: new RaisedButton(
                           child: Text('Create',
-                              style:
-                                  new TextStyle(fontSize: 17, fontFamily: 'Lato')),
+                              style: new TextStyle(
+                                  fontSize: 17, fontFamily: 'Lato')),
                           textColor: Colors.white,
                           color: Color.fromRGBO(46, 204, 113, 1),
                           onPressed: () {
@@ -412,9 +420,8 @@ class _CreateEventUIState extends State<CreateEventUI> {
                 ),
               ),
             ),
-          if(StateContainer.of(context).isThereConnectionError)
-            ConnectionError()
-          
+            if (StateContainer.of(context).isThereConnectionError)
+              ConnectionError()
           ],
         ));
   }
@@ -441,10 +448,9 @@ class _AdminUIState extends State<AdminScreenUI> {
           title: Text("Admin Functions"),
           leading: IconButton(
               icon: Icon(Icons.arrow_back_ios),
-              onPressed: () => {
-                    Navigator.push(context,
-                        NoTransition(builder: (context) => new ProfileScreen()))
-                  }),
+              onPressed: () {
+                Navigator.of(context).pop();
+              }),
           actions: <Widget>[
             IconButton(
               icon: Icon(Icons.settings),
@@ -476,8 +482,8 @@ class _AdminUIState extends State<AdminScreenUI> {
                     child: ListTile(
                   leading: Icon(Icons.supervisor_account),
                   title: Text('Create a Group'),
-                  onTap: () => Navigator.push(
-                      context, NoTransition(builder: (context) => CreateGroupUI())),
+                  onTap: () => Navigator.push(context,
+                      NoTransition(builder: (context) => CreateGroupUI())),
                 )),
                 Card(
                     child: ListTile(
@@ -488,9 +494,8 @@ class _AdminUIState extends State<AdminScreenUI> {
                 ))
               ],
             ),
-          if(StateContainer.of(context).isThereConnectionError)
-            OfflineNotifier()
-          
+            if (StateContainer.of(context).isThereConnectionError)
+              OfflineNotifier()
           ],
         ));
   }
@@ -512,7 +517,12 @@ class _CreateGroupUIState extends State<CreateGroupUI> {
   _CreateGroupUIState();
 
   Widget build(BuildContext context) {
+
+    double sW = MediaQuery.of(context).size.width;
+    double sH = MediaQuery.of(context).size.height;
+
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       key: _scaffoldKey,
       appBar: AppBar(
         leading: IconButton(
@@ -595,17 +605,29 @@ class _CreateGroupUIState extends State<CreateGroupUI> {
                 child: AlertDialog(
                   title: Text(
                     "Group Name",
+                    style: TextStyle(
+                      fontSize: Sizer.getTextSize(sW, sH, 21)
+                    ),
                   ),
-                  content: TextFormField(
+                  content: TextField(
                     controller: _groupName,
-                    decoration: InputDecoration(labelText: "Group Name"),
+                    style: TextStyle(
+                      fontSize: Sizer.getTextSize(sW, sH, 15)
+                    ),
+                    decoration: InputDecoration(
+                      labelText: "Group Name",
+                    ),
                   ),
                   actions: <Widget>[
                     FlatButton(
                       child: Text("Create"),
                       textColor: Colors.blue,
                       onPressed: () {
+                        
                         if (_groupName.text != null) {
+                          Firestore.instance
+                              .collection("Groups")
+                              .add({'name': _groupName.text});
                           StateContainer.of(context).setGroup(_groupName.text);
 
                           setState(() => _hasCreatedGroup = true);
@@ -634,7 +656,6 @@ class _EditEventUIState extends State<EditEventUI> {
   _EditEventUIState();
 
   ListView _buildEventList(context, snapshot) {
-    
     return ListView.builder(
       // Must have an item count equal to the number of items!
       itemCount: snapshot.data.documents.length,
@@ -706,9 +727,8 @@ class _EditEventUIState extends State<EditEventUI> {
               ],
             ),
           ),
-        if(StateContainer.of(context).isThereConnectionError)
-          OfflineNotifier()
-        
+          if (StateContainer.of(context).isThereConnectionError)
+            OfflineNotifier()
         ],
       ),
     );
@@ -843,5 +863,3 @@ class _EventInfoUIState extends State<EventInfoUI> {
     );
   }
 }
-
-

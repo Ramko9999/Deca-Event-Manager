@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:deca_app/utility/InheritedInfo.dart';
+import 'package:deca_app/utility/global.dart';
 import 'package:deca_app/utility/notifiers.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -17,16 +20,35 @@ class Sender extends StatefulWidget {
 class SenderState extends State<Sender> {
   String filter = "Any"; //used to only send notifications to certain committies
   String date;
+  List<String> groups = [];
   TextEditingController header = new TextEditingController();
   TextEditingController message = new TextEditingController();
   GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   SenderState();
 
+  void initState(){
+    super.initState();
+  
+     Firestore.instance.collection("Groups").getDocuments().then((documents){
+       List<String> potentialGroups = [];
+       documents.documents.forEach((d){
+         potentialGroups.add(d.data['name']);
+       });
+       potentialGroups.add("Any");
+       setState((){
+         groups = potentialGroups;
+         filter = groups.last;
+       });
+     });
+    
+  }
+
   //creates a new notification in the cloud firestore database
   void executeNotification() {
     Map<String, dynamic> notificationData = {
       'header': header.text,
-      'body': message.text
+      'body': message.text,
+      'uid': Global.uid,
     };
     /*attaching a date will make the notification a remainder meaning
     that when the mobile phone gets the notification there will be a local notification
@@ -39,17 +61,18 @@ class SenderState extends State<Sender> {
       notificationData.addAll({'filter': filter});
     }
 
+
+
     //creating a new notification will trigger a cloud function that pushes the notification to everyone
-    Firestore.instance
-        .collection("Notifications")
-        .add(notificationData)
-        .then((_) {
+    Firestore.instance.collection("Notifications").add(notificationData).then(
+        (_) {
+      
       setState(() {
         //reset the notifications
         header.text = "";
         message.text = "";
         date = null;
-        filter = 'Any';
+        filter = groups.last;
       });
 
       _scaffoldKey.currentState.showSnackBar(
@@ -58,7 +81,7 @@ class SenderState extends State<Sender> {
           backgroundColor: Colors.green,
         ),
       );
-    });
+    }, onError: (e) {});
   }
 
   Widget build(BuildContext context) {
@@ -137,7 +160,11 @@ class SenderState extends State<Sender> {
                           padding: EdgeInsets.only(top: screenHeight * 0.03),
                           child: Container(
                             width: screenWidth / 1.7,
-                            child: DropdownButton(
+                            child: 
+                            groups.isEmpty? 
+                            Text("Loading Groups...", textAlign: TextAlign.center, style: TextStyle(color: Colors.blue),)
+                            :
+                            DropdownButton(
                               value: filter,
                               isExpanded: true,
                               hint: Text(
@@ -145,15 +172,9 @@ class SenderState extends State<Sender> {
                               onChanged: (String group) {
                                 setState(() => filter = group);
                               },
-                              items: [
-                                'Any',
-                                'Gold Point',
-                                'Website',
-                                'none',
-                                'Jameson Curry',
-                                'random int',
-                              ].map((String group) {
-                                return DropdownMenuItem(
+                              items: groups
+                              .map((String group) {
+                                return DropdownMenuItem<String>(
                                   value: group,
                                   child: Text(
                                     group,
@@ -165,7 +186,8 @@ class SenderState extends State<Sender> {
                                   ),
                                 );
                               }).toList(),
-                            ),
+                            )
+                            
                           ),
                         ),
                         Padding(

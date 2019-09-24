@@ -205,22 +205,20 @@ class SingleActionPopup extends StatelessWidget {
   }
 }
 
-class OfflineNotifier extends StatelessWidget{
-
-
-  Widget build(BuildContext context){
+class OfflineNotifier extends StatelessWidget {
+  Widget build(BuildContext context) {
     return Align(
-                alignment: Alignment.bottomCenter,
-                  child: Container(
-                  height: MediaQuery.of(context).size.height * 0.04,
-                  width: MediaQuery.of(context).size.width,
-                  color: Colors.amber,
-                  child: Text(
-                    "You are offline",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.white, fontFamily: 'Lato', fontSize: 15),
-                  )),
-            );
+      alignment: Alignment.bottomCenter,
+      child: Container(
+          height: MediaQuery.of(context).size.height * 0.04,
+          width: MediaQuery.of(context).size.width,
+          color: Colors.amber,
+          child: Text(
+            "You are offline",
+            textAlign: TextAlign.center,
+            style: TextStyle(
+                color: Colors.white, fontFamily: 'Lato', fontSize: 15),
+          )),
+    );
   }
-  
 }
