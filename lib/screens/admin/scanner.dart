@@ -31,34 +31,32 @@ class _ScannerState extends State<Scanner> {
   bool _cameraPermission = true;
   final _scaffoldKey = new GlobalKey<ScaffoldState>();
   bool isManualEnter;
-  bool isInProcessOfScanning = false;
 
-  void pushToDB(String userUniqueID) async {
-    isInProcessOfScanning = true;
+  Future<String> pushToDB(String userUniqueID) async {
     final gpContainer = StateContainer.of(
         _scaffoldKey.currentContext); //This is actually smart as hell
-    Firestore.instance
-        .collection("Users")
-        .document(userUniqueID)
-        .get()
-        .then((userData) {
-      gpContainer.setUserData(userData.data);
+
+    DocumentSnapshot userSnapshot = await Firestore.instance.collection("Users").document(userUniqueID).get();
+    gpContainer.setUserData(userSnapshot.data);
+
 
       if (gpContainer.eventMetadata['enter_type'] == 'ME') {
         gpContainer.setIsManualEnter(true);
+        return "Ok";
       } else {
         gpContainer.updateGP(userUniqueID);
         String firstName = gpContainer.userData['first_name'];
-
         _scaffoldKey.currentState.showSnackBar(SnackBar(
           backgroundColor: Color.fromRGBO(46, 204, 113, 1),
           content: Text("Scanned " + firstName),
           duration: Duration(seconds: 1),
         ));
+      return "Ok";
       }
-      isInProcessOfScanning = false;
-    }).catchError((onError) => print(onError));
-  }
+      
+    }
+  
+  
 
   void runStream() {
     _scannedUids = new HashSet();
@@ -84,19 +82,26 @@ class _ScannerState extends State<Scanner> {
           .detectInImage(visionImage)
           .then((barcodes) {
         for (Barcode barcode in barcodes) {
-          if (!_scannedUids.contains(barcode.rawValue) &&
-              !isInProcessOfScanning) {
-            _scannedUids.add(barcode.rawValue);
-            pushToDB(barcode.rawValue);
+            
+          
+          Future.delayed(
+            Duration(seconds: 2),
+            (){
+              print("Running Future Delayed");
+              if (_scannedUids.add(barcode.rawValue)) {
+                  pushToDB(barcode.rawValue);
           } else {
-            if (!isInProcessOfScanning) {
+            
               _scaffoldKey.currentState.showSnackBar(SnackBar(
                 backgroundColor: Color.fromRGBO(255, 0, 0, 1),
                 content: Text("Already Scanned"),
-                duration: Duration(seconds: 1),
+                duration: Duration(milliseconds: 250),
               ));
-            }
+            
           }
+            }
+          );
+          
         }
       }).catchError((error) {
         if (error.runtimeType == CameraException) {

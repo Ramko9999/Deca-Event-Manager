@@ -164,8 +164,8 @@ class _CreateEventUIState extends State<CreateEventUI> {
           leading: IconButton(
               icon: Icon(Icons.arrow_back_ios),
               onPressed: () => {
-                    Navigator.push(context,
-                        NoTransition(builder: (context) => new AdminScreenUI()))
+                    Navigator.pop(context)
+                    
                   }),
           actions: <Widget>[
             IconButton(
@@ -623,7 +623,7 @@ class _CreateGroupUIState extends State<CreateGroupUI> {
                       child: Text("Create"),
                       textColor: Colors.blue,
                       onPressed: () {
-                        
+
                         if (_groupName.text != null) {
                           Firestore.instance
                               .collection("Groups")
@@ -692,8 +692,7 @@ class _EditEventUIState extends State<EditEventUI> {
         leading: IconButton(
             icon: Icon(Icons.arrow_back_ios),
             onPressed: () => {
-                  Navigator.push(context,
-                      NoTransition(builder: (context) => new AdminScreenUI()))
+                  Navigator.pop(context)
                 }),
         actions: <Widget>[
           IconButton(

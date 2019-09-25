@@ -45,7 +45,6 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
     return Scaffold(
-        resizeToAvoidBottomInset: false,
         backgroundColor: Colors.white,
         body: Stack(children: [
           new Column(children: [
