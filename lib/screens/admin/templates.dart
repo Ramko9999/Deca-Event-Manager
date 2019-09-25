@@ -2,6 +2,7 @@ import 'package:connectivity/connectivity.dart';
 import 'package:deca_app/screens/admin/finder.dart';
 import 'package:deca_app/screens/admin/notification_sender.dart';
 import 'package:deca_app/screens/admin/scanner.dart';
+import 'package:deca_app/screens/admin/searcher.dart';
 import 'package:deca_app/screens/profile/profile_screen.dart';
 import 'package:deca_app/screens/settings/setting_screen.dart';
 import 'package:deca_app/utility/InheritedInfo.dart';
@@ -487,6 +488,13 @@ class _AdminUIState extends State<AdminScreenUI> {
                 )),
                 Card(
                     child: ListTile(
+                      leading: Icon(Icons.supervisor_account),
+                      title: Text('Edit Members'),
+                      onTap: () => Navigator.push(
+                          context, NoTransition(builder: (context) => EditMemberUI())),
+                    )),
+                Card(
+                    child: ListTile(
                   leading: Icon(Icons.notifications),
                   title: Text('Push Notifications'),
                   onTap: () => Navigator.push(
@@ -500,6 +508,156 @@ class _AdminUIState extends State<AdminScreenUI> {
         ));
   }
 }
+
+class EditMemberUI extends StatefulWidget {
+  @override
+  State<StatefulWidget> createState() {
+    // TODO: implement createState
+    return EditMemberUIState();
+  }
+
+}
+
+class EditMemberUIState extends State<EditMemberUI>
+{
+  final _firstName = TextEditingController();
+  final _lastName = TextEditingController();
+  bool hasSearched = false;
+  Map recentCardInfo;
+  List<DocumentSnapshot> userDocs;
+
+  @override
+  void initState() {
+    print('here');
+    super.initState();
+    _firstName.addListener(() {
+      this.build(context);
+    });
+    _lastName.addListener(() {
+      this.build(context);
+    });
+    Firestore.instance.collection("Users").getDocuments().then((documents) {
+      setState(() => userDocs = documents.documents);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    //query and update documents based on additions and deletions
+    Firestore.instance.collection("Users").getDocuments().then((documents) {
+      if (this.mounted) {
+        setState(() => userDocs = documents.documents);
+      }
+    });
+
+    double screenWidth = MediaQuery.of(context).size.width;
+    double screenHeight = MediaQuery.of(context).size.height;
+    return Scaffold(
+          appBar: new AppBar(
+            title: Text("Edit a Member"),
+            leading: IconButton(
+                icon: Icon(Icons.arrow_back_ios),
+                onPressed: () => {
+                  Navigator.push(context,
+                      NoTransition(builder: (context) => new AdminScreenUI()))
+                }),
+            actions: <Widget>[
+              IconButton(
+                icon: Icon(Icons.settings),
+                onPressed: () => Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => new SettingScreen())),
+              ),
+            ],
+          ),
+          body: Center(
+            child: Container(
+              width: screenWidth * 0.9,
+              height: screenHeight * 0.9,
+              child: Column(children: <Widget>[
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(0, 0, 0, 15),
+                  child: Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: Container(
+                          child: TextField(
+                            controller: _firstName,
+                            decoration: InputDecoration(labelText: "First Name"),
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: TextField(
+                          controller: _lastName,
+                          decoration: InputDecoration(labelText: "Last Name"),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Flexible(
+                    child: userDocs == null
+                        ? CircularProgressIndicator()
+                        : getList(context)),
+              ]),
+    ),
+          ),
+        );
+  }
+
+  //fetches the users in an order relevant way
+  MaxList getData() {
+    List<Map> userList = [];
+    //turn this into map with uid and names
+    for (int i = 0; i < userDocs.length; i++) {
+      Map userData = userDocs[i].data;
+      userList.add(userData);
+    }
+
+    Searcher searcher = new Searcher(userList, _firstName.text, _lastName.text);
+    MaxList relevanceList = searcher.search();
+    return relevanceList;
+  }
+
+  //builds list
+  Widget getList(BuildContext context) {
+    MaxList list = getData();
+    final infoContainer = StateContainer.of(context);
+    Node current = list.head;
+    return ListView.builder(
+        shrinkWrap: true,
+        itemCount: list.getSize(),
+        itemBuilder: (context, i) {
+          if (list.getSize() == 0) {
+            return CircularProgressIndicator();
+          }
+          if (current == null) {
+            return CircularProgressIndicator();
+          }
+          Map userInfo = current.element['info'];
+          Card c = Card(
+            child: ListTile(
+              onTap: () {
+                infoContainer.setUserData(userInfo);
+              },
+              leading: Icon(Icons.person, color: Colors.black),
+              title: Text(
+                userInfo['first_name'].toString() + " " + userInfo['last_name'].toString(),
+                style: TextStyle(fontFamily: 'Lato', fontSize: 20),
+              ),
+              trailing:  Text(
+                userInfo['gold_points'].toString(),
+                style: TextStyle(fontFamily: 'Lato', fontSize: 20, color: Color.fromARGB(255, 249, 166, 22)),
+              ),
+            ),
+          );
+          current = current.next;
+          return c;
+        });
+  }
+}
+
+
 
 class CreateGroupUI extends StatefulWidget {
   CreateGroupUI();
@@ -623,7 +781,7 @@ class _CreateGroupUIState extends State<CreateGroupUI> {
                       child: Text("Create"),
                       textColor: Colors.blue,
                       onPressed: () {
-                        
+
                         if (_groupName.text != null) {
                           Firestore.instance
                               .collection("Groups")
@@ -863,3 +1021,5 @@ class _EventInfoUIState extends State<EventInfoUI> {
     );
   }
 }
+
+

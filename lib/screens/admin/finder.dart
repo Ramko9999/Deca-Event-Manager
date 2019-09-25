@@ -79,7 +79,7 @@ class FinderState extends State<Finder> {
                       decoration: InputDecoration(labelText: "Last Name"),
                     ),
                   ),
-                ],
+                ]
               ),
             ),
             Flexible(
