@@ -165,8 +165,8 @@ class _CreateEventUIState extends State<CreateEventUI> {
           leading: IconButton(
               icon: Icon(Icons.arrow_back_ios),
               onPressed: () => {
-                    Navigator.push(context,
-                        NoTransition(builder: (context) => new AdminScreenUI()))
+                    Navigator.pop(context)
+                    
                   }),
           actions: <Widget>[
             IconButton(
@@ -850,8 +850,7 @@ class _EditEventUIState extends State<EditEventUI> {
         leading: IconButton(
             icon: Icon(Icons.arrow_back_ios),
             onPressed: () => {
-                  Navigator.push(context,
-                      NoTransition(builder: (context) => new AdminScreenUI()))
+                  Navigator.pop(context)
                 }),
         actions: <Widget>[
           IconButton(
