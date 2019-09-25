@@ -557,9 +557,8 @@ class EditMemberUIState extends State<EditMemberUI>
             title: Text("Edit a Member"),
             leading: IconButton(
                 icon: Icon(Icons.arrow_back_ios),
-                onPressed: () => {
-                  Navigator.push(context,
-                      NoTransition(builder: (context) => new AdminScreenUI()))
+                onPressed: (){
+                  Navigator.of(context).pop();
                 }),
             actions: <Widget>[
               IconButton(

@@ -349,7 +349,7 @@ class _ScannerState extends State<Scanner> {
                   if (_isSearcher)
                     Container(
                       width: screenWidth - 50,
-                      height: screenHeight - 250,
+                      height: screenHeight * 0.7,
                       padding: EdgeInsets.fromLTRB(0, 0, 0, 20),
                       child: Finder(
                         //call back function argument
