@@ -6,7 +6,8 @@ import 'package:deca_app/screens/profile/profile_screen.dart';
 import 'package:overlay_support/overlay_support.dart';
 
 void main() {
-  runApp(StateContainer(
+  runApp(
+    StateContainer(
     child: OverlaySupport(
       child: new MaterialApp(
           home: new AuthenticationScreen(),

@@ -116,6 +116,8 @@ class FinderState extends State<Finder> {
 
   //builds list
   Widget getList(BuildContext context) {
+    double sW = MediaQuery.of(context).size.width;
+    double sH = MediaQuery.of(context).size.height;
     MaxList list = getData();
     final infoContainer = StateContainer.of(context);
     Node current = list.head;
@@ -142,11 +144,11 @@ class FinderState extends State<Finder> {
               leading: Icon(Icons.person, color: Colors.black),
               title: Text(
                 userInfo['first_name'].toString() + " " + userInfo['last_name'].toString(),
-                style: TextStyle(fontFamily: 'Lato', fontSize: 20),
+                style: TextStyle(fontFamily: 'Lato', fontSize: Sizer.getTextSize(sW, sH, 20)),
               ),
               trailing:  Text(
                 userInfo['gold_points'].toString(),
-                style: TextStyle(fontFamily: 'Lato', fontSize: 20, color: Color.fromARGB(255, 249, 166, 22)),
+                style: TextStyle(fontFamily: 'Lato', fontSize: Sizer.getTextSize(sW, sH, 20), color: Color.fromARGB(255, 249, 166, 22)),
               ),
             ),
           );
@@ -208,7 +210,8 @@ class ManualEnterPopupState extends State<ManualEnterPopup> {
           onPressed: () {
             String userUID = userData['uid'];
             int points = int.parse(pointController.text);
-            container.updateGP(userUID, points);
+            if(points > 0){
+              container.updateGP(userUID, points);
             Scaffold.of(context).showSnackBar(SnackBar(
               content: Text(
                 "Succesfully added ${points.toString()} to ${userData['first_name']}",
@@ -219,6 +222,8 @@ class ManualEnterPopupState extends State<ManualEnterPopup> {
             ));
             container.setIsCardTapped(false);
             container.setIsManualEnter(false);
+            }
+            
           },
         )
       ],

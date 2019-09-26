@@ -12,8 +12,8 @@ class QrScreen extends StatelessWidget {
     return Scaffold(
       body: Center(
         child: Container(
-          width: screenWidth - 75,
-          height: screenWidth - 75,
+          width: screenWidth * 0.9,
+          height: screenWidth * 0.9,
           child: QrImage(
             data: Global.uid,
             version: 9,

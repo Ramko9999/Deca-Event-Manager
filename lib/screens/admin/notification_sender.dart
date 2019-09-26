@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:deca_app/utility/InheritedInfo.dart';
+import 'package:deca_app/utility/format.dart';
 import 'package:deca_app/utility/global.dart';
 import 'package:deca_app/utility/notifiers.dart';
 import 'package:flutter/cupertino.dart';
@@ -87,8 +88,6 @@ class SenderState extends State<Sender> {
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
-    double wRatio = screenWidth / 411.42857142857144;
-    double hRatio = screenHeight / 683.4285714285714;
     return Scaffold(
         key: _scaffoldKey,
         appBar: AppBar(
@@ -117,7 +116,7 @@ class SenderState extends State<Sender> {
                           child: TextFormField(
                               controller: header,
                               style: TextStyle(
-                                  fontFamily: 'Lato', fontSize: wRatio * 16),
+                                  fontFamily: 'Lato', fontSize: Sizer.getTextSize(screenWidth, screenHeight, 16)),
                               decoration: InputDecoration(
                                   labelText: "Notification Header",
                                   errorBorder: OutlineInputBorder(
@@ -140,7 +139,7 @@ class SenderState extends State<Sender> {
                               keyboardType: TextInputType.text,
                               maxLines: null,
                               style: TextStyle(
-                                  fontFamily: 'Lato', fontSize: 16 * wRatio),
+                                  fontFamily: 'Lato', fontSize:  Sizer.getTextSize(screenWidth, screenHeight, 16)),
                               decoration: InputDecoration(
                                   labelText: "Notification Body",
                                   errorBorder: OutlineInputBorder(
@@ -180,7 +179,7 @@ class SenderState extends State<Sender> {
                                     group,
                                     style: TextStyle(
                                         fontFamily: 'Lato',
-                                        fontSize: 17 * wRatio,
+                                        fontSize: Sizer.getTextSize(screenWidth, screenHeight, 17),
                                         color: Colors.blue),
                                     textAlign: TextAlign.center,
                                   ),
@@ -199,7 +198,7 @@ class SenderState extends State<Sender> {
                                 date == null ? "Send as a Reminder" : date,
                                 style: TextStyle(
                                   fontFamily: 'Lato',
-                                  fontSize: 18 * wRatio,
+                                  fontSize:  Sizer.getTextSize(screenWidth, screenHeight, 18),
                                 ),
                               ),
                               textColor: Colors.blue,
@@ -224,12 +223,12 @@ class SenderState extends State<Sender> {
                                   "Optional Feature",
                                   style: TextStyle(
                                       color: Colors.grey,
-                                      fontSize: 14 * wRatio),
+                                      fontSize:  Sizer.getTextSize(screenWidth, screenHeight, 12)),
                                 )
                               : Text(
                                   "Don't send as reminder",
                                   style: TextStyle(
-                                      color: Colors.red, fontSize: 14 * wRatio),
+                                      color: Colors.red, fontSize:  Sizer.getTextSize(screenWidth, screenHeight, 12)),
                                 ),
                           onPressed: date == null
                               ? () => print("Nothing shall happen")
@@ -246,7 +245,7 @@ class SenderState extends State<Sender> {
                                 "Push",
                                 style: TextStyle(
                                     fontFamily: 'Lato',
-                                    fontSize: 24 * wRatio,
+                                    fontSize:  Sizer.getTextSize(screenWidth, screenHeight, 24),
                                     color: Colors.green),
                               ),
                               onPressed: () {

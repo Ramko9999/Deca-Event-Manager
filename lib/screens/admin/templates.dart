@@ -1,9 +1,7 @@
-import 'package:connectivity/connectivity.dart';
+
 import 'package:deca_app/screens/admin/finder.dart';
 import 'package:deca_app/screens/admin/notification_sender.dart';
 import 'package:deca_app/screens/admin/scanner.dart';
-import 'package:deca_app/screens/admin/searcher.dart';
-import 'package:deca_app/screens/profile/profile_screen.dart';
 import 'package:deca_app/screens/settings/setting_screen.dart';
 import 'package:deca_app/utility/InheritedInfo.dart';
 import 'package:deca_app/utility/format.dart';
@@ -30,6 +28,7 @@ class _CreateEventUIState extends State<CreateEventUI> {
   bool _isQuickEnter = false;
   String eventDateText;
   bool _isTryingToCreateEvent = false;
+  GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   //final values that are entered into firestore
   String _eventDate;
@@ -75,12 +74,11 @@ class _CreateEventUIState extends State<CreateEventUI> {
           .document(_eventName.text)
           .setData(eventMetadata);
 
-      setState(() => _isTryingToCreateEvent = false);
-
       container.setEventMetadata(eventMetadata);
     }
+    Navigator.of(context).pop();
     Navigator.of(context).push(NoTransition(builder: (context) => Scanner()));
-    clearAll();
+    //clearAll();
   }
 
   void clearAll() {
@@ -119,7 +117,7 @@ class _CreateEventUIState extends State<CreateEventUI> {
       backgroundColor: Colors.red,
       duration: Duration(seconds: 1),
     );
-    Scaffold.of(context).showSnackBar(snackBar);
+    _scaffoldKey.currentState.showSnackBar(snackBar);
     return false;
   }
 
@@ -157,9 +155,11 @@ class _CreateEventUIState extends State<CreateEventUI> {
 
   @override
   Widget build(BuildContext context) {
-    double screenWidth = MediaQuery.of(context).size.width;
+    double sW = MediaQuery.of(context).size.width;
+    double sH = MediaQuery.of(context).size.height;
     // TODO: implement build
     return Scaffold(
+        key: _scaffoldKey,
         appBar: new AppBar(
           title: Text("Admin Functions"),
           leading: IconButton(
@@ -168,13 +168,7 @@ class _CreateEventUIState extends State<CreateEventUI> {
                     Navigator.pop(context)
                     
                   }),
-          actions: <Widget>[
-            IconButton(
-              icon: Icon(Icons.settings),
-              onPressed: () => Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => new SettingScreen())),
-            ),
-          ],
+          
         ),
         body: Stack(
           children: <Widget>[
@@ -183,21 +177,24 @@ class _CreateEventUIState extends State<CreateEventUI> {
                 child: Column(
                   children: <Widget>[
                     Container(
-                      padding: new EdgeInsets.fromLTRB(30.0, 20.0, 30.0, 15.0),
+                      alignment: Alignment.center,
+                      padding: EdgeInsets.only(top: sH * 0.03),
                       width: double.infinity,
                       child: Text(
                         "Create an Event",
                         textAlign: TextAlign.left,
-                        style: new TextStyle(fontSize: 25, fontFamily: 'Lato'),
+                        style: new TextStyle(fontSize: Sizer.getTextSize(sW, sH, 25), fontFamily: 'Lato'),
                       ),
                     ),
                     Container(
-                        padding: new EdgeInsets.only(top: 10.0, bottom: 10.0),
-                        width: screenWidth - 50,
+                        padding: new EdgeInsets.only(top: sH * 0.03, bottom: sH * 0.03),
+                        width: sW * 0.9,
                         child: TextFormField(
                             controller: _eventName,
                             textAlign: TextAlign.left,
-                            style: TextStyle(fontFamily: 'Lato'),
+                            style: TextStyle(
+                              fontFamily: 'Lato',
+                              fontSize: Sizer.getTextSize(sW, sH, 18)),
                             decoration: new InputDecoration(
                               labelText: "Event Name",
                               border: new OutlineInputBorder(
@@ -206,13 +203,13 @@ class _CreateEventUIState extends State<CreateEventUI> {
                               ),
                             ))),
                     Container(
-                        padding: new EdgeInsets.only(top: 10.0, bottom: 10.0),
-                        width: screenWidth - 50,
-                        height: 75,
+                        padding: new EdgeInsets.only(top: sH * 0.03, bottom: sH * 0.03),
+                        width: sW * 0.9,
+                        height: sH * 0.15,
                         child: new RaisedButton(
                           child: Text(updateDateButton(),
                               style: new TextStyle(
-                                  fontSize: 17, fontFamily: 'Lato')),
+                                  fontSize: Sizer.getTextSize(sW, sH, 17), fontFamily: 'Lato')),
                           textColor: Colors.white,
                           color: Colors.blue,
                           onPressed: () {
@@ -237,9 +234,9 @@ class _CreateEventUIState extends State<CreateEventUI> {
                               borderRadius: BorderRadius.circular(10)),
                         )),
                     Container(
-                        padding: new EdgeInsets.only(top: 10.0, bottom: 10.0),
-                        width: screenWidth - 50,
-                        height: 75,
+                        padding: new EdgeInsets.only(bottom: sH * 0.03),
+                        width: sW * 0.9,
+                        height: sH * 0.12,
                         child: RaisedButton(
                           child: Text(
                             (dropdownValue == null)
@@ -247,7 +244,7 @@ class _CreateEventUIState extends State<CreateEventUI> {
                                 : dropdownValue,
                             textAlign: TextAlign.center,
                             style:
-                                new TextStyle(fontSize: 17, fontFamily: 'Lato'),
+                                new TextStyle(fontSize: Sizer.getTextSize(sW, sH, 17), fontFamily: 'Lato'),
                           ),
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10)),
@@ -315,10 +312,10 @@ class _CreateEventUIState extends State<CreateEventUI> {
                                         },
                                       ),
                                       CupertinoActionSheetAction(
-                                        child: Text('Miscallaneous'),
+                                        child: Text('Miscellaneous'),
                                         onPressed: () {
                                           setState(() {
-                                            dropdownValue = 'Miscallaneous';
+                                            dropdownValue = 'Miscellaneous';
                                             Navigator.pop(context);
                                           });
                                         },
@@ -329,15 +326,15 @@ class _CreateEventUIState extends State<CreateEventUI> {
                           },
                         )),
                     Container(
-                      padding: new EdgeInsets.only(top: 10.0, bottom: 10.0),
-                      width: screenWidth - 50,
-                      height: 75,
+                      padding: new EdgeInsets.only(bottom: sH * 0.03),
+                      width: sW * 0.9,
+                      height: sH * 0.12,
                       child: Row(
                         children: <Widget>[
                           Expanded(
                               flex: 7,
                               child: Container(
-                                height: 75,
+                                height: sH * 0.10,
                                 child: RaisedButton(
                                   onPressed: () => setState(
                                       () => this.updateButtons('Quick Enter')),
@@ -345,7 +342,8 @@ class _CreateEventUIState extends State<CreateEventUI> {
                                     "Quick Enter",
                                     textAlign: TextAlign.center,
                                     style: new TextStyle(
-                                      fontSize: 15,
+                                      fontSize: Sizer.getTextSize(sW, sH, 15),
+                                      fontFamily: "Lato"
                                     ),
                                   ),
                                   shape: RoundedRectangleBorder(
@@ -359,14 +357,15 @@ class _CreateEventUIState extends State<CreateEventUI> {
                           Expanded(
                               flex: 7,
                               child: Container(
-                                height: 75,
+                                 height: sH * 0.10,
                                 child: RaisedButton(
                                   onPressed: () => setState(
                                       () => this.updateButtons('Manual Enter')),
                                   child: Text("Manual Enter",
                                       textAlign: TextAlign.center,
                                       style: new TextStyle(
-                                        fontSize: 15,
+                                        fontSize: Sizer.getTextSize(sW, sH, 15),
+                                      fontFamily: "Lato"
                                       )),
                                   shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(10)),
@@ -381,13 +380,13 @@ class _CreateEventUIState extends State<CreateEventUI> {
                     ),
                     if (_isQuickEnter)
                       Container(
-                          padding: new EdgeInsets.only(top: 10.0, bottom: 10.0),
-                          width: 125,
+                          padding: new EdgeInsets.only( bottom: sH * 0.03),
+                          width: sW * 0.3,
                           child: TextFormField(
                               keyboardType: TextInputType.number,
                               controller: _goldPoints,
                               textAlign: TextAlign.center,
-                              style: TextStyle(fontFamily: 'Lato'),
+                              style: TextStyle(fontFamily: 'Lato', fontSize: Sizer.getTextSize(sW, sH, 14)),
                               decoration: new InputDecoration(
                                 labelText: "Gold Points",
                                 border: new OutlineInputBorder(
@@ -397,13 +396,12 @@ class _CreateEventUIState extends State<CreateEventUI> {
                                 ),
                               ))),
                     Container(
-                        padding: new EdgeInsets.only(top: 10.0, bottom: 10.0),
-                        width: screenWidth - 200,
-                        height: 75,
+                        width: sW * 0.45,
+                        height: sH * 0.08,
                         child: new RaisedButton(
                           child: Text('Create',
                               style: new TextStyle(
-                                  fontSize: 17, fontFamily: 'Lato')),
+                                  fontSize: Sizer.getTextSize(sW, sH, 17), fontFamily: 'Lato')),
                           textColor: Colors.white,
                           color: Color.fromRGBO(46, 204, 113, 1),
                           onPressed: () {
@@ -412,15 +410,16 @@ class _CreateEventUIState extends State<CreateEventUI> {
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10)),
                         )),
-                    if (_isTryingToCreateEvent) //to add the progress indicator
-                      Container(
-                          width: screenWidth - 50,
-                          alignment: Alignment.center,
-                          child: CircularProgressIndicator())
                   ],
                 ),
               ),
             ),
+            if(_isTryingToCreateEvent)
+              Container(
+                      color: Colors.black45,
+                      alignment: Alignment.center,
+                      child: CircularProgressIndicator()),
+
             if (StateContainer.of(context).isThereConnectionError)
               ConnectionError()
           ],
@@ -452,13 +451,6 @@ class _AdminUIState extends State<AdminScreenUI> {
               onPressed: () {
                 Navigator.of(context).pop();
               }),
-          actions: <Widget>[
-            IconButton(
-              icon: Icon(Icons.settings),
-              onPressed: () => Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => new SettingScreen())),
-            ),
-          ],
         ),
         body: Stack(
           children: <Widget>[
@@ -488,7 +480,7 @@ class _AdminUIState extends State<AdminScreenUI> {
                 )),
                 Card(
                     child: ListTile(
-                      leading: Icon(Icons.supervisor_account),
+                      leading: Icon(Icons.person),
                       title: Text('Edit Members'),
                       onTap: () => Navigator.push(
                           context, NoTransition(builder: (context) => EditMemberUI())),
@@ -520,35 +512,13 @@ class EditMemberUI extends StatefulWidget {
 
 class EditMemberUIState extends State<EditMemberUI>
 {
-  final _firstName = TextEditingController();
-  final _lastName = TextEditingController();
   bool hasSearched = false;
   Map recentCardInfo;
   List<DocumentSnapshot> userDocs;
 
-  @override
-  void initState() {
-    print('here');
-    super.initState();
-    _firstName.addListener(() {
-      this.build(context);
-    });
-    _lastName.addListener(() {
-      this.build(context);
-    });
-    Firestore.instance.collection("Users").getDocuments().then((documents) {
-      setState(() => userDocs = documents.documents);
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
-    //query and update documents based on additions and deletions
-    Firestore.instance.collection("Users").getDocuments().then((documents) {
-      if (this.mounted) {
-        setState(() => userDocs = documents.documents);
-      }
-    });
 
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
@@ -561,25 +531,18 @@ class EditMemberUIState extends State<EditMemberUI>
                 onPressed: (){
                   Navigator.of(context).pop();
                 }),
-            actions: <Widget>[
-              IconButton(
-                icon: Icon(Icons.settings),
-                onPressed: () => Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => new SettingScreen())),
-              ),
-            ],
           ),
           body: Stack(
             children: <Widget>[
               Center(
                 child: Container(
-                  width: screenWidth * 0.9,
-                  height: screenHeight * 0.9,
+                  width: screenWidth * 0.95,
+                  height: screenHeight * 0.95,
                   child: Column(children: <Widget>[
                     
                     Container(
-                       height: screenHeight * 0.7,
-                       width: screenWidth * 0.85,
+                       height: screenHeight * 0.85,
+                       width: screenWidth * 0.90,
                       child: Finder(
                         (BuildContext context,
                                 StateContainerState stateContainer, Map userInfo){
@@ -648,7 +611,7 @@ class _CreateGroupUIState extends State<CreateGroupUI> {
                   content: Text(
                     "${userData['first_name']} is already in ${stateContainer.group}",
                     style: TextStyle(
-                        fontFamily: 'Lato', fontSize: 20, color: Colors.white),
+                        fontFamily: 'Lato', fontSize: Sizer.getTextSize(sW, sH, 18), color: Colors.white),
                   ),
                   backgroundColor: Colors.red,
                   duration: Duration(seconds: 3),
@@ -670,10 +633,10 @@ class _CreateGroupUIState extends State<CreateGroupUI> {
                               "${userData['first_name']} removed from ${stateContainer.group}",
                               style: TextStyle(
                                   fontFamily: 'Lato',
-                                  fontSize: 20,
+                                  fontSize: Sizer.getTextSize(sW, sH, 18),
                                   color: Colors.white),
                             ),
-                            duration: Duration(seconds: 1),
+                            duration: Duration(milliseconds: 250),
                           ),
                         );
                       });
@@ -687,12 +650,12 @@ class _CreateGroupUIState extends State<CreateGroupUI> {
                 document.reference.updateData({'groups': data});
                 _scaffoldKey.currentState.showSnackBar(SnackBar(
                   content: Text(
-                    "Succesfully added ${userData['first_name']} to ${stateContainer.group}",
+                    "Added ${userData['first_name']} to ${stateContainer.group}",
                     style: TextStyle(
-                        fontFamily: 'Lato', fontSize: 20, color: Colors.white),
+                        fontFamily: 'Lato', fontSize: Sizer.getTextSize(sW, sH, 18), color: Colors.white),
                   ),
                   backgroundColor: Colors.green,
-                  duration: Duration(seconds: 1),
+                  duration: Duration(milliseconds: 250),
                 ));
               }
             });
@@ -754,6 +717,8 @@ class _EditEventUIState extends State<EditEventUI> {
   _EditEventUIState();
 
   ListView _buildEventList(context, snapshot) {
+    double sW = MediaQuery.of(context).size.width;
+    double sH = MediaQuery.of(context).size.height;
     return ListView.builder(
       // Must have an item count equal to the number of items!
       itemCount: snapshot.data.documents.length,
@@ -765,7 +730,7 @@ class _EditEventUIState extends State<EditEventUI> {
             title: Text(eventInfo['event_name'],
                 textAlign: TextAlign.left,
                 style:
-                    new TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+                    new TextStyle(fontWeight: FontWeight.bold, fontSize: Sizer.getTextSize(sW, sH, 20))),
             subtitle: Text(eventInfo['event_type']),
             onTap: () {
               final container = StateContainer.of(context);
@@ -792,13 +757,6 @@ class _EditEventUIState extends State<EditEventUI> {
             onPressed: () => {
                   Navigator.pop(context)
                 }),
-        actions: <Widget>[
-          IconButton(
-            icon: Icon(Icons.settings),
-            onPressed: () => Navigator.push(context,
-                MaterialPageRoute(builder: (context) => new SettingScreen())),
-          ),
-        ],
       ),
       body: Stack(
         children: <Widget>[
@@ -811,8 +769,8 @@ class _EditEventUIState extends State<EditEventUI> {
                     if (snapshot.hasData) {
                       return Center(
                         child: Container(
-                          height: screenHeight - 75,
-                          width: screenWidth - 25,
+                          height: screenHeight * 0.99,
+                          width: screenWidth,
                           child: _buildEventList(context, snapshot),
                         ),
                       );
@@ -859,7 +817,6 @@ class _EventInfoUIState extends State<EventInfoUI> {
 
   @override
   Widget build(BuildContext context) {
-    double textScaleFactor = MediaQuery.of(context).textScaleFactor;
     double screenHeight = MediaQuery.of(context).size.height;
     double screenWidth = MediaQuery.of(context).size.width;
 
@@ -868,36 +825,36 @@ class _EventInfoUIState extends State<EventInfoUI> {
     scanCount = eventMetadata['attendee_count'];
     // TODO: implement build
     return Container(
-      width: screenWidth * .9,
-      height: screenHeight * .4,
+      width: screenWidth * .8,
+      height: screenHeight * 0.6,
       decoration: new BoxDecoration(
           borderRadius: BorderRadius.circular(15), color: Colors.white),
       child: Center(
         child: Column(
           children: <Widget>[
             Padding(
-              padding: const EdgeInsets.only(top: 15),
+              padding: EdgeInsets.only(top: screenHeight * 0.03),
               child: Container(
                   child: Text("Event Info",
                       style: TextStyle(
-                          fontFamily: 'Lato', fontSize: 32 * textScaleFactor))),
+                          fontFamily: 'Lato', fontSize: Sizer.getTextSize(screenWidth, screenHeight, 28)))),
             ),
             Container(
               width: screenWidth * .8,
-              height: screenHeight * .3,
+              height: screenHeight * .5,
               child: ListView(
                 children: <Widget>[
                   Card(
                     child: ListTile(
                       leading: Icon(Icons.stars,
                           color: Color.fromARGB(255, 249, 166, 22)),
-                      title: Text('Gold Points',
+                      title: Text('GP',
                           textAlign: TextAlign.left,
                           style: new TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 20)),
+                              fontWeight: FontWeight.bold, fontSize:  Sizer.getTextSize(screenWidth, screenHeight, 20))),
                       trailing: Container(
-                        width: 100,
-                        height: 50,
+                        width: screenWidth * 0.2,
+           
                         child: TextFormField(
                           initialValue: (eventMetadata['enter_type'] == 'QE')
                               ? (eventMetadata['gold_points'].toString())
@@ -907,7 +864,7 @@ class _EventInfoUIState extends State<EventInfoUI> {
                               : true,
                           textAlign: TextAlign.center,
                           style: new TextStyle(
-                              fontSize: 20,
+                              fontSize: Sizer.getTextSize(screenWidth, screenHeight, 20),
                               color: Color.fromARGB(255, 249, 166, 22)),
                         ),
                       ),
@@ -920,12 +877,12 @@ class _EventInfoUIState extends State<EventInfoUI> {
                       title: Text('Date',
                           textAlign: TextAlign.left,
                           style: new TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 20)),
+                              fontWeight: FontWeight.bold, fontSize: Sizer.getTextSize(screenWidth, screenHeight, 20))),
                       trailing: Text(
                         eventMetadata['event_date'],
                         textAlign: TextAlign.center,
                         style: new TextStyle(
-                            fontSize: 20,
+                            fontSize: Sizer.getTextSize(screenWidth, screenHeight, 20),
                             color: Color.fromARGB(255, 249, 166, 22)),
                       ),
                     ),
@@ -934,18 +891,18 @@ class _EventInfoUIState extends State<EventInfoUI> {
                     child: ListTile(
                       leading: Icon(Icons.stars,
                           color: Color.fromARGB(255, 249, 166, 22)),
-                      title: Text('Attendee Count',
+                      title: Text('Count',
                           textAlign: TextAlign.left,
                           style: new TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 20)),
+                              fontWeight: FontWeight.bold, fontSize: Sizer.getTextSize(screenWidth, screenHeight, 20))),
                       trailing: Container(
-                        width: 100,
-                        height: 50,
+                        width: screenWidth * 0.2,
+                   
                         child: Text(
                           scanCount.toString(),
                           textAlign: TextAlign.center,
                           style: new TextStyle(
-                              fontSize: 20,
+                              fontSize: Sizer.getTextSize(screenWidth, screenHeight, 20),
                               color: Color.fromARGB(255, 249, 166, 22)),
                         ),
                       ),

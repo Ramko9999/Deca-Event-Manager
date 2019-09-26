@@ -1,4 +1,5 @@
 import 'package:deca_app/utility/InheritedInfo.dart';
+import 'package:deca_app/utility/format.dart';
 import 'package:deca_app/utility/global.dart';
 import 'package:deca_app/utility/notifiers.dart';
 import 'package:flutter/cupertino.dart';
@@ -147,7 +148,8 @@ class SettingScreenState extends State<SettingScreen> {
                           title: Text(
                             "Change Password",
                             style: TextStyle(
-                                fontSize: 20 * screenWidth / pixelTwoWidth),
+                              fontFamily: 'Lato',
+                                fontSize: Sizer.getTextSize(screenWidth, screenHeight, 19)),
                           ),
                           trailing: IconButton(
                             icon: Icon(Icons.remove),
@@ -171,7 +173,7 @@ class SettingScreenState extends State<SettingScreen> {
                                       style: TextStyle(
                                           fontFamily: 'Lato',
                                           fontSize:
-                                              18 * screenWidth / pixelTwoWidth),
+                                              Sizer.getTextSize(screenWidth, screenHeight, 17)),
                                       obscureText: true,
                                       decoration: new InputDecoration(
                                         labelText: "Enter Old Password",
@@ -196,7 +198,7 @@ class SettingScreenState extends State<SettingScreen> {
                                     style: TextStyle(
                                         fontFamily: 'Lato',
                                         fontSize:
-                                            18 * screenWidth / pixelTwoWidth),
+                                            Sizer.getTextSize(screenWidth, screenHeight, 17)),
                                     obscureText: true,
                                     decoration: new InputDecoration(
                                         labelText: "Enter New Password"),
@@ -219,7 +221,7 @@ class SettingScreenState extends State<SettingScreen> {
                                   style: TextStyle(
                                       fontFamily: 'Lato',
                                       fontSize:
-                                          18 * screenWidth / pixelTwoWidth,
+                                          Sizer.getTextSize(screenWidth, screenHeight, 18),
                                       color: Colors.blue),
                                 ),
                                 onPressed: () {
@@ -241,8 +243,10 @@ class SettingScreenState extends State<SettingScreen> {
                             leading: Icon(Icons.lock, color: Colors.black),
                             title: Text(
                               "Change Password",
+                              
                               style: TextStyle(
-                                  fontSize: 20 * screenWidth / pixelTwoWidth),
+                                fontFamily: "Lato",
+                                  fontSize: Sizer.getTextSize(screenWidth, screenHeight, 19)),
                             ),
                           )),
                         ),
@@ -255,9 +259,10 @@ class SettingScreenState extends State<SettingScreen> {
                             leading: Icon(Icons.radio_button_checked,
                                 color: Colors.black),
                             title: Text(
-                              "Change Autofill Settings",
+                              "Auto-Fill Settings",
                               style: TextStyle(
-                                  fontSize: 20 * screenWidth / pixelTwoWidth),
+                                fontFamily: 'Lato',
+                                  fontSize: Sizer.getTextSize(screenWidth, screenHeight, 19)),
                             ),
                             trailing: IconButton(
                               icon: Icon(Icons.remove, color: Colors.black),
@@ -290,13 +295,13 @@ class SettingScreenState extends State<SettingScreen> {
                                 ),
                                 Text(
                                   _isAutoLoginEnabled
-                                      ? "Autofill is enabled"
-                                      : "Autofill is disabled",
+                                      ? "Auto-Fill is enabled"
+                                      : "Auto-Fill is disabled",
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                       fontFamily: 'Lato',
                                       fontSize:
-                                          18 * screenWidth / pixelTwoWidth,
+                                          Sizer.getTextSize(screenWidth, screenHeight, 18),
                                       color: _isAutoLoginEnabled
                                           ? Colors.blue
                                           : Colors.red),
@@ -316,9 +321,10 @@ class SettingScreenState extends State<SettingScreen> {
                           leading: Icon(Icons.radio_button_checked,
                               color: Colors.black),
                           title: Text(
-                            "Change Autofill Settings",
+                            "Auto-Fill Settings",
                             style: TextStyle(
-                                fontSize: 20 * screenWidth / pixelTwoWidth),
+                              fontFamily: 'Lato',
+                                fontSize: Sizer.getTextSize(screenWidth, screenHeight, 19)),
                           ),
                         )),
                       )

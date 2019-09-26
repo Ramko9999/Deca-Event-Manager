@@ -6,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:deca_app/screens/admin/finder.dart';
 import 'package:deca_app/screens/admin/templates.dart';
 import 'package:deca_app/utility/InheritedInfo.dart';
+import 'package:deca_app/utility/format.dart';
 import 'package:deca_app/utility/notifiers.dart';
 import 'package:firebase_ml_vision/firebase_ml_vision.dart';
 import 'package:flutter/cupertino.dart';
@@ -271,14 +272,14 @@ class _ScannerState extends State<Scanner> {
                 children: <Widget>[
                   Container(
                     padding: new EdgeInsets.only(top: 10.0, bottom: 10.0),
-                    width: screenWidth - 50,
-                    height: 75,
+                    width: screenWidth * 0.84,
+                    height: screenHeight * 0.12,
                     child: Row(
                       children: <Widget>[
                         Expanded(
                             flex: 7,
                             child: Container(
-                              height: 50,
+                               height: screenHeight * 0.2,
                               child: RaisedButton(
                                 onPressed: () =>
                                     setState(() => updateButtons('QR')),
@@ -286,7 +287,7 @@ class _ScannerState extends State<Scanner> {
                                   "QR Reader",
                                   textAlign: TextAlign.center,
                                   style: new TextStyle(
-                                    fontSize: 15,
+                                    fontSize: Sizer.getTextSize(screenWidth, screenHeight, 18)
                                   ),
                                 ),
                                 shape: RoundedRectangleBorder(
@@ -299,14 +300,14 @@ class _ScannerState extends State<Scanner> {
                         Expanded(
                             flex: 7,
                             child: Container(
-                              height: 50,
+                              height: screenHeight * 0.2,
                               child: RaisedButton(
                                 onPressed: () =>
                                     setState(() => updateButtons('S')),
                                 child: Text("Searcher",
                                     textAlign: TextAlign.center,
                                     style: new TextStyle(
-                                      fontSize: 15,
+                                      fontSize: Sizer.getTextSize(screenWidth, screenHeight, 18),
                                     )),
                                 shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(10)),
@@ -348,7 +349,7 @@ class _ScannerState extends State<Scanner> {
                     ),
                   if (_isSearcher)
                     Container(
-                      width: screenWidth - 50,
+                      width: screenWidth * 0.92,
                       height: screenHeight * 0.7,
                       padding: EdgeInsets.fromLTRB(0, 0, 0, 20),
                       child: Finder(
@@ -360,11 +361,12 @@ class _ScannerState extends State<Scanner> {
                               'QE') {
                             stateContainer.updateGP(userInfo['uid']);
                             Scaffold.of(context).showSnackBar(SnackBar(
+                              duration: Duration(seconds: 1),
                               content: Text(
                                 "Succesfully added ${stateContainer.eventMetadata['gold_points'].toString()} to ${userInfo['first_name']}",
                                 style: TextStyle(
                                     fontFamily: 'Lato',
-                                    fontSize: 20,
+                                    fontSize: Sizer.getTextSize(screenWidth, screenHeight, 20),
                                     color: Colors.white),
                               ),
                               backgroundColor: Colors.green,
@@ -392,8 +394,8 @@ class _ScannerState extends State<Scanner> {
             GestureDetector(
               child: Center(
                 child: Container(
-                  width: screenWidth - 50,
-                  height: screenHeight - 250,
+                  width: screenWidth * 0.8,
+                  height: screenHeight  * 0.4,
                   padding: EdgeInsets.fromLTRB(0, 0, 0, 20),
                   child: new ManualEnterPopup(),
                 ),

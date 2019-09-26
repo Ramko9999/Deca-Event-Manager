@@ -1,6 +1,7 @@
 import 'package:deca_app/screens/admin/templates.dart';
 import 'package:deca_app/screens/profile/profile_screen.dart';
 import 'package:deca_app/utility/InheritedInfo.dart';
+import 'package:deca_app/utility/format.dart';
 import 'package:deca_app/utility/global.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -209,12 +210,12 @@ class GPInfoScreenState extends State<GPInfoScreen> {
   String filterType;
 
   ListView _buildEventList(context, eventSnapshot, userSnapshot) {
-    double screenWidth = MediaQuery.of(context).size.width;
-    double screenHeight = MediaQuery.of(context).size.height;
-    double pixelTwoWidth = 411.42857142857144;
-    double pixelTwoHeight = 683.4285714285714;
+    double sW = MediaQuery.of(context).size.width;
+    double sH = MediaQuery.of(context).size.height;
+    
 
     eventList = filter(eventSnapshot, userSnapshot);
+
 
     return ListView.builder(
       // Must have an item count equal to the number of items!
@@ -229,12 +230,12 @@ class GPInfoScreenState extends State<GPInfoScreen> {
                 textAlign: TextAlign.left,
                 style: new TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 20 * screenWidth / pixelTwoWidth)),
+                    fontSize: Sizer.getTextSize(sW, sH, 20))),
             subtitle: Text(event['event_type']),
             trailing: Text(eventList[i].gp.toString(),
                 textAlign: TextAlign.center,
                 style: new TextStyle(
-                    fontSize: 20 * screenWidth / pixelTwoWidth,
+                    fontSize: Sizer.getTextSize(sW, sH, 20) ,
                     color: Colors.black,
                     fontWeight: FontWeight.bold)),
           ),
@@ -247,7 +248,7 @@ class GPInfoScreenState extends State<GPInfoScreen> {
     List<EventObject> eventList = [];
     Map userMetadata = userSnapshot.data as Map;
 
-    if (!userMetadata.isEmpty) {
+    if (userMetadata.isNotEmpty) {
       for (DocumentSnapshot event in eventSnapshot) {
         for (String userEvent in userMetadata['events'].keys) {
           if (event['event_name'] == userEvent) {
@@ -269,9 +270,17 @@ class GPInfoScreenState extends State<GPInfoScreen> {
           'Competition': [],
           'Committee': [],
           'Cookie Store': [],
-          'Miscellaneous': []
+          'Miscellaneous': [],
         };
         for (EventObject element in eventList) {
+          try{
+            assert(eventSortedList[element.eventType] != null);
+          
+          }
+          catch(e){
+            print(element.eventType);
+          }
+          
           eventSortedList[element.eventType].add(element);
         }
         List<EventObject> finalEventSortedList = [];
@@ -305,7 +314,7 @@ class GPInfoScreenState extends State<GPInfoScreen> {
         children: <Widget>[
           Center(
             child: Container(
-              padding: EdgeInsets.fromLTRB(0, 0, 15, 0),
+              alignment: Alignment.topCenter,
               child: ActionChip(
                   avatar: (filterType == null)
                       ? Icon(Icons.event)
@@ -344,7 +353,7 @@ class GPInfoScreenState extends State<GPInfoScreen> {
                           return Center(
                             child: Container(
                               padding: EdgeInsets.fromLTRB(0, 10, 0, 0),
-                              height: screenHeight * 0.8,
+                              height: screenHeight * 0.7,
                               width: screenWidth * 0.9,
                               child:
                                   _buildEventList(context, eventSnap, userSnap),

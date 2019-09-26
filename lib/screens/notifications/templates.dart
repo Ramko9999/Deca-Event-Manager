@@ -17,6 +17,7 @@ class NotificationUI extends StatefulWidget {
 
 class NotificationUIState extends State<NotificationUI> {
   NotificationUIState();
+  
 
   Widget build(BuildContext context) {
     StateContainer.of(context).notificationCounter = 0;
