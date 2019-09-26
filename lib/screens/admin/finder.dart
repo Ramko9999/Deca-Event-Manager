@@ -173,10 +173,6 @@ class ManualEnterPopupState extends State<ManualEnterPopup> {
     pointController.text = 0.toString();
   }
 
-  void addGPManual() {}
-
-  void addGPQuick() {}
-
   Widget build(BuildContext context) {
     final container = StateContainer.of(context);
     userData = container.userData;

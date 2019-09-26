@@ -3,9 +3,9 @@
 <plist version="1.0">
 <dict>
 	<key>CLIENT_ID</key>
-	<string>903268686608-a0pv56gna2ibmb7velv20esc8thoh6ge.apps.googleusercontent.com</string>
+	<string>903268686608-nmjore5lijfhihkrranvs67l3bun2vac.apps.googleusercontent.com</string>
 	<key>REVERSED_CLIENT_ID</key>
-	<string>com.googleusercontent.apps.903268686608-a0pv56gna2ibmb7velv20esc8thoh6ge</string>
+	<string>com.googleusercontent.apps.903268686608-nmjore5lijfhihkrranvs67l3bun2vac</string>
 	<key>API_KEY</key>
 	<string>AIzaSyCQ7RNHQ0rXYNiLFwFrqkYKcloxyHOApIU</string>
 	<key>GCM_SENDER_ID</key>
@@ -13,7 +13,7 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.deca.decaAppEP</string>
+	<string>edu.ephs2019.deca</string>
 	<key>PROJECT_ID</key>
 	<string>deca-app</string>
 	<key>STORAGE_BUCKET</key>
@@ -29,7 +29,7 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:903268686608:ios:7b989cc1140fa117</string>
+	<string>1:903268686608:ios:2b1757597daaf2e20a6395</string>
 	<key>DATABASE_URL</key>
 	<string>https://deca-app.firebaseio.com</string>
 </dict>

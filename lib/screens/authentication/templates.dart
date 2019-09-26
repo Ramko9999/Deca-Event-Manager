@@ -385,7 +385,7 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
         "last_name": _lastName,
         "gold_points": 0,
         "events": {},
-        "groups": ['none'],
+        "groups": [],
         "uid": userId,
         "device-token": messagingToken
       }).then((_) /* call back for creating a users document*/ {

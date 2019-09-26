@@ -282,13 +282,13 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   BoringSSL-GRPC: db8764df3204ccea016e1c8dd15d9a9ad63ff318
   camera: d56ad165545ae5a0ffb892376033760a969c68c8
-  cloud_firestore: 41f84086d2e1a5c216a6af07ef050758de825ff0
+  cloud_firestore: 0ac494d23db743f104b95d3291946afec187b74c
   connectivity: c72716e202a1225ec4810740d5cb56b8ae3bf4cc
   Firebase: a2b5951f30ff38fd3b3bdae9c7d340f940fd3c51
-  firebase_auth: a40261b555156aefc809c353488f9b7ca94005f9
-  firebase_core: b3b02d0b5e9d01aab5e50ba7cbcf84c73cb6883c
-  firebase_messaging: 74e9d76acfbdff96a3f9f570f463a2b2bc784bf5
-  firebase_ml_vision: af45e6730db9be6b6fa2a50292899f65ecfa8777
+  firebase_auth: 1e3b7bdd37b9fbd4ef75ba1d985b00be09e02d3d
+  firebase_core: ae55ea92448ec8675d325da4db22cf3b4d58a54d
+  firebase_messaging: 0d5c04cc40f58bd4bf7f2992c91050f9bc01bec3
+  firebase_ml_vision: d09b1eb3c242cf8124db4d51c0927376e3dbd9f4
   FirebaseAnalytics: 48414ae5cbf6976d8a2f7177e0466540e5ab33ce
   FirebaseAnalyticsInterop: 0f250d71e8741352407a8db351e6de78c5c56d35
   FirebaseAuth: 2be1924ddbc741fe2a02cb6963ca747e09a2e05c
@@ -303,7 +303,7 @@ SPEC CHECKSUMS:
   FirebaseMLCommon: b236f9bc8a020d4c36744d6e402b2fb9d6fe3f6d
   FirebaseMLVision: ff6a597d10017c5dfe1cc6d24293b77f84808060
   FirebaseMLVisionBarcodeModel: 4ac90a8ed5a92e1ed8d9278b92d794230a01dd16
-  Flutter: 58dd7d1b27887414a370fcccb9e645c08ffd7a6a
+  Flutter: 0e3d915762c693b495b44d77113d4970485de6ec
   flutter_local_notifications: 9e4738ce2471c5af910d961a6b7eadcf57c50186
   GoogleAPIClientForREST: 44c7b678cbab11d26a47eab7309d6179b1a61f0c
   GoogleAppMeasurement: 47285fa897e5a125df56b9ef8750a1d81e4598a8
