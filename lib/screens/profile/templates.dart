@@ -289,7 +289,7 @@ class GPInfoScreenState extends State<GPInfoScreen> {
   @override
   Widget build(BuildContext context) {
     final container = StateContainer.of(context);
-    _uid = container.uid;
+    _uid = Global.uid;
     filterType = container.filterType;
 
     double screenWidth = MediaQuery.of(context).size.width;
@@ -297,7 +297,6 @@ class GPInfoScreenState extends State<GPInfoScreen> {
     double pixelTwoWidth = 411.42857142857144;
     double pixelTwoHeight = 683.4285714285714;
 
-    // TODO: implement build
     return Scaffold(
       appBar: AppBar(
         title: Text('Events Attended'),

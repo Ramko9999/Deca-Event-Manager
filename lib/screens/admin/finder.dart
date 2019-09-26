@@ -9,10 +9,14 @@ import 'package:auto_size_text/auto_size_text.dart';
 class Finder extends StatefulWidget {
   Widget alert; //an alert widget to pop up when a card is tapped
   Function tapCallback; // a callback when a card is tapped
+  Widget title;
+  Widget subtitle;
+  Widget trailing;
 
-  Finder(Function t, [Widget a]) {
+  Finder(Function t, {Widget a}) {
     this.alert = a;
     this.tapCallback = t;
+    
   }
 
   State<Finder> createState() {
@@ -137,14 +141,13 @@ class FinderState extends State<Finder> {
               },
               leading: Icon(Icons.person, color: Colors.black),
               title: Text(
-                userInfo['first_name'] + " " + userInfo['last_name'],
+                userInfo['first_name'].toString() + " " + userInfo['last_name'].toString(),
                 style: TextStyle(fontFamily: 'Lato', fontSize: 20),
               ),
-              subtitle: Text(
+              trailing:  Text(
                 userInfo['gold_points'].toString(),
-                style: TextStyle(fontFamily: 'Lato', fontSize: 15),
+                style: TextStyle(fontFamily: 'Lato', fontSize: 20, color: Color.fromARGB(255, 249, 166, 22)),
               ),
-              trailing: Icon(Icons.add, color: Colors.black),
             ),
           );
           current = current.next;

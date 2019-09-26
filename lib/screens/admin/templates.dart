@@ -553,6 +553,7 @@ class EditMemberUIState extends State<EditMemberUI>
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
     return Scaffold(
+        resizeToAvoidBottomInset: false,
           appBar: new AppBar(
             title: Text("Edit a Member"),
             leading: IconButton(
@@ -568,91 +569,31 @@ class EditMemberUIState extends State<EditMemberUI>
               ),
             ],
           ),
-          body: Center(
-            child: Container(
-              width: screenWidth * 0.9,
-              height: screenHeight * 0.9,
-              child: Column(children: <Widget>[
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(0, 0, 0, 15),
-                  child: Row(
-                    children: <Widget>[
-                      Expanded(
-                        child: Container(
-                          child: TextField(
-                            controller: _firstName,
-                            decoration: InputDecoration(labelText: "First Name"),
-                          ),
-                        ),
+          body: Stack(
+            children: <Widget>[
+              Center(
+                child: Container(
+                  width: screenWidth * 0.9,
+                  height: screenHeight * 0.9,
+                  child: Column(children: <Widget>[
+                    
+                    Container(
+                       height: screenHeight * 0.7,
+                       width: screenWidth * 0.85,
+                      child: Finder(
+                        (BuildContext context,
+                                StateContainerState stateContainer, Map userInfo){
+                                  stateContainer.setUserData(userInfo);                     }
                       ),
-                      Expanded(
-                        child: TextField(
-                          controller: _lastName,
-                          decoration: InputDecoration(labelText: "Last Name"),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Flexible(
-                    child: userDocs == null
-                        ? CircularProgressIndicator()
-                        : getList(context)),
-              ]),
+                    )
+                  ]),
     ),
+              ),
+              if(StateContainer.of(context).isThereConnectionError)
+                ConnectionError()
+            ],
           ),
         );
-  }
-
-  //fetches the users in an order relevant way
-  MaxList getData() {
-    List<Map> userList = [];
-    //turn this into map with uid and names
-    for (int i = 0; i < userDocs.length; i++) {
-      Map userData = userDocs[i].data;
-      userList.add(userData);
-    }
-
-    Searcher searcher = new Searcher(userList, _firstName.text, _lastName.text);
-    MaxList relevanceList = searcher.search();
-    return relevanceList;
-  }
-
-  //builds list
-  Widget getList(BuildContext context) {
-    MaxList list = getData();
-    final infoContainer = StateContainer.of(context);
-    Node current = list.head;
-    return ListView.builder(
-        shrinkWrap: true,
-        itemCount: list.getSize(),
-        itemBuilder: (context, i) {
-          if (list.getSize() == 0) {
-            return CircularProgressIndicator();
-          }
-          if (current == null) {
-            return CircularProgressIndicator();
-          }
-          Map userInfo = current.element['info'];
-          Card c = Card(
-            child: ListTile(
-              onTap: () {
-                infoContainer.setUserData(userInfo);
-              },
-              leading: Icon(Icons.person, color: Colors.black),
-              title: Text(
-                userInfo['first_name'].toString() + " " + userInfo['last_name'].toString(),
-                style: TextStyle(fontFamily: 'Lato', fontSize: 20),
-              ),
-              trailing:  Text(
-                userInfo['gold_points'].toString(),
-                style: TextStyle(fontFamily: 'Lato', fontSize: 20, color: Color.fromARGB(255, 249, 166, 22)),
-              ),
-            ),
-          );
-          current = current.next;
-          return c;
-        });
   }
 }
 

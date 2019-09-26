@@ -374,7 +374,7 @@ class _ScannerState extends State<Scanner> {
                           }
                         },
                         //alert widget argument, optional
-                        GestureDetector(
+                        a: GestureDetector(
                           onTap: () {
                             container.setIsCardTapped(false);
                           },
