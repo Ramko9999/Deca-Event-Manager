@@ -485,7 +485,7 @@ class _AdminUIState extends State<AdminScreenUI> {
                 )),
                 Card(
                     child: ListTile(
-                  leading: Icon(Icons.supervisor_account),
+                  leading: Icon(Icons.person),
                   title: Text('Edit Members'),
                   onTap: () => Navigator.push(context,
                       NoTransition(builder: (context) => EditMemberUI())),
@@ -569,95 +569,20 @@ class EditMemberUIState extends State<EditMemberUI> {
         child: Container(
           width: screenWidth * 0.9,
           height: screenHeight * 0.9,
-          child: Column(children: <Widget>[
-            Padding(
-              padding: const EdgeInsets.fromLTRB(0, 0, 0, 15),
-              child: Row(
-                children: <Widget>[
-                  Expanded(
-                    child: Container(
-                      child: TextField(
-                        controller: _firstName,
-                        decoration: InputDecoration(labelText: "First Name"),
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    child: TextField(
-                      controller: _lastName,
-                      decoration: InputDecoration(labelText: "Last Name"),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Flexible(
-                child: userDocs == null
-                    ? CircularProgressIndicator()
-                    : getList(context)),
-          ]),
+          child: Finder(
+            (BuildContext context, StateContainerState infoContainer, Map userData){
+              infoContainer.setUserData(userData);
+              Navigator.push(context,
+                    NoTransition(builder: (context) => new EditMemberProfileUI()));
+            }
+          ),
         ),
       ),
     );
   }
 
-  //fetches the users in an order relevant way
-  MaxList getData() {
-    List<Map> userList = [];
-    //turn this into map with uid and names
-    for (int i = 0; i < userDocs.length; i++) {
-      Map userData = userDocs[i].data;
-      userList.add(userData);
-    }
 
-    Searcher searcher = new Searcher(userList, _firstName.text, _lastName.text);
-    MaxList relevanceList = searcher.search();
-    return relevanceList;
-  }
-
-  //builds list
-  Widget getList(BuildContext context) {
-    MaxList list = getData();
-    final infoContainer = StateContainer.of(context);
-    Node current = list.head;
-    return ListView.builder(
-        shrinkWrap: true,
-        itemCount: list.getSize(),
-        itemBuilder: (context, i) {
-          if (list.getSize() == 0) {
-            return CircularProgressIndicator();
-          }
-          if (current == null) {
-            return CircularProgressIndicator();
-          }
-          Map userInfo = current.element['info'];
-          Card c = Card(
-            child: ListTile(
-              onTap: () {
-                infoContainer.setUserData(userInfo);
-                Navigator.push(context,
-                    NoTransition(builder: (context) => new EditMemberProfileUI()));
-              },
-              leading: Icon(Icons.person, color: Colors.black),
-              title: Text(
-                userInfo['first_name'].toString() +
-                    " " +
-                    userInfo['last_name'].toString(),
-                style: TextStyle(fontFamily: 'Lato', fontSize: 20),
-              ),
-              trailing: Text(
-                userInfo['gold_points'].toString(),
-                style: TextStyle(
-                    fontFamily: 'Lato',
-                    fontSize: 20,
-                    color: Color.fromARGB(255, 249, 166, 22)),
-              ),
-            ),
-          );
-          current = current.next;
-          return c;
-        });
-  }
+  
 }
 
 
@@ -1046,13 +971,7 @@ class EditMemberProfileUI extends StatelessWidget {
           leading: IconButton(
               icon: Icon(Icons.arrow_back_ios),
               onPressed: () => {Navigator.pop(context)}),
-          actions: <Widget>[
-            IconButton(
-              icon: Icon(Icons.settings),
-              onPressed: () => Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => new SettingScreen())),
-            ),
-          ],
+         
         ),
         body: StreamBuilder(
           //connecting to firebase and gathering user data
