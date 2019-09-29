@@ -62,35 +62,37 @@ class FinderState extends State<Finder> {
 
     return Stack(
       children: <Widget>[
-        Container(
-          width: screenWidth,
-          child: Column(children: <Widget>[
-            Padding(
-              padding: const EdgeInsets.fromLTRB(0, 0, 0, 15),
-              child: Row(
-                children: <Widget>[
-                  Expanded(
-                    child: Container(
-                      child: TextField(
-                        controller: _firstName,
-                        decoration: InputDecoration(labelText: "First Name"),
+        Center(
+          child: Container(
+            width: screenWidth * .9,
+            child: Column(children: <Widget>[
+              Padding(
+                padding: const EdgeInsets.fromLTRB(0, 0, 0, 15),
+                child: Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: Container(
+                        child: TextField(
+                          controller: _firstName,
+                          decoration: InputDecoration(labelText: "First Name"),
+                        ),
                       ),
                     ),
-                  ),
-                  Expanded(
-                    child: TextField(
-                      controller: _lastName,
-                      decoration: InputDecoration(labelText: "Last Name"),
+                    Expanded(
+                      child: TextField(
+                        controller: _lastName,
+                        decoration: InputDecoration(labelText: "Last Name"),
+                      ),
                     ),
-                  ),
-                ]
+                  ]
+                ),
               ),
-            ),
-            Flexible(
-                child: userDocs == null
-                    ? CircularProgressIndicator()
-                    : getList(context)),
-          ]),
+              Flexible(
+                  child: userDocs == null
+                      ? CircularProgressIndicator()
+                      : getList(context)),
+            ]),
+          ),
         ),
         if (container.isCardTapped)
           //this will most likely execute for gold points and never will execute for adding groups
@@ -179,50 +181,54 @@ class ManualEnterPopupState extends State<ManualEnterPopup> {
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
 
-    return AlertDialog(
-      title: AutoSizeText(
-        "Add GP to " + userData['first_name'],
-        maxLines: 1,
-      ),
-      content: Container(
-        width: screenWidth * 0.10,
-        child: TextField(
-          style: TextStyle(fontFamily: 'Lato'),
-          textAlign: TextAlign.center,
-          decoration: new InputDecoration(
-            labelText: "GP",
-            border: new OutlineInputBorder(
-              borderRadius: new BorderRadius.circular(10.0),
-              borderSide: new BorderSide(color: Colors.blue),
+    return Center(
+      child: Container(
+        width: screenWidth * 0.7,
+        height: screenHeight * 0.5,
+        child: AlertDialog(
+          title: AutoSizeText(
+            "Add GP to " + userData['first_name'],
+            maxLines: 1,
+          ),
+          content: Container(
+            child: TextField(
+              style: TextStyle(fontFamily: 'Lato'),
+              textAlign: TextAlign.center,
+              decoration: new InputDecoration(
+                labelText: "GP",
+                border: new OutlineInputBorder(
+                  borderRadius: new BorderRadius.circular(10.0),
+                  borderSide: new BorderSide(color: Colors.blue),
+                ),
+              ),
+              keyboardType: TextInputType.number,
+              controller: pointController,
             ),
           ),
-          keyboardType: TextInputType.number,
-          controller: pointController,
+          actions: <Widget>[
+            FlatButton(
+              child: Text("Submit", style: TextStyle(color: Colors.blue)),
+              onPressed: () {
+                String userUID = userData['uid'];
+                int points = int.parse(pointController.text);
+                if(points > 0){
+                  container.updateGP(userUID, points);
+                Scaffold.of(context).showSnackBar(SnackBar(
+                  content: Text(
+                    "Succesfully added ${points.toString()} to ${userData['first_name']}",
+                    style: TextStyle(
+                        fontFamily: 'Lato', fontSize: Sizer.getTextSize(screenWidth, screenHeight, 20), color: Colors.white),
+                  ),
+                  backgroundColor: Colors.green,
+                ));
+                container.setIsCardTapped(false);
+                container.setIsManualEnter(false);
+                }
+              },
+            )
+          ],
         ),
       ),
-      actions: <Widget>[
-        FlatButton(
-          child: Text("Submit", style: TextStyle(color: Colors.blue)),
-          onPressed: () {
-            String userUID = userData['uid'];
-            int points = int.parse(pointController.text);
-            if(points > 0){
-              container.updateGP(userUID, points);
-            Scaffold.of(context).showSnackBar(SnackBar(
-              content: Text(
-                "Succesfully added ${points.toString()} to ${userData['first_name']}",
-                style: TextStyle(
-                    fontFamily: 'Lato', fontSize: Sizer.getTextSize(screenWidth, screenHeight, 20), color: Colors.white),
-              ),
-              backgroundColor: Colors.green,
-            ));
-            container.setIsCardTapped(false);
-            container.setIsManualEnter(false);
-            }
-            
-          },
-        )
-      ],
     );
   }
 }

@@ -16,6 +16,8 @@ import 'package:intl/intl.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
+import 'finderscreen.dart';
+
 class CreateEventUI extends StatefulWidget {
   CreateEventUI();
 
@@ -81,7 +83,15 @@ class _CreateEventUIState extends State<CreateEventUI> {
       container.setEventMetadata(eventMetadata);
     }
     Navigator.of(context).pop();
-    Navigator.of(context).push(NoTransition(builder: (context) => Scanner()));
+    if(eventMetadata['enter_type'] == 'ME')
+    {
+      Navigator.of(context)
+          .push(NoTransition(builder: (context) => FinderScreen()));
+    }
+    else {
+      Navigator.of(context)
+          .push(NoTransition(builder: (context) => Scanner()));
+    }
     //clearAll();
   }
 
@@ -564,99 +574,16 @@ class EditMemberUIState extends State<EditMemberUI> {
         ],
       ),
       body: Center(
-        child: Container(
-          width: screenWidth * 0.9,
-          height: screenHeight * 0.9,
-          child: Column(children: <Widget>[
-            Padding(
-              padding: const EdgeInsets.fromLTRB(0, 0, 0, 15),
-              child: Row(
-                children: <Widget>[
-                  Expanded(
-                    child: Container(
-                      child: TextField(
-                        controller: _firstName,
-                        decoration: InputDecoration(labelText: "First Name"),
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    child: TextField(
-                      controller: _lastName,
-                      decoration: InputDecoration(labelText: "Last Name"),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Flexible(
-                child: userDocs == null
-                    ? CircularProgressIndicator()
-                    : getList(context)),
-          ]),
-        ),
+        child: Finder((BuildContext context, StateContainerState stateContainer,
+            Map userInfo) {
+          stateContainer.setUserData(userInfo);
+          Navigator.push(
+              context,
+              NoTransition(
+                  builder: (context) => new EditMemberProfileUI()));
+        })
       ),
     );
-  }
-
-  //fetches the users in an order relevant way
-  MaxList getData() {
-    List<Map> userList = [];
-    //turn this into map with uid and names
-    for (int i = 0; i < userDocs.length; i++) {
-      Map userData = userDocs[i].data;
-      userList.add(userData);
-    }
-
-    Searcher searcher = new Searcher(userList, _firstName.text, _lastName.text);
-    MaxList relevanceList = searcher.search();
-    return relevanceList;
-  }
-
-  //builds list
-  Widget getList(BuildContext context) {
-    MaxList list = getData();
-    final infoContainer = StateContainer.of(context);
-    Node current = list.head;
-    return ListView.builder(
-        shrinkWrap: true,
-        itemCount: list.getSize(),
-        itemBuilder: (context, i) {
-          if (list.getSize() == 0) {
-            return CircularProgressIndicator();
-          }
-          if (current == null) {
-            return CircularProgressIndicator();
-          }
-          Map userInfo = current.element['info'];
-          Card c = Card(
-            child: ListTile(
-              onTap: () {
-                infoContainer.setUserData(userInfo);
-                Navigator.push(
-                    context,
-                    NoTransition(
-                        builder: (context) => new EditMemberProfileUI()));
-              },
-              leading: Icon(Icons.person, color: Colors.black),
-              title: Text(
-                userInfo['first_name'].toString() +
-                    " " +
-                    userInfo['last_name'].toString(),
-                style: TextStyle(fontFamily: 'Lato', fontSize: 20),
-              ),
-              trailing: Text(
-                userInfo['gold_points'].toString(),
-                style: TextStyle(
-                    fontFamily: 'Lato',
-                    fontSize: 20,
-                    color: Color.fromARGB(255, 249, 166, 22)),
-              ),
-            ),
-          );
-          current = current.next;
-          return c;
-        });
   }
 }
 
@@ -832,8 +759,15 @@ class _EditEventUIState extends State<EditEventUI> {
             onTap: () {
               final container = StateContainer.of(context);
               container.setEventMetadata(eventInfo.data);
-              Navigator.of(context)
-                  .push(NoTransition(builder: (context) => Scanner()));
+              if(eventInfo.data['enter_type'] == 'ME')
+                {
+                  Navigator.of(context)
+                      .push(NoTransition(builder: (context) => FinderScreen()));
+                }
+              else {
+                Navigator.of(context)
+                    .push(NoTransition(builder: (context) => Scanner()));
+              }
             },
           ),
         );
@@ -1411,7 +1345,7 @@ class EditGPInfoScreenState extends State<EditGPInfoScreen> {
               {
                 if(eventItem.info['event_name'] != event['event_name'])
                 {
-                  newMap.addAll({eventItem.info['event_name']:eventItem.info['gold_points']});
+                  newMap.addAll({eventItem.info['event_name']:eventItem.gp});
                 }
               }
               Firestore.instance.collection('Users').document(_uid).updateData({'events': newMap}).whenComplete((){
