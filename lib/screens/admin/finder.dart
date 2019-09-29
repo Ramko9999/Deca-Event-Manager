@@ -16,7 +16,6 @@ class Finder extends StatefulWidget {
   Finder(Function t, {Widget a}) {
     this.alert = a;
     this.tapCallback = t;
-    
   }
 
   State<Finder> createState() {
@@ -145,12 +144,19 @@ class FinderState extends State<Finder> {
               },
               leading: Icon(Icons.person, color: Colors.black),
               title: Text(
-                userInfo['first_name'].toString() + " " + userInfo['last_name'].toString(),
-                style: TextStyle(fontFamily: 'Lato', fontSize: Sizer.getTextSize(sW, sH, 20)),
+                userInfo['first_name'].toString() +
+                    " " +
+                    userInfo['last_name'].toString(),
+                style: TextStyle(
+                    fontFamily: 'Lato',
+                    fontSize: Sizer.getTextSize(sW, sH, 20)),
               ),
-              trailing:  Text(
+              trailing: Text(
                 userInfo['gold_points'].toString(),
-                style: TextStyle(fontFamily: 'Lato', fontSize: Sizer.getTextSize(sW, sH, 20), color: Color.fromARGB(255, 249, 166, 22)),
+                style: TextStyle(
+                    fontFamily: 'Lato',
+                    fontSize: Sizer.getTextSize(sW, sH, 20),
+                    color: Color.fromARGB(255, 249, 166, 22)),
               ),
             ),
           );
