@@ -17,6 +17,8 @@ class StateContainerState extends State<StateContainer> {
   int notificationCounter =
       0; //used to show the number of notifications at the bottom
   bool isThereConnectionError = false;
+  bool isThereAnExplicitConnectionError = false;
+  bool isThereANetworkConnectionError = false;
 
   // You can (and probably will) have methods on your StateContainer
   // These methods are then used through our your app to

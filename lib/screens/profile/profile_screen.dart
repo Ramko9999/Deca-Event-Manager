@@ -7,6 +7,7 @@ import 'package:deca_app/screens/admin/templates.dart';
 import 'package:deca_app/screens/notifications/templates.dart';
 import 'package:deca_app/utility/InheritedInfo.dart';
 import 'package:deca_app/utility/global.dart';
+import 'package:deca_app/utility/network.dart';
 import 'package:deca_app/utility/notifiers.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -33,17 +34,44 @@ class ProfileScreenState extends State<ProfileScreen> {
 
   ProfileScreenState();
 
+
+  void startNetworkConnectionStream(){
+    ConnectionStream networkStream = new ConnectionStream();
+    networkStream.startConnectionChecker().listen(
+      (onResponse){
+        if(onResponse == 404){
+          print(404);
+          /*
+          StateContainer.of(context).isThereANetworkConnectionError = true;
+          StateContainer.of(context).setConnectionErrorStatus(true);
+          */
+        }
+        else{
+          print(200);
+          /*
+          StateContainer.of(context).isThereANetworkConnectionError = false;
+          StateContainer.of(context).setConnectionErrorStatus(false);
+          */
+        }
+      
+    });
+  }
+
   //listens to and changes connection status
   void startConnectionStream() {
     //check for connection, and notify different screens of connection issue
 
     Connectivity().onConnectivityChanged.listen((connectionResult) {
-      if (connectionResult == ConnectivityResult.none) {
-        StateContainer.of(context).setConnectionErrorStatus(true);
-      } else {
-        StateContainer.of(context).setConnectionErrorStatus(false);
-      }
+      bool implictError = StateContainer.of(context).isThereANetworkConnectionError;
       
+      if (connectionResult == ConnectivityResult.none) {
+        StateContainer.of(context).isThereAnExplicitConnectionError =true;
+        StateContainer.of(context).setConnectionErrorStatus(true);
+      } 
+      else {
+        StateContainer.of(context).setConnectionErrorStatus(implictError);
+      }
+
     });
   }
 
@@ -51,6 +79,7 @@ class ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     initNotifications();
+    startNetworkConnectionStream();
 
     //put in our app logo here
     AndroidInitializationSettings androidInitSettings =

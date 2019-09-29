@@ -2,6 +2,7 @@ import 'package:connectivity/connectivity.dart';
 import 'package:deca_app/utility/InheritedInfo.dart';
 import 'package:deca_app/utility/format.dart';
 import 'package:deca_app/utility/global.dart';
+import 'package:deca_app/utility/network.dart';
 import 'package:deca_app/utility/notifiers.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -306,6 +307,9 @@ class _LoginTemplateState extends State<LoginTemplate> {
                               //logging into firebase
                               if (_loginFormKey.currentState.validate() &&
                                   !_isLogginIn) {
+                                     ConnectionStream cs = new ConnectionStream();
+
+            cs.quickCheckConnection().then((status)=> print("Status is $status"));
                                 tryToLogin();
                               }
                             },
@@ -439,6 +443,8 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
           if (connectionState == ConnectivityResult.none) {
             throw Exception("Phone is not connected to wifi");
           } else {
+
+           
             executeRegistration();
           }
         }).catchError((connectionError) {
