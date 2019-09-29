@@ -8,7 +8,6 @@ import 'package:deca_app/screens/notifications/templates.dart';
 import 'package:deca_app/utility/InheritedInfo.dart';
 import 'package:deca_app/utility/global.dart';
 import 'package:deca_app/utility/notifiers.dart';
-
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:deca_app/screens/settings/setting_screen.dart';
@@ -18,6 +17,7 @@ import 'package:material_design_icons_flutter/material_design_icons_flutter.dart
 import 'package:deca_app/screens/code/qr_screen.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:path_provider/path_provider.dart';
+
 
 class ProfileScreen extends StatefulWidget {
   ProfileScreen();
@@ -43,6 +43,7 @@ class ProfileScreenState extends State<ProfileScreen> {
       } else {
         StateContainer.of(context).setConnectionErrorStatus(false);
       }
+      
     });
   }
 
@@ -64,26 +65,23 @@ class ProfileScreenState extends State<ProfileScreen> {
     //listen for notifications on profile screen due to the fact profile screen will never be popped out of navigator
     final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
 
-    _firebaseMessaging.configure(
-      onLaunch: (notification) {
+    _firebaseMessaging.configure(onLaunch: (notification) {
       print("On Launch");
-     
-     //append notification
-    StateContainer.of(context).addToNotifications(notification);
-    Global.notificationDataFile.writeAsStringSync(json.encode(StateContainer.of(context).notifications));
 
-
+      //append notification
+      StateContainer.of(context).addToNotifications(notification);
+      Global.notificationDataFile.writeAsStringSync(
+          json.encode(StateContainer.of(context).notifications));
     }, onMessage: (notification) {
       print("On Message");
       scheduleLocalNotification(notification);
-     
     }, onResume: (notification) {
       print("On Resume");
-    
-    //append notification
-    StateContainer.of(context).addToNotifications(notification);
-    Global.notificationDataFile.writeAsStringSync(json.encode(StateContainer.of(context).notifications));
- 
+
+      //append notification
+      StateContainer.of(context).addToNotifications(notification);
+      Global.notificationDataFile.writeAsStringSync(
+          json.encode(StateContainer.of(context).notifications));
     });
 
     startConnectionStream();
@@ -118,7 +116,8 @@ class ProfileScreenState extends State<ProfileScreen> {
   void scheduleLocalNotification(Map notification) async {
     //used for scheduling as well as displaying notifications
     StateContainer.of(context).addToNotifications(notification);
-    Global.notificationDataFile.writeAsStringSync(json.encode(StateContainer.of(context).notifications));
+    Global.notificationDataFile.writeAsStringSync(
+        json.encode(StateContainer.of(context).notifications));
 
     //init settings
     AndroidNotificationDetails androidSettings = AndroidNotificationDetails(
@@ -203,7 +202,10 @@ class ProfileScreenState extends State<ProfileScreen> {
             icon: numOfNotifications != 0
                 ? Stack(
                     children: <Widget>[
-                      Icon(Icons.notifications, color: Colors.blue,),
+                      Icon(
+                        Icons.notifications,
+                        color: Colors.blue,
+                      ),
                       Positioned(
                         right: 0,
                         top: 10,

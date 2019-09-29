@@ -677,81 +677,84 @@ class ForgotPasswordTemplateState extends State<ForgotPasswordTemplate> {
               ),
             ),
           ),
-        
-         if(_isEmailSent)
+          if (_isEmailSent)
             Padding(
-                padding: EdgeInsets.only(top: screenHeight * 0.03, bottom: screenHeight * 0.06),
-                child: Container(
-                  child: Text(
-                    "We have sent an email to ${email.text}. It should have intrsuctions on how to reset your password.",
-                    textAlign: TextAlign.center,
+              padding: EdgeInsets.only(
+                  top: screenHeight * 0.03, bottom: screenHeight * 0.06),
+              child: Container(
+                child: Text(
+                  "We have sent an email to ${email.text}. It should have intrsuctions on how to reset your password.",
+                  textAlign: TextAlign.center,
                   style: TextStyle(
-                    fontFamily: "Lato",
-                    fontSize: Sizer.getTextSize(screenWidth, screenHeight, 14)
-                  ),),
+                      fontFamily: "Lato",
+                      fontSize:
+                          Sizer.getTextSize(screenWidth, screenHeight, 14)),
                 ),
               ),
-         
-         if(!_isEmailSent)
-          Column(
-            children: <Widget>[
-              Padding(
-                padding: EdgeInsets.only(top: screenHeight * 0.03),
-                child: Container(
-                  child: Text(
-                    "Provide us your email address, so that we send you an email to reset your password.",
-                    textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontFamily: "Lato",
-                    fontSize: Sizer.getTextSize(screenWidth, screenHeight, 15)
-                  ),),
-                ),
-              ),
-            Form(
-              key: _formKey,
-              child: Column(
-                children: <Widget>[
-                  Container(
-                    padding: EdgeInsets.only(bottom: screenHeight *0.06, top: screenHeight * 0.06),
-                    width: screenWidth * 0.75,
-                    child: TextFormField(
-                      controller: email,
-                      keyboardType: TextInputType.emailAddress,
-                      decoration: InputDecoration(
-                        icon: Icon(Icons.email),
-                        labelText: "Email"
-                      ),
-                      validator: (val) {
-                        bool isThereAnAt = val.contains('@');
-                        bool isThereADot = val.contains(".");
-                        if(val.length == 0){
-                          return "No Email";
-                        }
-                        if (!isThereADot || !isThereAnAt) {
-                          return "Invalid Email";
-                        }
-
-                        return null;
-                      },
+            ),
+          if (!_isEmailSent)
+            Column(
+              children: <Widget>[
+                Padding(
+                  padding: EdgeInsets.only(top: screenHeight * 0.03),
+                  child: Container(
+                    child: Text(
+                      "Provide us your email address, so that we send you an email to reset your password.",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                          fontFamily: "Lato",
+                          fontSize:
+                              Sizer.getTextSize(screenWidth, screenHeight, 15)),
                     ),
                   ),
-                ],
-              )),
-            FlatButton(
-              onPressed: (){
-                if(_formKey.currentState.validate()){
-                  sendEmail();
-                }
-              },
-              child: Text(
-                "Send Email",
-                style: TextStyle(fontFamily: "Lato", fontSize: Sizer.getTextSize(screenWidth, screenHeight, 16))
-                ,),
-              textColor: Colors.blue,
-            )
-            ],
-          ),
-          
+                ),
+                Form(
+                    key: _formKey,
+                    child: Column(
+                      children: <Widget>[
+                        Container(
+                          padding: EdgeInsets.only(
+                              bottom: screenHeight * 0.06,
+                              top: screenHeight * 0.06),
+                          width: screenWidth * 0.75,
+                          child: TextFormField(
+                            controller: email,
+                            keyboardType: TextInputType.emailAddress,
+                            decoration: InputDecoration(
+                                icon: Icon(Icons.email), labelText: "Email"),
+                            validator: (val) {
+                              bool isThereAnAt = val.contains('@');
+                              bool isThereADot = val.contains(".");
+                              if (val.length == 0) {
+                                return "No Email";
+                              }
+                              if (!isThereADot || !isThereAnAt) {
+                                return "Invalid Email";
+                              }
+
+                              return null;
+                            },
+                          ),
+                        ),
+                      ],
+                    )),
+                FlatButton(
+                  onPressed: () {
+                    if (_formKey.currentState.validate()) {
+                      sendEmail();
+                    }
+                  },
+                  child: Text(
+                    "Send Email",
+                    style: TextStyle(
+                        fontFamily: "Lato",
+                        fontSize:
+                            Sizer.getTextSize(screenWidth, screenHeight, 16)),
+                  ),
+                  textColor: Colors.blue,
+                )
+              ],
+            ),
         ]));
   }
 }

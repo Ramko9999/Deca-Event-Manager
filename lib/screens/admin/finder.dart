@@ -16,7 +16,6 @@ class Finder extends StatefulWidget {
   Finder(Function t, {Widget a}) {
     this.alert = a;
     this.tapCallback = t;
-    
   }
 
   State<Finder> createState() {
@@ -67,24 +66,22 @@ class FinderState extends State<Finder> {
           child: Column(children: <Widget>[
             Padding(
               padding: const EdgeInsets.fromLTRB(0, 0, 0, 15),
-              child: Row(
-                children: <Widget>[
-                  Expanded(
-                    child: Container(
-                      child: TextField(
-                        controller: _firstName,
-                        decoration: InputDecoration(labelText: "First Name"),
-                      ),
-                    ),
-                  ),
-                  Expanded(
+              child: Row(children: <Widget>[
+                Expanded(
+                  child: Container(
                     child: TextField(
-                      controller: _lastName,
-                      decoration: InputDecoration(labelText: "Last Name"),
+                      controller: _firstName,
+                      decoration: InputDecoration(labelText: "First Name"),
                     ),
                   ),
-                ]
-              ),
+                ),
+                Expanded(
+                  child: TextField(
+                    controller: _lastName,
+                    decoration: InputDecoration(labelText: "Last Name"),
+                  ),
+                ),
+              ]),
             ),
             Flexible(
                 child: userDocs == null
@@ -143,12 +140,19 @@ class FinderState extends State<Finder> {
               },
               leading: Icon(Icons.person, color: Colors.black),
               title: Text(
-                userInfo['first_name'].toString() + " " + userInfo['last_name'].toString(),
-                style: TextStyle(fontFamily: 'Lato', fontSize: Sizer.getTextSize(sW, sH, 20)),
+                userInfo['first_name'].toString() +
+                    " " +
+                    userInfo['last_name'].toString(),
+                style: TextStyle(
+                    fontFamily: 'Lato',
+                    fontSize: Sizer.getTextSize(sW, sH, 20)),
               ),
-              trailing:  Text(
+              trailing: Text(
                 userInfo['gold_points'].toString(),
-                style: TextStyle(fontFamily: 'Lato', fontSize: Sizer.getTextSize(sW, sH, 20), color: Color.fromARGB(255, 249, 166, 22)),
+                style: TextStyle(
+                    fontFamily: 'Lato',
+                    fontSize: Sizer.getTextSize(sW, sH, 20),
+                    color: Color.fromARGB(255, 249, 166, 22)),
               ),
             ),
           );
@@ -206,20 +210,22 @@ class ManualEnterPopupState extends State<ManualEnterPopup> {
           onPressed: () {
             String userUID = userData['uid'];
             int points = int.parse(pointController.text);
-            if(points > 0){
+            if (points > 0) {
               container.updateGP(userUID, points);
-            Scaffold.of(context).showSnackBar(SnackBar(
-              content: Text(
-                "Succesfully added ${points.toString()} to ${userData['first_name']}",
-                style: TextStyle(
-                    fontFamily: 'Lato', fontSize: Sizer.getTextSize(screenWidth, screenHeight, 20), color: Colors.white),
-              ),
-              backgroundColor: Colors.green,
-            ));
-            container.setIsCardTapped(false);
-            container.setIsManualEnter(false);
+              Scaffold.of(context).showSnackBar(SnackBar(
+                content: Text(
+                  "Succesfully added ${points.toString()} to ${userData['first_name']}",
+                  style: TextStyle(
+                      fontFamily: 'Lato',
+                      fontSize:
+                          Sizer.getTextSize(screenWidth, screenHeight, 20),
+                      color: Colors.white),
+                ),
+                backgroundColor: Colors.green,
+              ));
+              container.setIsCardTapped(false);
+              container.setIsManualEnter(false);
             }
-            
           },
         )
       ],

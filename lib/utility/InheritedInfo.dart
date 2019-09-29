@@ -69,18 +69,17 @@ class StateContainerState extends State<StateContainer> {
     });
   }
 
-  void removeNotification(Map notification){
-    setState((){
+  void removeNotification(Map notification) {
+    setState(() {
       this.notifications.remove(notification);
     });
   }
+
   void initNotifications(List notifications) {
     setState(() {
       this.notifications = notifications;
     });
   }
-
-
 
   void setFilterType(String newFilterType) {
     setState(() {
@@ -90,13 +89,13 @@ class StateContainerState extends State<StateContainer> {
 
   void updateGP(String userUniqueId, [int manualGP]) {
     incrementAttendees(userUniqueId).then((_) =>
-        addToEvents(userUniqueId, manualGP).then((_) => syncGPWithEvents(userUniqueId)));
+        addToEvents(userUniqueId, manualGP)
+            .then((_) => syncGPWithEvents(userUniqueId)));
     //adds the current event in eventMetadata state to events field for the user that is parameterized
     //updates gp value to match events field in user
   }
 
-  void syncGPWithEvents(String userUniqueId)
-  {
+  void syncGPWithEvents(String userUniqueId) {
     Firestore.instance
         .collection('Users')
         .document(userUniqueId)
@@ -147,11 +146,11 @@ class StateContainerState extends State<StateContainer> {
   }
 
   Future decrementAttendees(String eventName) async {
-      //decrement the events
-      Firestore.instance
-          .collection('Events')
-          .document(eventName)
-          .updateData({'attendee_count': FieldValue.increment(-1)});
+    //decrement the events
+    Firestore.instance
+        .collection('Events')
+        .document(eventName)
+        .updateData({'attendee_count': FieldValue.increment(-1)});
   }
 
   //adds the current event in eventMetadata state to events field for the user that is parameterized

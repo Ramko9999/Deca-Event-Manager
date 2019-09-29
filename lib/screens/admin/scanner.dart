@@ -37,27 +37,26 @@ class _ScannerState extends State<Scanner> {
     final gpContainer = StateContainer.of(
         _scaffoldKey.currentContext); //This is actually smart as hell
 
-    DocumentSnapshot userSnapshot = await Firestore.instance.collection("Users").document(userUniqueID).get();
+    DocumentSnapshot userSnapshot = await Firestore.instance
+        .collection("Users")
+        .document(userUniqueID)
+        .get();
     gpContainer.setUserData(userSnapshot.data);
 
-
-      if (gpContainer.eventMetadata['enter_type'] == 'ME') {
-        gpContainer.setIsManualEnter(true);
-        return "Ok";
-      } else {
-        gpContainer.updateGP(userUniqueID);
-        String firstName = gpContainer.userData['first_name'];
-        _scaffoldKey.currentState.showSnackBar(SnackBar(
-          backgroundColor: Color.fromRGBO(46, 204, 113, 1),
-          content: Text("Scanned " + firstName),
-          duration: Duration(seconds: 1),
-        ));
+    if (gpContainer.eventMetadata['enter_type'] == 'ME') {
+      gpContainer.setIsManualEnter(true);
       return "Ok";
-      }
-      
+    } else {
+      gpContainer.updateGP(userUniqueID);
+      String firstName = gpContainer.userData['first_name'];
+      _scaffoldKey.currentState.showSnackBar(SnackBar(
+        backgroundColor: Color.fromRGBO(46, 204, 113, 1),
+        content: Text("Scanned " + firstName),
+        duration: Duration(seconds: 1),
+      ));
+      return "Ok";
     }
-  
-  
+  }
 
   void runStream() {
     _scannedUids = new HashSet();
@@ -83,26 +82,18 @@ class _ScannerState extends State<Scanner> {
           .detectInImage(visionImage)
           .then((barcodes) {
         for (Barcode barcode in barcodes) {
-            
-          
-          Future.delayed(
-            Duration(seconds: 2),
-            (){
-              print("Running Future Delayed");
-              if (_scannedUids.add(barcode.rawValue)) {
-                  pushToDB(barcode.rawValue);
-          } else {
-            
+          Future.delayed(Duration(seconds: 2), () {
+            print("Running Future Delayed");
+            if (_scannedUids.add(barcode.rawValue)) {
+              pushToDB(barcode.rawValue);
+            } else {
               _scaffoldKey.currentState.showSnackBar(SnackBar(
                 backgroundColor: Color.fromRGBO(255, 0, 0, 1),
                 content: Text("Already Scanned"),
                 duration: Duration(milliseconds: 250),
               ));
-            
-          }
             }
-          );
-          
+          });
         }
       }).catchError((error) {
         if (error.runtimeType == CameraException) {
@@ -279,7 +270,7 @@ class _ScannerState extends State<Scanner> {
                         Expanded(
                             flex: 7,
                             child: Container(
-                               height: screenHeight * 0.2,
+                              height: screenHeight * 0.2,
                               child: RaisedButton(
                                 onPressed: () =>
                                     setState(() => updateButtons('QR')),
@@ -287,8 +278,8 @@ class _ScannerState extends State<Scanner> {
                                   "QR Reader",
                                   textAlign: TextAlign.center,
                                   style: new TextStyle(
-                                    fontSize: Sizer.getTextSize(screenWidth, screenHeight, 18)
-                                  ),
+                                      fontSize: Sizer.getTextSize(
+                                          screenWidth, screenHeight, 18)),
                                 ),
                                 shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(10)),
@@ -307,7 +298,8 @@ class _ScannerState extends State<Scanner> {
                                 child: Text("Searcher",
                                     textAlign: TextAlign.center,
                                     style: new TextStyle(
-                                      fontSize: Sizer.getTextSize(screenWidth, screenHeight, 18),
+                                      fontSize: Sizer.getTextSize(
+                                          screenWidth, screenHeight, 18),
                                     )),
                                 shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(10)),
@@ -366,7 +358,8 @@ class _ScannerState extends State<Scanner> {
                                 "Succesfully added ${stateContainer.eventMetadata['gold_points'].toString()} to ${userInfo['first_name']}",
                                 style: TextStyle(
                                     fontFamily: 'Lato',
-                                    fontSize: Sizer.getTextSize(screenWidth, screenHeight, 20),
+                                    fontSize: Sizer.getTextSize(
+                                        screenWidth, screenHeight, 20),
                                     color: Colors.white),
                               ),
                               backgroundColor: Colors.green,
@@ -395,7 +388,7 @@ class _ScannerState extends State<Scanner> {
               child: Center(
                 child: Container(
                   width: screenWidth * 0.8,
-                  height: screenHeight  * 0.4,
+                  height: screenHeight * 0.4,
                   padding: EdgeInsets.fromLTRB(0, 0, 0, 20),
                   child: new ManualEnterPopup(),
                 ),

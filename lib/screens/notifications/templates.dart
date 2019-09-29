@@ -17,7 +17,6 @@ class NotificationUI extends StatefulWidget {
 
 class NotificationUIState extends State<NotificationUI> {
   NotificationUIState();
-  
 
   Widget build(BuildContext context) {
     StateContainer.of(context).notificationCounter = 0;
@@ -47,21 +46,22 @@ class NotificationUIState extends State<NotificationUI> {
             color: Colors.red,
             child: Container(
               alignment: Alignment.center,
-              child: Text("Deleting", 
-              style: TextStyle(
-                color: Colors.white, 
-                fontFamily: 'Lato',
-                fontSize: Sizer.getTextSize(sW, sH, 24)
-                ),
-                ),
+              child: Text(
+                "Deleting",
+                style: TextStyle(
+                    color: Colors.white,
+                    fontFamily: 'Lato',
+                    fontSize: Sizer.getTextSize(sW, sH, 24)),
+              ),
             ),
-            ),
+          ),
           key: Key(UniqueKey().toString()),
           onDismissed: (direction) {
             if (direction == DismissDirection.startToEnd) {
               //remove notification and save as such in file
               StateContainer.of(context).removeNotification(documents[index]);
-              Global.notificationDataFile.writeAsStringSync(json.encode(StateContainer.of(context).notifications));
+              Global.notificationDataFile.writeAsStringSync(
+                  json.encode(StateContainer.of(context).notifications));
             }
           },
           child: Card(
