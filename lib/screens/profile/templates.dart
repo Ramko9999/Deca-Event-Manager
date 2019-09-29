@@ -431,12 +431,15 @@ class GPInfoScreenState extends State<GPInfoScreen> {
             onDismissed: (dissmiss) {
               Map newMap = {};
               for (EventObject eventItem in eventList) {
+                print(eventItem.info.data);
                 if (eventItem.info['event_name'] != event['event_name']) {
                   newMap.addAll({
                     eventItem.info['event_name']: eventItem.info['gold_points']
                   });
                 }
               }
+
+              print("New Map $newMap");
               Firestore.instance
                   .collection('Users')
                   .document(widget._uid)
