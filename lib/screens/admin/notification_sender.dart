@@ -27,21 +27,20 @@ class SenderState extends State<Sender> {
   GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   SenderState();
 
-  void initState(){
+  void initState() {
     super.initState();
-  
-     Firestore.instance.collection("Groups").getDocuments().then((documents){
-       List<String> potentialGroups = [];
-       documents.documents.forEach((d){
-         potentialGroups.add(d.data['name']);
-       });
-       potentialGroups.add("Any");
-       setState((){
-         groups = potentialGroups;
-         filter = groups.last;
-       });
-     });
-    
+
+    Firestore.instance.collection("Groups").getDocuments().then((documents) {
+      List<String> potentialGroups = [];
+      documents.documents.forEach((d) {
+        potentialGroups.add(d.data['name']);
+      });
+      potentialGroups.add("Any");
+      setState(() {
+        groups = potentialGroups;
+        filter = groups.last;
+      });
+    });
   }
 
   //creates a new notification in the cloud firestore database
@@ -62,12 +61,9 @@ class SenderState extends State<Sender> {
       notificationData.addAll({'filter': filter});
     }
 
-
-
     //creating a new notification will trigger a cloud function that pushes the notification to everyone
     Firestore.instance.collection("Notifications").add(notificationData).then(
         (_) {
-      
       setState(() {
         //reset the notifications
         header.text = "";
@@ -116,7 +112,9 @@ class SenderState extends State<Sender> {
                           child: TextFormField(
                               controller: header,
                               style: TextStyle(
-                                  fontFamily: 'Lato', fontSize: Sizer.getTextSize(screenWidth, screenHeight, 16)),
+                                  fontFamily: 'Lato',
+                                  fontSize: Sizer.getTextSize(
+                                      screenWidth, screenHeight, 16)),
                               decoration: InputDecoration(
                                   labelText: "Notification Header",
                                   errorBorder: OutlineInputBorder(
@@ -139,7 +137,9 @@ class SenderState extends State<Sender> {
                               keyboardType: TextInputType.text,
                               maxLines: null,
                               style: TextStyle(
-                                  fontFamily: 'Lato', fontSize:  Sizer.getTextSize(screenWidth, screenHeight, 16)),
+                                  fontFamily: 'Lato',
+                                  fontSize: Sizer.getTextSize(
+                                      screenWidth, screenHeight, 16)),
                               decoration: InputDecoration(
                                   labelText: "Notification Body",
                                   errorBorder: OutlineInputBorder(
@@ -158,36 +158,38 @@ class SenderState extends State<Sender> {
                         Padding(
                           padding: EdgeInsets.only(top: screenHeight * 0.03),
                           child: Container(
-                            width: screenWidth / 1.7,
-                            child: 
-                            groups.isEmpty? 
-                            Text("Loading Groups...", textAlign: TextAlign.center, style: TextStyle(color: Colors.blue),)
-                            :
-                            DropdownButton(
-                              value: filter,
-                              isExpanded: true,
-                              hint: Text(
-                                  "Send Notification to Specific Committie"),
-                              onChanged: (String group) {
-                                setState(() => filter = group);
-                              },
-                              items: groups
-                              .map((String group) {
-                                return DropdownMenuItem<String>(
-                                  value: group,
-                                  child: Text(
-                                    group,
-                                    style: TextStyle(
-                                        fontFamily: 'Lato',
-                                        fontSize: Sizer.getTextSize(screenWidth, screenHeight, 17),
-                                        color: Colors.blue),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                );
-                              }).toList(),
-                            )
-                            
-                          ),
+                              width: screenWidth / 1.7,
+                              child: groups.isEmpty
+                                  ? Text(
+                                      "Loading Groups...",
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(color: Colors.blue),
+                                    )
+                                  : DropdownButton(
+                                      value: filter,
+                                      isExpanded: true,
+                                      hint: Text(
+                                          "Send Notification to Specific Committie"),
+                                      onChanged: (String group) {
+                                        setState(() => filter = group);
+                                      },
+                                      items: groups.map((String group) {
+                                        return DropdownMenuItem<String>(
+                                          value: group,
+                                          child: Text(
+                                            group,
+                                            style: TextStyle(
+                                                fontFamily: 'Lato',
+                                                fontSize: Sizer.getTextSize(
+                                                    screenWidth,
+                                                    screenHeight,
+                                                    17),
+                                                color: Colors.blue),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                        );
+                                      }).toList(),
+                                    )),
                         ),
                         Padding(
                           padding: EdgeInsets.only(top: screenHeight * 0.03),
@@ -198,7 +200,8 @@ class SenderState extends State<Sender> {
                                 date == null ? "Send as a Reminder" : date,
                                 style: TextStyle(
                                   fontFamily: 'Lato',
-                                  fontSize:  Sizer.getTextSize(screenWidth, screenHeight, 18),
+                                  fontSize: Sizer.getTextSize(
+                                      screenWidth, screenHeight, 18),
                                 ),
                               ),
                               textColor: Colors.blue,
@@ -223,12 +226,15 @@ class SenderState extends State<Sender> {
                                   "Optional Feature",
                                   style: TextStyle(
                                       color: Colors.grey,
-                                      fontSize:  Sizer.getTextSize(screenWidth, screenHeight, 12)),
+                                      fontSize: Sizer.getTextSize(
+                                          screenWidth, screenHeight, 12)),
                                 )
                               : Text(
                                   "Don't send as reminder",
                                   style: TextStyle(
-                                      color: Colors.red, fontSize:  Sizer.getTextSize(screenWidth, screenHeight, 12)),
+                                      color: Colors.red,
+                                      fontSize: Sizer.getTextSize(
+                                          screenWidth, screenHeight, 12)),
                                 ),
                           onPressed: date == null
                               ? () => print("Nothing shall happen")
@@ -245,7 +251,8 @@ class SenderState extends State<Sender> {
                                 "Push",
                                 style: TextStyle(
                                     fontFamily: 'Lato',
-                                    fontSize:  Sizer.getTextSize(screenWidth, screenHeight, 24),
+                                    fontSize: Sizer.getTextSize(
+                                        screenWidth, screenHeight, 24),
                                     color: Colors.green),
                               ),
                               onPressed: () {

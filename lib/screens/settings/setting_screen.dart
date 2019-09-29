@@ -148,8 +148,9 @@ class SettingScreenState extends State<SettingScreen> {
                           title: Text(
                             "Change Password",
                             style: TextStyle(
-                              fontFamily: 'Lato',
-                                fontSize: Sizer.getTextSize(screenWidth, screenHeight, 19)),
+                                fontFamily: 'Lato',
+                                fontSize: Sizer.getTextSize(
+                                    screenWidth, screenHeight, 19)),
                           ),
                           trailing: IconButton(
                             icon: Icon(Icons.remove),
@@ -172,8 +173,8 @@ class SettingScreenState extends State<SettingScreen> {
                                       textAlign: TextAlign.center,
                                       style: TextStyle(
                                           fontFamily: 'Lato',
-                                          fontSize:
-                                              Sizer.getTextSize(screenWidth, screenHeight, 17)),
+                                          fontSize: Sizer.getTextSize(
+                                              screenWidth, screenHeight, 17)),
                                       obscureText: true,
                                       decoration: new InputDecoration(
                                         labelText: "Enter Old Password",
@@ -197,8 +198,8 @@ class SettingScreenState extends State<SettingScreen> {
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
                                         fontFamily: 'Lato',
-                                        fontSize:
-                                            Sizer.getTextSize(screenWidth, screenHeight, 17)),
+                                        fontSize: Sizer.getTextSize(
+                                            screenWidth, screenHeight, 17)),
                                     obscureText: true,
                                     decoration: new InputDecoration(
                                         labelText: "Enter New Password"),
@@ -220,8 +221,8 @@ class SettingScreenState extends State<SettingScreen> {
                                   "Apply",
                                   style: TextStyle(
                                       fontFamily: 'Lato',
-                                      fontSize:
-                                          Sizer.getTextSize(screenWidth, screenHeight, 18),
+                                      fontSize: Sizer.getTextSize(
+                                          screenWidth, screenHeight, 18),
                                       color: Colors.blue),
                                 ),
                                 onPressed: () {
@@ -243,10 +244,10 @@ class SettingScreenState extends State<SettingScreen> {
                             leading: Icon(Icons.lock, color: Colors.black),
                             title: Text(
                               "Change Password",
-                              
                               style: TextStyle(
-                                fontFamily: "Lato",
-                                  fontSize: Sizer.getTextSize(screenWidth, screenHeight, 19)),
+                                  fontFamily: "Lato",
+                                  fontSize: Sizer.getTextSize(
+                                      screenWidth, screenHeight, 19)),
                             ),
                           )),
                         ),
@@ -261,8 +262,9 @@ class SettingScreenState extends State<SettingScreen> {
                             title: Text(
                               "Auto-Fill Settings",
                               style: TextStyle(
-                                fontFamily: 'Lato',
-                                  fontSize: Sizer.getTextSize(screenWidth, screenHeight, 19)),
+                                  fontFamily: 'Lato',
+                                  fontSize: Sizer.getTextSize(
+                                      screenWidth, screenHeight, 19)),
                             ),
                             trailing: IconButton(
                               icon: Icon(Icons.remove, color: Colors.black),
@@ -300,8 +302,8 @@ class SettingScreenState extends State<SettingScreen> {
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                       fontFamily: 'Lato',
-                                      fontSize:
-                                          Sizer.getTextSize(screenWidth, screenHeight, 18),
+                                      fontSize: Sizer.getTextSize(
+                                          screenWidth, screenHeight, 18),
                                       color: _isAutoLoginEnabled
                                           ? Colors.blue
                                           : Colors.red),
@@ -323,8 +325,9 @@ class SettingScreenState extends State<SettingScreen> {
                           title: Text(
                             "Auto-Fill Settings",
                             style: TextStyle(
-                              fontFamily: 'Lato',
-                                fontSize: Sizer.getTextSize(screenWidth, screenHeight, 19)),
+                                fontFamily: 'Lato',
+                                fontSize: Sizer.getTextSize(
+                                    screenWidth, screenHeight, 19)),
                           ),
                         )),
                       )
