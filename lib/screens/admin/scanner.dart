@@ -3,15 +3,14 @@ import 'dart:io';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:camera/camera.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:deca_app/screens/admin/finder.dart';
 import 'package:deca_app/screens/admin/templates.dart';
 import 'package:deca_app/utility/InheritedInfo.dart';
-import 'package:deca_app/utility/format.dart';
 import 'package:deca_app/utility/notifiers.dart';
 import 'package:firebase_ml_vision/firebase_ml_vision.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'finderscreen.dart';
 
 class Scanner extends StatefulWidget {
   State<Scanner> createState() {
@@ -24,8 +23,6 @@ class _ScannerState extends State<Scanner> {
   CameraController _mainCamera; //camera that will give us the feed
   bool _isCameraInitalized = false;
   Map eventMetadata;
-  bool _isQR = true;
-  bool _isSearcher = false;
   int pointVal;
   int scanCount;
   bool isInfo = false;
@@ -86,12 +83,6 @@ class _ScannerState extends State<Scanner> {
             print("Running Future Delayed");
             if (_scannedUids.add(barcode.rawValue)) {
               pushToDB(barcode.rawValue);
-            } else {
-              _scaffoldKey.currentState.showSnackBar(SnackBar(
-                backgroundColor: Color.fromRGBO(255, 0, 0, 1),
-                content: Text("Already Scanned"),
-                duration: Duration(milliseconds: 250),
-              ));
             }
           });
         }
@@ -188,25 +179,12 @@ class _ScannerState extends State<Scanner> {
     super.dispose();
   }
 
-  void updateButtons(String state) {
-    if (state == 'QR') {
-      setState(() {
-        _isQR = true;
-        _isSearcher = !_isQR;
-      });
-    } else {
-      setState(() {
-        _isSearcher = true;
-        _isQR = !_isSearcher;
-      });
-    }
-  }
-
   Widget build(BuildContext context) {
+    final container = StateContainer.of(context);
+    eventMetadata = container.eventMetadata;
+    isManualEnter = container.isManualEnter;
     //check first whether camera is init
     if (_isCameraInitalized) {
-      //check whether the option is Quick or Manual, if its Manual it must turn off
-      if (_isQR) {
         //check whether camera is already is streaming images
         if (!_mainCamera.value.isStreamingImages) {
           runStream();
@@ -215,20 +193,10 @@ class _ScannerState extends State<Scanner> {
         else if (StateContainer.of(context).isThereConnectionError) {
           _mainCamera.stopImageStream();
         }
-      } else {
-        //turn of stream if the option is manual enter and the camera is still streaming
-        if (_mainCamera.value.isStreamingImages) {
-          _mainCamera.stopImageStream();
-        }
-      }
     }
 
     double screenHeight = MediaQuery.of(context).size.height;
     double screenWidth = MediaQuery.of(context).size.width;
-
-    final container = StateContainer.of(context);
-    eventMetadata = container.eventMetadata;
-    isManualEnter = container.isManualEnter;
 
     _scannedUids = new HashSet();
 
@@ -261,142 +229,51 @@ class _ScannerState extends State<Scanner> {
             child: Center(
               child: Column(
                 children: <Widget>[
-                  Container(
-                    padding: new EdgeInsets.only(top: 10.0, bottom: 10.0),
-                    width: screenWidth * 0.84,
-                    height: screenHeight * 0.12,
-                    child: Row(
-                      children: <Widget>[
-                        Expanded(
-                            flex: 7,
-                            child: Container(
-                              height: screenHeight * 0.2,
-                              child: RaisedButton(
-                                onPressed: () =>
-                                    setState(() => updateButtons('QR')),
-                                child: Text(
-                                  "QR Reader",
-                                  textAlign: TextAlign.center,
-                                  style: new TextStyle(
-                                      fontSize: Sizer.getTextSize(
-                                          screenWidth, screenHeight, 18)),
-                                ),
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10)),
-                                color: _isQR ? Colors.blue : Colors.grey,
-                                textColor: Colors.white,
-                              ),
-                            )),
-                        Spacer(flex: 1),
-                        Expanded(
-                            flex: 7,
-                            child: Container(
-                              height: screenHeight * 0.2,
-                              child: RaisedButton(
-                                onPressed: () =>
-                                    setState(() => updateButtons('S')),
-                                child: Text("Searcher",
-                                    textAlign: TextAlign.center,
-                                    style: new TextStyle(
-                                      fontSize: Sizer.getTextSize(
-                                          screenWidth, screenHeight, 18),
-                                    )),
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10)),
-                                color: _isSearcher ? Colors.blue : Colors.grey,
-                                textColor: Colors.white,
-                              ),
-                            ))
-                      ],
+                  Center(
+                    child: Container(
+                      alignment: Alignment.topCenter,
+                      child: ActionChip(
+                          avatar: Icon(Icons.search),
+                          label: Text('Add with Search'),
+                          onPressed: () {
+                            changeToSearcher(context);
+                          }),
                     ),
                   ),
-                  if (_isQR)
-                    Container(
-                      height: screenHeight * 0.75,
-                      width: screenWidth * 0.9,
-                      child: _cameraPermission
-                          ? _isCameraInitalized
-                              ? Platform.isAndroid
-                                  ? RotationTransition(
-                                      child: CameraPreview(_mainCamera),
-                                      turns: AlwaysStoppedAnimation(270 / 360))
-                                  : CameraPreview(_mainCamera)
-                              : Container(
-                                  child: Text("Loading"),
-                                )
-                          : GestureDetector(
-                              onTap: () {
-                                getPermissionsThatNeedToBeChecked(
-                                        PermissionGroup.camera,
-                                        PermissionGroup.microphone)
-                                    .then((permGroupList) {
-                                  requestPermStatus(permGroupList);
-                                });
-                              },
-                              child: Container(
-                                child: Text(Platform.isAndroid
-                                    ? "You have denied camera permissions, please accept them by clicking on this text"
-                                    : "You have denied camera permissions, please go to settings to activate them"),
-                              )),
-                    ),
-                  if (_isSearcher)
-                    Container(
-                      width: screenWidth * 0.92,
-                      height: screenHeight * 0.7,
-                      padding: EdgeInsets.fromLTRB(0, 0, 0, 20),
-                      child: Finder(
-                        //call back function argument
-                        (BuildContext context,
-                            StateContainerState stateContainer, Map userInfo) {
-                          stateContainer.setUserData(userInfo);
-                          if (stateContainer.eventMetadata['enter_type'] ==
-                              'QE') {
-                            stateContainer.updateGP(userInfo['uid']);
-                            Scaffold.of(context).showSnackBar(SnackBar(
-                              duration: Duration(seconds: 1),
-                              content: Text(
-                                "Succesfully added ${stateContainer.eventMetadata['gold_points'].toString()} to ${userInfo['first_name']}",
-                                style: TextStyle(
-                                    fontFamily: 'Lato',
-                                    fontSize: Sizer.getTextSize(
-                                        screenWidth, screenHeight, 20),
-                                    color: Colors.white),
-                              ),
-                              backgroundColor: Colors.green,
-                            ));
-                          } else {
-                            stateContainer.setIsCardTapped(true);
-                          }
-                        },
-                        //alert widget argument, optional
-                        a: GestureDetector(
-                          onTap: () {
-                            container.setIsCardTapped(false);
-                          },
-                          child: Container(child: ManualEnterPopup()),
-                        ),
-                      ),
-                    ),
+                  Container(
+                    height: screenHeight * 0.75,
+                    width: screenWidth * 0.9,
+                    child: _cameraPermission
+                        ? _isCameraInitalized
+                            ? Platform.isAndroid
+                                ? RotationTransition(
+                                    child: CameraPreview(_mainCamera),
+                                    turns: AlwaysStoppedAnimation(270 / 360))
+                                : CameraPreview(_mainCamera)
+                            : Container(
+                                child: Text("Loading"),
+                              )
+                        : GestureDetector(
+                            onTap: () {
+                              getPermissionsThatNeedToBeChecked(
+                                      PermissionGroup.camera,
+                                      PermissionGroup.microphone)
+                                  .then((permGroupList) {
+                                requestPermStatus(permGroupList);
+                              });
+                            },
+                            child: Container(
+                              child: Text(Platform.isAndroid
+                                  ? "You have denied camera permissions, please accept them by clicking on this text"
+                                  : "You have denied camera permissions, please go to settings to activate them"),
+                            )),
+                  ),
                 ],
               ),
             ),
           ),
           if (StateContainer.of(context).isThereConnectionError)
             ConnectionError(),
-          if (isManualEnter)
-            GestureDetector(
-              child: Center(
-                child: Container(
-                  width: screenWidth * 0.8,
-                  height: screenHeight * 0.4,
-                  padding: EdgeInsets.fromLTRB(0, 0, 0, 20),
-                  child: new ManualEnterPopup(),
-                ),
-              ),
-              onTap: () {
-                container.setIsManualEnter(false);
-              },
-            ),
           if (isInfo)
             GestureDetector(
               onTap: () {
@@ -413,5 +290,17 @@ class _ScannerState extends State<Scanner> {
               ),
             )
         ]));
+  }
+
+  void changeToSearcher(BuildContext context) {
+    final container = StateContainer.of(context);
+    double screenHeight = MediaQuery.of(context).size.height;
+    double screenWidth = MediaQuery.of(context).size.width;
+    if(_isCameraInitalized)
+      {
+          _mainCamera.stopImageStream();
+      }
+    Navigator.of(context).push(NoTransition(
+        builder: (context) => FinderScreen()));
   }
 }
