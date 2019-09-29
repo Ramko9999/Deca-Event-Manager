@@ -90,24 +90,29 @@ class StateContainerState extends State<StateContainer> {
 
   void updateGP(String userUniqueId, [int manualGP]) {
     incrementAttendees(userUniqueId).then((_) =>
-        addToEvents(userUniqueId, manualGP).then((_) => Firestore.instance
-                .collection('Users')
-                .document(userUniqueId)
-                .get()
-                .then((userData) {
-              int totalGP = 0;
-              Map eventsList = userData['events'];
-              for (var gp in eventsList.keys) {
-                totalGP += eventsList[gp];
-              }
-
-              Firestore.instance
-                  .collection('Users')
-                  .document(userUniqueId)
-                  .updateData({'gold_points': totalGP});
-            })));
+        addToEvents(userUniqueId, manualGP).then((_) => syncGPWithEvents(userUniqueId)));
     //adds the current event in eventMetadata state to events field for the user that is parameterized
     //updates gp value to match events field in user
+  }
+
+  void syncGPWithEvents(String userUniqueId)
+  {
+    Firestore.instance
+        .collection('Users')
+        .document(userUniqueId)
+        .get()
+        .then((userData) {
+      int totalGP = 0;
+      Map eventsList = userData['events'];
+      for (var gp in eventsList.keys) {
+        totalGP += eventsList[gp];
+      }
+
+      Firestore.instance
+          .collection('Users')
+          .document(userUniqueId)
+          .updateData({'gold_points': totalGP});
+    });
   }
 
   Future incrementAttendees(String _uid) async {
@@ -139,6 +144,14 @@ class StateContainerState extends State<StateContainer> {
         }
       }
     });
+  }
+
+  Future decrementAttendees(String eventName) async {
+      //decrement the events
+      Firestore.instance
+          .collection('Events')
+          .document(eventName)
+          .updateData({'attendee_count': FieldValue.increment(-1)});
   }
 
   //adds the current event in eventMetadata state to events field for the user that is parameterized

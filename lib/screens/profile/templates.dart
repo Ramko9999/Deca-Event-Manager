@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:deca_app/screens/admin/templates.dart';
 import 'package:deca_app/screens/profile/profile_screen.dart';
 import 'package:deca_app/utility/InheritedInfo.dart';
@@ -13,6 +14,10 @@ class DynamicProfileUI extends StatelessWidget {
   int _goldPoints;
   String _memberLevel;
 
+  DynamicProfileUI(String uid){
+    this._uid = uid;
+  }
+
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
@@ -23,7 +28,7 @@ class DynamicProfileUI extends StatelessWidget {
         //connecting to firebase and gathering user data
         stream: Firestore.instance
             .collection('Users')
-            .where("uid", isEqualTo: Global.uid)
+            .where("uid", isEqualTo: _uid)
             .snapshots(),
         builder: (context, snapshot) {
           //if data has been updated
@@ -47,6 +52,7 @@ class DynamicProfileUI extends StatelessWidget {
             return Center(
                 child: Column(
                   children: <Widget>[
+                   if(Global.uid == _uid) 
                     Container(
                       padding: new EdgeInsets.fromLTRB(screenWidth / 20,
                           screenHeight / 40, screenWidth / 20,
@@ -59,7 +65,7 @@ class DynamicProfileUI extends StatelessWidget {
                             fontSize: 36 * screenWidth / pixelTwoWidth,
                             fontFamily: 'Lato-Regular'),
                       ),
-                    ),
+                    ) ,
                     Container(
                         height: screenHeight * 0.59,
                         width: screenWidth * 0.95,
@@ -86,7 +92,7 @@ class DynamicProfileUI extends StatelessWidget {
                                           context,
                                           NoTransition(
                                               builder: (
-                                                  context) => new GPInfoScreen())),
+                                                  context) => new GPInfoScreen(_uid))),
                                   trailing: Text(
                                     _goldPoints.toString(),
                                     textAlign: TextAlign.center,
@@ -113,7 +119,10 @@ class DynamicProfileUI extends StatelessWidget {
                                           fontWeight: FontWeight.bold,
                                           fontSize: 20 * screenWidth /
                                               pixelTwoWidth)),
-                                  subtitle: (_memberLevel == 'N/A')
+                                  
+                                  
+                                  subtitle: _uid == Global.uid ?
+                                  (_memberLevel == 'N/A')
                                       ? Text(
                                     (75 - _goldPoints).toString() +
                                         ' GP until you\'re a member!',
@@ -138,7 +147,8 @@ class DynamicProfileUI extends StatelessWidget {
                                             screenWidth /
                                             pixelTwoWidth),
                                   )
-                                      : null,
+                                      : null
+                                      : null, 
                                   trailing: Text(
                                     _memberLevel,
                                     textAlign: TextAlign.center,
@@ -175,7 +185,7 @@ class DynamicProfileUI extends StatelessWidget {
                                         context,
                                         NoTransition(
                                             builder: (
-                                                context) => new CommitteeInfoScreen())),
+                                                context) => new CommitteeInfoScreen(_uid))),
                               ),
                             )
                           ],
@@ -204,6 +214,10 @@ class DynamicProfileUI extends StatelessWidget {
 }
 
 class CommitteeInfoScreen extends StatefulWidget {
+  String _uid;
+  CommitteeInfoScreen(String u){
+    this._uid = u;
+  }
   @override
   State<StatefulWidget> createState() {
     // TODO: implement createState
@@ -212,8 +226,11 @@ class CommitteeInfoScreen extends StatefulWidget {
 }
 
 class CommitteeInfoScreenState extends State<CommitteeInfoScreen> {
-  String _uid;
+
+  
+
   List committeeList;
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
 
   ListView _buildEventList(context) {
     double screenWidth = MediaQuery
@@ -233,7 +250,7 @@ class CommitteeInfoScreenState extends State<CommitteeInfoScreen> {
       // A callback that will return a widget.
       itemBuilder: (context, i) {
         String name = committeeList[i];
-        return Card(
+        Card group = Card(
           child: ListTile(
             leading: Icon(Icons.group,
                 color: Colors.blue),
@@ -245,14 +262,60 @@ class CommitteeInfoScreenState extends State<CommitteeInfoScreen> {
             ),
           ),
         );
-      },
-    );
-  }
+      
+      //checks whether the committies are the app user's
+      if(widget._uid != Global.uid){
+        
+        return Dismissible(
+          key: UniqueKey(),
+          child: group,
+          background: Container(
+              alignment: Alignment.centerRight,
+              padding: EdgeInsets.only(right: 20.0),
+              color: Colors.red,
+              child: Icon(
+                Icons.delete,
+                color: Colors.white,
+              ),
+            ),
+          onDismissed: (dismiss){
+           List newList = [];
+              for(String comm in committeeList)
+                {
+                  if(comm != name)
+                    {
+                      newList.add(comm);
+                    }
+                }
+            
+            Firestore.instance.collection('Users').document(widget._uid).updateData({'groups': newList}).whenComplete((){
+                _scaffoldKey.currentState.showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      "${StateContainer.of(context).userData['first_name']} removed from ${name}",
+                      style: TextStyle(
+                          fontFamily: 'Lato',
+                          fontSize: Sizer.getTextSize(screenWidth, screenHeight, 18),
+                          color: Colors.white),
+                    ),
+                    duration: Duration(milliseconds: 250),
+                  ),
+                );
+              });
+            });
 
+      }
+      else{
+        return group;
+      }
+          
+      });
+      }
+      
   @override
   Widget build(BuildContext context) {
-    final container = StateContainer.of(context);
-    _uid = container.uid;
+   
+
 
     double screenWidth = MediaQuery
         .of(context)
@@ -262,21 +325,29 @@ class CommitteeInfoScreenState extends State<CommitteeInfoScreen> {
         .of(context)
         .size
         .height;
+    
     double pixelTwoWidth = 411.42857142857144;
     double pixelTwoHeight = 683.4285714285714;
 
     // TODO: implement build
     return Scaffold(
+      key: _scaffoldKey,
       appBar: AppBar(
-        title: Text('Committees'),
+        title: widget._uid == Global.uid ?
+        Text('Committees'):
+        AutoSizeText(
+          'Editing ${StateContainer.of(context).userData['first_name']}\'s Committees',
+        maxLines: 1
+        ),
       ),
       body: Column(
         children: <Widget>[
           StreamBuilder(
               stream: Firestore.instance
                   .collection('Users')
-                  .where("uid", isEqualTo: Global.uid)
+                  .where("uid", isEqualTo: widget._uid)
                   .snapshots(),
+             
               builder: (context, userSnapshot) {
                 if (userSnapshot.hasData) {
                   DocumentSnapshot userSnap = userSnapshot.data.documents[0];
@@ -331,6 +402,12 @@ class CommitteeInfoScreenState extends State<CommitteeInfoScreen> {
 }
 
 class GPInfoScreen extends StatefulWidget {
+  String _uid;
+  
+  GPInfoScreen(String uid){
+    this._uid = uid;
+  }
+  
   @override
   State<StatefulWidget> createState() {
     // TODO: implement createState
@@ -338,14 +415,18 @@ class GPInfoScreen extends StatefulWidget {
   }
 }
 
+//a screen that shows the events and gold point values a person has
 class GPInfoScreenState extends State<GPInfoScreen> {
-  String _uid;
+
   List<EventObject> eventList;
   String filterType;
+  final  _scaffoldKey = GlobalKey<ScaffoldState>();
+  
 
   ListView _buildEventList(context, eventSnapshot, userSnapshot) {
     double sW = MediaQuery.of(context).size.width;
     double sH = MediaQuery.of(context).size.height;
+    final infoContainer = StateContainer.of(context);
 
 
     eventList = filter(eventSnapshot, userSnapshot);
@@ -356,23 +437,78 @@ class GPInfoScreenState extends State<GPInfoScreen> {
       // A callback that will return a widget.
       itemBuilder: (context, i) {
         DocumentSnapshot event = eventList[i].info;
-        return Card(
-          color: eventList[i].eventColor,
-          child: ListTile(
-            title: Text(event['event_name'],
-                textAlign: TextAlign.left,
-                style: new TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: Sizer.getTextSize(sW, sH, 20))),
-            subtitle: Text(event['event_type']),
-            trailing: Text(eventList[i].gp.toString(),
-                textAlign: TextAlign.center,
-                style: new TextStyle(
-                    fontSize: Sizer.getTextSize(sW, sH, 20) ,
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold)),
-          ),
+        
+        //event data
+        Card eventDataCard = Card(
+            color: eventList[i].eventColor,
+            child: ListTile(
+              title: Text(event['event_name'],
+                  textAlign: TextAlign.left,
+                  style: new TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: Sizer.getTextSize(sW, sH, 20))),
+              subtitle: Text(event['event_type']),
+              trailing: Text(eventList[i].gp.toString(),
+                  textAlign: TextAlign.center,
+                  style: new TextStyle(
+                      fontSize: Sizer.getTextSize(sW, sH, 20) ,
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold)),
+            ),
+          );
+        
+        //used to in order to prevent user for deleting their own events
+        if(widget._uid != Global.uid){
+          
+          return Dismissible(
+          key: UniqueKey(),
+            background: Container(
+              alignment: Alignment.centerRight,
+              padding: EdgeInsets.only(right: 20.0),
+              color: Colors.red,
+              child: Icon(
+                Icons.delete,
+                color: Colors.white,
+              ),
+            ),
+          
+          child: eventDataCard, 
+          onDismissed: (dissmiss){ 
+            
+            Map newMap = {};
+              for(EventObject eventItem in eventList)
+              {
+                if(eventItem.info['event_name'] != event['event_name'])
+                {
+                  newMap.addAll({eventItem.info['event_name']:eventItem.info['gold_points']});
+                }
+              }
+              Firestore.instance.collection('Users').document(widget._uid).updateData({'events': newMap}).whenComplete((){
+                infoContainer.syncGPWithEvents(widget._uid);
+                infoContainer.decrementAttendees(event['event_name']);
+                
+                _scaffoldKey.currentState.showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      "${event['event_name']} removed from ${infoContainer.userData['first_name']} ",
+                      style: TextStyle(
+                          fontFamily: 'Lato',
+                          fontSize: Sizer.getTextSize(sW, sH, 18),
+                          color: Colors.white),
+                      
+                    ),
+                    duration: Duration(milliseconds: 250),
+                  ),
+                );
+              });
+           
+            },
         );
+        }
+        else{
+          return eventDataCard ;
+        }
+        
       },
     );
   }
@@ -381,8 +517,10 @@ class GPInfoScreenState extends State<GPInfoScreen> {
     List<EventObject> eventList = [];
     Map userMetadata = userSnapshot.data as Map;
 
+    
     if (userMetadata.isNotEmpty) {
       for (DocumentSnapshot event in eventSnapshot) {
+        
         for (String userEvent in userMetadata['events'].keys) {
           if (event['event_name'] == userEvent) {
             if (event['enter_type'] == "ME") {
@@ -394,6 +532,9 @@ class GPInfoScreenState extends State<GPInfoScreen> {
           }
         }
       }
+      
+
+     
       eventList.sort();
       if (filterType == 'eventType') {
         Map<String, List<EventObject>> eventSortedList = {
@@ -406,14 +547,7 @@ class GPInfoScreenState extends State<GPInfoScreen> {
           'Miscellaneous': [],
         };
         for (EventObject element in eventList) {
-          try{
-            assert(eventSortedList[element.eventType] != null);
-
-          }
-          catch(e){
-            print(element.eventType);
-          }
-
+         
           eventSortedList[element.eventType].add(element);
         }
         List<EventObject> finalEventSortedList = [];
@@ -431,7 +565,7 @@ class GPInfoScreenState extends State<GPInfoScreen> {
   @override
   Widget build(BuildContext context) {
     final container = StateContainer.of(context);
-    _uid = Global.uid;
+    String _uid = widget._uid;
     filterType = container.filterType;
 
     double screenWidth = MediaQuery.of(context).size.width;
@@ -440,8 +574,14 @@ class GPInfoScreenState extends State<GPInfoScreen> {
     double pixelTwoHeight = 683.4285714285714;
 
     return Scaffold(
+      key: _scaffoldKey,
       appBar: AppBar(
-        title: Text('Events Attended'),
+        title: Text( 
+          widget._uid == Global.uid ?
+          'Events Attended'
+          :
+          'Editing ${container.userData['first_name']}\'s Events'
+          ),
       ),
       body: Column(
         children: <Widget>[

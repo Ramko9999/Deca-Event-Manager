@@ -38,7 +38,7 @@ class ProfileScreenState extends State<ProfileScreen> {
     //check for connection, and notify different screens of connection issue
 
     Connectivity().onConnectivityChanged.listen((connectionResult) {
-      if (connectionResult != ConnectivityResult.wifi) {
+      if (connectionResult == ConnectivityResult.none) {
         StateContainer.of(context).setConnectionErrorStatus(true);
       } else {
         StateContainer.of(context).setConnectionErrorStatus(false);
@@ -146,7 +146,7 @@ class ProfileScreenState extends State<ProfileScreen> {
   Widget changeScreen(int currentIndex) {
     switch (currentIndex) {
       case 0:
-        return DynamicProfileUI();
+        return DynamicProfileUI(Global.uid);
       case 1:
         return QrScreen();
         break;
