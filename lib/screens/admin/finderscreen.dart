@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:deca_app/screens/admin/scanner.dart';
 import 'package:deca_app/screens/admin/searcher.dart';
 import 'package:deca_app/screens/admin/templates.dart';
 import 'package:deca_app/utility/InheritedInfo.dart';
@@ -42,7 +43,8 @@ class FinderScreenState extends State<FinderScreen> {
                   Navigator.of(context).pop();
                 } else {
                   Navigator.of(context).pop();
-                  Navigator.of(context).pop();
+                  Navigator.of(context).push(NoTransition(
+                      builder: (context) => EditEventUI()));
                 }
               }),
           actions: <Widget>[
@@ -66,7 +68,11 @@ class FinderScreenState extends State<FinderScreen> {
                     child: ActionChip(
                         avatar: Icon(MdiIcons.qrcode),
                         label: Text('Add with QR Code'),
-                        onPressed: () => {Navigator.pop(context)}),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          Navigator.of(context).push(NoTransition(
+                            builder: (context) => Scanner()));
+                        }),
                   ),
                 ),
               Expanded(

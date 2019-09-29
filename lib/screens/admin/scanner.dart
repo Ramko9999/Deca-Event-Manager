@@ -300,6 +300,7 @@ class _ScannerState extends State<Scanner> {
       {
           _mainCamera.stopImageStream();
       }
+    Navigator.pop(context);
     Navigator.of(context).push(NoTransition(
         builder: (context) => FinderScreen()));
   }

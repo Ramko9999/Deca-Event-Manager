@@ -1,4 +1,5 @@
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:cloud_firestore/cloud_firestore.dart' as prefix0;
 import 'package:deca_app/screens/admin/finder.dart';
 import 'package:deca_app/screens/admin/notification_sender.dart';
 import 'package:deca_app/screens/admin/scanner.dart';
@@ -490,14 +491,21 @@ class _AdminUIState extends State<AdminScreenUI> {
                 )),
                 Card(
                     child: ListTile(
-                  leading: Icon(Icons.supervisor_account),
+                  leading: Icon(Icons.group_add),
                   title: Text('Create a Group'),
                   onTap: () => Navigator.push(context,
                       NoTransition(builder: (context) => CreateGroupUI())),
                 )),
                 Card(
                     child: ListTile(
-                  leading: Icon(Icons.supervisor_account),
+                  leading: Icon(Icons.group),
+                  title: Text('Edit a Group'),
+                  onTap: () => Navigator.push(context,
+                      NoTransition(builder: (context) => EditGroupUI())),
+                )),
+                Card(
+                    child: ListTile(
+                  leading: Icon(Icons.person),
                   title: Text('Edit Members'),
                   onTap: () => Navigator.push(context,
                       NoTransition(builder: (context) => EditMemberUI())),
@@ -527,36 +535,8 @@ class EditMemberUI extends StatefulWidget {
 }
 
 class EditMemberUIState extends State<EditMemberUI> {
-  final _firstName = TextEditingController();
-  final _lastName = TextEditingController();
-  bool hasSearched = false;
-  Map recentCardInfo;
-  List<DocumentSnapshot> userDocs;
-
-  @override
-  void initState() {
-    print('here');
-    super.initState();
-    _firstName.addListener(() {
-      this.build(context);
-    });
-    _lastName.addListener(() {
-      this.build(context);
-    });
-    Firestore.instance.collection("Users").getDocuments().then((documents) {
-      setState(() => userDocs = documents.documents);
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
-    //query and update documents based on additions and deletions
-    Firestore.instance.collection("Users").getDocuments().then((documents) {
-      if (this.mounted) {
-        setState(() => userDocs = documents.documents);
-      }
-    });
-
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
     return Scaffold(
@@ -565,13 +545,6 @@ class EditMemberUIState extends State<EditMemberUI> {
         leading: IconButton(
             icon: Icon(Icons.arrow_back_ios),
             onPressed: () => {Navigator.of(context).pop()}),
-        actions: <Widget>[
-          IconButton(
-            icon: Icon(Icons.settings),
-            onPressed: () => Navigator.push(context,
-                MaterialPageRoute(builder: (context) => new SettingScreen())),
-          ),
-        ],
       ),
       body: Center(
         child: Finder((BuildContext context, StateContainerState stateContainer,
@@ -707,14 +680,36 @@ class _CreateGroupUIState extends State<CreateGroupUI> {
                     FlatButton(
                       child: Text("Create"),
                       textColor: Colors.blue,
-                      onPressed: () {
+                      onPressed: () async {
                         if (_groupName.text != null) {
-                          Firestore.instance
+                          QuerySnapshot groupSnap = await Firestore.instance
                               .collection("Groups")
-                              .add({'name': _groupName.text});
-                          StateContainer.of(context).setGroup(_groupName.text);
+                              .getDocuments();
+                          List groups = groupSnap.documents
+                              .map((f) => f.data['name'])
+                              .toList();
 
-                          setState(() => _hasCreatedGroup = true);
+                          if (!groups.contains(_groupName.text)) {
+                            Firestore.instance
+                                .collection("Groups")
+                                .add({'name': _groupName.text});
+                            StateContainer.of(context)
+                                .setGroup(_groupName.text);
+
+                            setState(() => _hasCreatedGroup = true);
+                          } else {
+                            _scaffoldKey.currentState.showSnackBar(SnackBar(
+                              content: Text(
+                                "${_groupName.text} already exists",
+                                style: TextStyle(
+                                    fontFamily: 'Lato',
+                                    fontSize: Sizer.getTextSize(sW, sH, 18),
+                                    color: Colors.white),
+                              ),
+                              backgroundColor: Colors.red,
+                              duration: Duration(seconds: 1),
+                            ));
+                          }
                         }
                       },
                     )
@@ -725,6 +720,185 @@ class _CreateGroupUIState extends State<CreateGroupUI> {
         ],
       ),
     );
+  }
+}
+
+class GroupEditor extends StatelessWidget {
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  Widget build(BuildContext context) {
+    double sW = MediaQuery.of(context).size.width;
+    double sH = MediaQuery.of(context).size.height;
+
+    return Scaffold(
+      key: _scaffoldKey,
+      appBar: AppBar(
+        title: Text("Editing ${StateContainer.of(context).group}"),
+        leading: IconButton(
+            icon: Icon(Icons.arrow_back_ios),
+            onPressed: () => {Navigator.pop(context)}),
+      ),
+      body: Stack(
+        children: <Widget>[
+
+
+          Finder(
+
+            //finder callback function
+            (BuildContext context, StateContainerState stateContainer,
+              Map userData) {
+            Firestore.instance
+                .collection("Users")
+                .document(userData['uid'])
+                .get()
+                .then((document) {
+              List data = document.data['groups'].toList();
+              //check if the person is already in the group
+              if (data.contains(stateContainer.group)) {
+                _scaffoldKey.currentState.showSnackBar(SnackBar(
+                  content: Text(
+                    "${userData['first_name']} is already in ${stateContainer.group}",
+                    style: TextStyle(
+                        fontFamily: 'Lato',
+                        fontSize: Sizer.getTextSize(sW, sH, 18),
+                        color: Colors.white),
+                  ),
+                  backgroundColor: Colors.red,
+                  duration: Duration(seconds: 3),
+                  action: SnackBarAction(
+                    label: "REMOVE",
+                    textColor: Colors.amber,
+                    onPressed: () {
+                      //remove the group
+                      data.remove(stateContainer.group);
+
+                      //remove user from firestore and show confirmation
+                      Firestore.instance
+                          .collection("Users")
+                          .document(userData['uid'])
+                          .updateData({'groups': data}).then((_) {
+
+                        //once data is updated display a snackbar
+                        _scaffoldKey.currentState.showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              "${userData['first_name']} removed from ${stateContainer.group}",
+                              style: TextStyle(
+                                  fontFamily: 'Lato',
+                                  fontSize: Sizer.getTextSize(sW, sH, 18),
+                                  color: Colors.white),
+                            ),
+                            duration: Duration(milliseconds: 250),
+                          ),
+                        );
+                      });
+                    },
+                  ),
+                ));
+              }
+              //add the person to the group
+              else {
+                data.add(stateContainer.group);
+                document.reference.updateData({'groups': data});
+                _scaffoldKey.currentState.showSnackBar(SnackBar(
+                  content: Text(
+                    "Added ${userData['first_name']} to ${stateContainer.group}",
+                    style: TextStyle(
+                        fontFamily: 'Lato',
+                        fontSize: Sizer.getTextSize(sW, sH, 18),
+                        color: Colors.white),
+                  ),
+                  backgroundColor: Colors.green,
+                  duration: Duration(milliseconds: 250),
+                ));
+              }
+            });
+          }),
+        if(StateContainer.of(context).isThereConnectionError)
+        ConnectionError()
+
+        ],
+      ),
+    );
+  }
+}
+
+class EditGroupUI extends StatefulWidget {
+  EditGroupUI();
+
+  State<EditGroupUI> createState() {
+    return _EditGroupUIState();
+  }
+}
+
+class _EditGroupUIState extends State<EditGroupUI> {
+  ListView buildGroupList(context, snapshot) {
+    double sW = MediaQuery.of(context).size.width;
+    double sH = MediaQuery.of(context).size.height;
+    return ListView.builder(
+      // Must have an item count equal to the number of items!
+      itemCount: snapshot.data.documents.length,
+      // A callback that will return a widget.
+      itemBuilder: (context, int) {
+        DocumentSnapshot groups = snapshot.data.documents[int];
+
+        return Card(
+          child: ListTile(
+            title: Text(groups['name'],
+                textAlign: TextAlign.left,
+                style: new TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: Sizer.getTextSize(sW, sH, 20))),
+            onTap: () {
+              final container = StateContainer.of(context);
+              container.setGroup(groups['name']);
+              Navigator.of(context)
+                  .push(NoTransition(builder: (context) => GroupEditor()));
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  Widget build(BuildContext context) {
+    double sW = MediaQuery.of(context).size.width;
+    double sH = MediaQuery.of(context).size.height;
+    return Scaffold(
+        appBar: new AppBar(
+          title: Text("Edit Committees"),
+          leading: IconButton(
+              icon: Icon(Icons.arrow_back_ios),
+              onPressed: () => {Navigator.pop(context)}),
+        ),
+        body: Stack(
+          children: <Widget>[
+            SingleChildScrollView(
+              child: Column(
+                children: <Widget>[
+                  StreamBuilder(
+                    stream: Firestore.instance.collection('Groups').snapshots(),
+                    builder: (context, snapshot) {
+                      if (snapshot.hasData) {
+                        return Center(
+                          child: Container(
+                            height: sH * 0.99,
+                            width: sW,
+                            child: buildGroupList(context, snapshot),
+                          ),
+                        );
+                      } else {
+                        return Text("Loading...");
+                      }
+                    },
+                  ),
+                ],
+              ),
+            ),
+            if (StateContainer.of(context).isThereConnectionError)
+              OfflineNotifier()
+          ],
+        ));
   }
 }
 
@@ -852,6 +1026,7 @@ class _EventInfoUIState extends State<EventInfoUI> {
     final container = StateContainer.of(context);
     eventMetadata = container.eventMetadata;
     scanCount = eventMetadata['attendee_count'];
+
     // TODO: implement build
     return Container(
       width: screenWidth * .8,
