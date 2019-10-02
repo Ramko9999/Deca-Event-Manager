@@ -9,6 +9,7 @@ import 'package:deca_app/utility/InheritedInfo.dart';
 import 'package:deca_app/utility/global.dart';
 import 'package:deca_app/utility/network.dart';
 import 'package:deca_app/utility/notifiers.dart';
+import 'package:deca_app/utility/transistion.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:deca_app/screens/settings/setting_screen.dart';
@@ -36,6 +37,7 @@ class ProfileScreenState extends State<ProfileScreen> {
 
 
   void startNetworkConnectionStream(){
+    print("Stream is started");
     ConnectionStream networkStream = new ConnectionStream();
     networkStream.startConnectionChecker().listen(
       (onResponse){
@@ -45,9 +47,11 @@ class ProfileScreenState extends State<ProfileScreen> {
           StateContainer.of(context).isThereANetworkConnectionError = true;
           StateContainer.of(context).setConnectionErrorStatus(true);
           */
+          
         }
         else{
           print(200);
+          
           /*
           StateContainer.of(context).isThereANetworkConnectionError = false;
           StateContainer.of(context).setConnectionErrorStatus(false);

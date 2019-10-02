@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:deca_app/screens/admin/searcher.dart';
 import 'package:deca_app/utility/InheritedInfo.dart';
@@ -29,6 +31,7 @@ class FinderState extends State<Finder> {
   bool hasSearched = false;
   Map recentCardInfo;
   List<DocumentSnapshot> userDocs;
+  StreamSubscription userDataListener;
 
   FinderState();
 
@@ -41,9 +44,17 @@ class FinderState extends State<Finder> {
     _lastName.addListener(() {
       this.build(context);
     });
-    Firestore.instance.collection("Users").getDocuments().then((documents) {
-      setState(() => userDocs = documents.documents);
-    });
+
+    userDataListener = Firestore.instance.collection("Users").getDocuments().asStream().listen((data){
+      setState(() => userDocs = data.documents);
+    }
+    );
+    
+  }
+
+  void dispose(){
+    userDataListener.cancel();
+    super.dispose();
   }
 
   Widget build(BuildContext context) {

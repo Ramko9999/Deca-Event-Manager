@@ -45,6 +45,7 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
     return Scaffold(
+     
         backgroundColor: Colors.white,
         body: Stack(children: [
           new Column(children: [
@@ -64,8 +65,7 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
             Flexible(
                 flex: 4,
                 child: Container(
-                    child: Align(
-                        alignment: Alignment.bottomCenter,
+                    
                         child: Column(children: [
                           Container(
                               width: screenWidth * 0.85,
@@ -73,7 +73,7 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
                               child: new RaisedButton(
                                 child: Text('Sign In',
                                     style: new TextStyle(
-                                      fontSize: 20.0,
+                                      fontSize: Sizer.getTextSize(screenWidth, screenHeight, 20),
                                     )),
                                 textColor: Colors.white,
                                 color: Colors.blue,
@@ -90,7 +90,7 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
                               child: new RaisedButton(
                                   child: Text('Sign Up',
                                       style: new TextStyle(
-                                        fontSize: 20.0,
+                                        fontSize: Sizer.getTextSize(screenWidth, screenHeight, 20),
                                       )),
                                   textColor: Colors.black,
                                   color: Colors.white,
@@ -110,7 +110,7 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
                             ),
                             onPressed: createNewForgotPasswordTemplate,
                           )
-                        ])))),
+                        ]))),
           ]),
           //handles pulling up the login template
           if (_isLoginButtonClicked)

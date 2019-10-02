@@ -5,10 +5,12 @@ import 'package:deca_app/screens/admin/templates.dart';
 import 'package:deca_app/utility/InheritedInfo.dart';
 import 'package:deca_app/utility/format.dart';
 import 'package:deca_app/utility/notifiers.dart';
+import 'package:deca_app/utility/transistion.dart';
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
+import 'events.dart';
 import 'finder.dart';
 
 class FinderScreen extends StatefulWidget {

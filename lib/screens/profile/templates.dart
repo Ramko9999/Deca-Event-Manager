@@ -4,6 +4,7 @@ import 'package:deca_app/screens/profile/profile_screen.dart';
 import 'package:deca_app/utility/InheritedInfo.dart';
 import 'package:deca_app/utility/format.dart';
 import 'package:deca_app/utility/global.dart';
+import 'package:deca_app/utility/transistion.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
@@ -13,9 +14,14 @@ class DynamicProfileUI extends StatelessWidget {
   String _firstName;
   int _goldPoints;
   String _memberLevel;
+  bool _isEditable = false;
 
-  DynamicProfileUI(String uid) {
+  DynamicProfileUI(String uid, {bool editable}) {
     this._uid = uid;
+    if(editable != null){
+      this._isEditable = editable;
+    }
+    
   }
 
   Widget build(BuildContext context) {
@@ -52,7 +58,7 @@ class DynamicProfileUI extends StatelessWidget {
             return Center(
                 child: Column(
               children: <Widget>[
-                if (Global.uid == _uid)
+                if (!_isEditable)
                   Container(
                     padding: new EdgeInsets.fromLTRB(screenWidth / 20,
                         screenHeight / 40, screenWidth / 20, screenHeight / 80),
@@ -88,7 +94,7 @@ class DynamicProfileUI extends StatelessWidget {
                               context,
                               NoTransition(
                                   builder: (context) =>
-                                      new GPInfoScreen(_uid))),
+                                      new GPInfoScreen(_uid, editable: _isEditable))),
                           trailing: Text(
                             _goldPoints.toString(),
                             textAlign: TextAlign.center,
@@ -112,7 +118,7 @@ class DynamicProfileUI extends StatelessWidget {
                               style: new TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 20 * screenWidth / pixelTwoWidth)),
-                          subtitle: _uid == Global.uid
+                          subtitle: !_isEditable
                               ? (_memberLevel == 'N/A')
                                   ? Text(
                                       (75 - _goldPoints).toString() +
@@ -173,7 +179,7 @@ class DynamicProfileUI extends StatelessWidget {
                                 context,
                                 NoTransition(
                                     builder: (context) =>
-                                        new CommitteeInfoScreen(_uid))),
+                                        new CommitteeInfoScreen(_uid, editable: _isEditable,))),
                           ),
                         )
                       ],
@@ -203,8 +209,12 @@ class DynamicProfileUI extends StatelessWidget {
 
 class CommitteeInfoScreen extends StatefulWidget {
   String _uid;
-  CommitteeInfoScreen(String u) {
+  bool _isEditable;
+  CommitteeInfoScreen(String u, {bool editable}) {
     this._uid = u;
+    if(editable != null){
+      this._isEditable = editable;
+    }
   }
   @override
   State<StatefulWidget> createState() {
@@ -241,7 +251,7 @@ class CommitteeInfoScreenState extends State<CommitteeInfoScreen> {
           );
 
           //checks whether the committies are the app user's
-          if (widget._uid != Global.uid) {
+          if (widget._isEditable) {
             return Dismissible(
                 key: UniqueKey(),
                 child: group,
@@ -260,6 +270,7 @@ class CommitteeInfoScreenState extends State<CommitteeInfoScreen> {
                     if (comm != name) {
                       newList.add(comm);
                     }
+            
                   }
 
                   Firestore.instance
@@ -299,7 +310,7 @@ class CommitteeInfoScreenState extends State<CommitteeInfoScreen> {
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
-        title: widget._uid == Global.uid
+        title: !widget._isEditable
             ? Text('Committees')
             : AutoSizeText(
                 'Editing ${StateContainer.of(context).userData['first_name']}\'s Committees',
@@ -363,9 +374,13 @@ class CommitteeInfoScreenState extends State<CommitteeInfoScreen> {
 
 class GPInfoScreen extends StatefulWidget {
   String _uid;
+  bool _isEditable;
 
-  GPInfoScreen(String uid) {
+  GPInfoScreen(String uid, {bool editable}) {
     this._uid = uid;
+    if(editable != null){
+      this._isEditable = editable;
+    }
   }
 
   @override
@@ -380,6 +395,7 @@ class GPInfoScreenState extends State<GPInfoScreen> {
   List<EventObject> eventList;
   String filterType;
   final _scaffoldKey = GlobalKey<ScaffoldState>();
+  
 
   ListView _buildEventList(context, eventSnapshot, userSnapshot) {
     double sW = MediaQuery.of(context).size.width;
@@ -415,7 +431,7 @@ class GPInfoScreenState extends State<GPInfoScreen> {
         );
 
         //used to in order to prevent user for deleting their own events
-        if (widget._uid != Global.uid) {
+        if (widget._isEditable) {
           return Dismissible(
             key: UniqueKey(),
             background: Container(
@@ -434,12 +450,11 @@ class GPInfoScreenState extends State<GPInfoScreen> {
                 print(eventItem.info.data);
                 if (eventItem.info['event_name'] != event['event_name']) {
                   newMap.addAll({
-                    eventItem.info['event_name']: eventItem.info['gold_points']
+                    eventItem.info['event_name']: eventItem.gp
                   });
                 }
               }
 
-              print("New Map $newMap");
               Firestore.instance
                   .collection('Users')
                   .document(widget._uid)
@@ -527,7 +542,7 @@ class GPInfoScreenState extends State<GPInfoScreen> {
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
-        title: Text(widget._uid == Global.uid
+        title: Text(!widget._isEditable
             ? 'Events Attended'
             : 'Editing ${container.userData['first_name']}\'s Events'),
       ),
