@@ -1,4 +1,5 @@
 import 'package:deca_app/utility/format.dart';
+import 'package:deca_app/utility/transistion.dart';
 import 'package:flutter/material.dart';
 import 'package:deca_app/screens/authentication/templates.dart';
 
@@ -11,19 +12,29 @@ class AuthenticationScreen extends StatefulWidget {
 }
 
 class _AuthenticationScreenState extends State<AuthenticationScreen> {
+  
+  //boolean values control which template will be shown
   bool _isLoginButtonClicked = false;
   bool _isRegisterButtonClicked = false;
   bool _isForgotPasswordClicked = false;
 
   void createNewLoginTemplate() {
+
+    
+    
+    //affirm that the other templates shall not show up
+
+    
     setState(() {
       _isLoginButtonClicked = true;
       _isRegisterButtonClicked = false;
       _isForgotPasswordClicked = false;
     });
+    
   }
 
   void createNewRegisterTemplate() {
+    
     setState(() {
       _isRegisterButtonClicked = true;
       _isLoginButtonClicked = false;
@@ -32,6 +43,7 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
   }
 
   void createNewForgotPasswordTemplate() {
+   
     setState(() {
       _isForgotPasswordClicked = true;
       _isLoginButtonClicked = false;
@@ -41,9 +53,10 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // TODO: implement build
+   
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
+    
     return Scaffold(
      
         backgroundColor: Colors.white,
@@ -117,11 +130,13 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
             Stack(children: [
               GestureDetector(
                 child: Container(
+                  
                   color: Colors.black45,
                   width: screenWidth,
                   height: screenHeight,
                 ),
                 onTap: () {
+                  
                   setState(() {
                     FocusScope.of(context).requestFocus(FocusNode());
                     _isLoginButtonClicked = false;
@@ -147,6 +162,7 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
                 ),
               )
             ]),
+          
           if (_isRegisterButtonClicked)
             Stack(children: <Widget>[
               GestureDetector(
@@ -176,6 +192,7 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
             ]),
 
           if (_isForgotPasswordClicked)
+            
             Stack(
               children: <Widget>[
                 GestureDetector(

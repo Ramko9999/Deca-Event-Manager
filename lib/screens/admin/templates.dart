@@ -118,6 +118,7 @@ class EditMemberUIState extends State<EditMemberUI> {
       body: Center(
         child: Finder((BuildContext context, StateContainerState stateContainer,
             Map userInfo) {
+          
           stateContainer.setUserData(userInfo);
           Navigator.push(
               context,

@@ -41,8 +41,11 @@ class ProfileScreenState extends State<ProfileScreen> {
     ConnectionStream networkStream = new ConnectionStream();
     networkStream.startConnectionChecker().listen(
       (onResponse){
+
+        print("On Response $onResponse");
+
         if(onResponse == 404){
-          print(404);
+         
           /*
           StateContainer.of(context).isThereANetworkConnectionError = true;
           StateContainer.of(context).setConnectionErrorStatus(true);
@@ -50,7 +53,7 @@ class ProfileScreenState extends State<ProfileScreen> {
           
         }
         else{
-          print(200);
+         
           
           /*
           StateContainer.of(context).isThereANetworkConnectionError = false;
@@ -123,17 +126,21 @@ class ProfileScreenState extends State<ProfileScreen> {
   //used to get the locally stored notifications
   void initNotifications() {
     getApplicationDocumentsDirectory().then((appDirec) async {
+     
+     //get the user name
       String userInformation = Global.userDataFile.readAsStringSync();
       String username = json.decode(userInformation)['username'];
 
       //so different accounts don't collide
       File notificationFile = File(appDirec.path + "/$username-notify.json");
 
+      //if file exists then init the notifications from data on the file
       if (notificationFile.existsSync()) {
         List localNotifications =
             json.decode(notificationFile.readAsStringSync());
         StateContainer.of(context).initNotifications(localNotifications);
       } else {
+        
         notificationFile.createSync();
         //encode a dummy list
         notificationFile.writeAsStringSync(json.encode([]));
@@ -142,20 +149,25 @@ class ProfileScreenState extends State<ProfileScreen> {
     });
   }
 
+  //dummy callback for what occurs when a noitifcaiton is cicked
   Future notificationOnSelect(String payload) {
     setState(() => _selectedIndex = 2);
   }
 
   void scheduleLocalNotification(Map notification) async {
+    
     //used for scheduling as well as displaying notifications
     StateContainer.of(context).addToNotifications(notification);
     Global.notificationDataFile.writeAsStringSync(
         json.encode(StateContainer.of(context).notifications));
 
-    //init settings
+    //init settings for both platforms 
     AndroidNotificationDetails androidSettings = AndroidNotificationDetails(
         "channel id", "channel NAME", "CHANNEL DESCRIPTION");
+    
     IOSNotificationDetails iosSettings = IOSNotificationDetails();
+    
+    //init settings executed
     NotificationDetails platformSettings =
         NotificationDetails(androidSettings, iosSettings);
 
@@ -165,6 +177,8 @@ class ProfileScreenState extends State<ProfileScreen> {
     //schedule a notification for future
 
     //not working right now on android
+
+    /*
     if (notification['data'].keys.contains("date")) {
       await FlutterLocalNotificationsPlugin().schedule(
           0,
@@ -172,8 +186,9 @@ class ProfileScreenState extends State<ProfileScreen> {
           notification['data']['body'],
           DateTime.now().add(Duration(seconds: 10)),
           platformSettings);
+        */
     }
-  }
+  
 
   Widget changeScreen(int currentIndex) {
     switch (currentIndex) {

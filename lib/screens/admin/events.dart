@@ -1,4 +1,6 @@
 
+import 'dart:io';
+
 import 'package:deca_app/screens/admin/scanner.dart';
 import 'package:deca_app/screens/admin/templates.dart';
 import 'package:deca_app/utility/InheritedInfo.dart';
@@ -81,6 +83,7 @@ class _CreateEventUIState extends State<CreateEventUI> {
 
       container.setEventMetadata(eventMetadata);
     }
+    
     Navigator.of(context).pop();
     if(eventMetadata['enter_type'] == 'ME')
     {
@@ -266,6 +269,7 @@ class _CreateEventUIState extends State<CreateEventUI> {
                           color: Colors.blue,
                           textColor: Colors.white,
                           onPressed: () {
+                           
                             showCupertinoModalPopup(
                                 context: context,
                                 builder: (context) {
@@ -597,7 +601,28 @@ class _EditEventUIState extends State<EditEventUI> {
             context: context,
             builder: (context){
 
-              return AlertDialog(
+              return 
+              
+              Platform.isAndroid ?
+              
+              AlertDialog(
+                content: Text("Everyone who has been to this event will lose their gold points for this event"),
+                title: Text("Are you sure?"),
+                actions: <Widget>[
+                  FlatButton(
+                    
+                    child: Text("Delete", style: TextStyle(color: Colors.red),),
+                    onPressed: ()=> Navigator.of(context).pop(true),
+
+                  ),
+                  FlatButton(
+                    child: Text("Don't Delete"),
+                    onPressed: ()=> Navigator.of(context).pop(),
+                  ),
+                ],
+              ):
+
+              CupertinoAlertDialog(
                 content: Text("Everyone who has been to this event will lose their gold points for this event"),
                 title: Text("Are you sure?"),
                 actions: <Widget>[

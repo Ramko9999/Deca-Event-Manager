@@ -40,27 +40,29 @@ class _ScannerState extends State<Scanner> {
         .collection("Users")
         .document(userUniqueID)
         .get();
-    gpContainer.setUserData(userSnapshot.data);
-
-    if (gpContainer.eventMetadata['enter_type'] == 'ME') {
-      gpContainer.setIsManualEnter(true);
-      return "Ok";
-    } else {
+      
+      gpContainer.setUserData(userSnapshot.data);
+    
       gpContainer.updateGP(userUniqueID);
       String firstName = gpContainer.userData['first_name'];
       _scaffoldKey.currentState.showSnackBar(SnackBar(
         backgroundColor: Color.fromRGBO(46, 204, 113, 1),
         content: Text("Scanned " + firstName),
-        duration: Duration(seconds: 1),
+        duration: Duration(milliseconds: 500)
       ));
       return "Ok";
-    }
+    
   }
 
   void runStream() {
+    
     _scannedUids = new HashSet();
+    bool turnOffStream = false;
+    
     _mainCamera.startImageStream((image) {
+      
       FirebaseVisionImageMetadata metadata;
+      
       //metadata tag for the for image format.
       //source https://github.com/flutter/flutter/issues/26348
       metadata = FirebaseVisionImageMetadata(
@@ -81,12 +83,22 @@ class _ScannerState extends State<Scanner> {
           .detectInImage(visionImage)
           .then((barcodes) {
         for (Barcode barcode in barcodes) {
-          Future.delayed(Duration(seconds: 2), () {
-            print("Running Future Delayed");
-            if (_scannedUids.add(barcode.rawValue)) {
-              pushToDB(barcode.rawValue);
-            }
-          });
+          if(!_scannedUids.contains(barcode.rawValue))
+          {
+            if(turnOffStream)
+            {
+            print("Stream is turned off");
+          }
+          else
+          {
+            turnOffStream = true;
+            _scannedUids.add(barcode.rawValue);
+            pushToDB(barcode.rawValue).then( (onValue)=> turnOffStream = false);
+          }
+          }
+          
+          
+          
         }
       }).catchError((error) {
         if (error.runtimeType == CameraException) {
@@ -177,7 +189,10 @@ class _ScannerState extends State<Scanner> {
   }
 
   void dispose() {
-    _mainCamera.dispose();
+    if(_mainCamera != null){
+      _mainCamera.dispose();
+    }
+    
     super.dispose();
   }
 
