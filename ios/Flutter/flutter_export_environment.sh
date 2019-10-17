@@ -1,7 +1,7 @@
 #!/bin/sh
 # This is a generated file; do not edit or check into version control.
 export "FLUTTER_ROOT=C:\Users\ramap\flutter"
-export "FLUTTER_APPLICATION_PATH=C:\Users\ramap\Documents\flutter_first_app"
+export "FLUTTER_APPLICATION_PATH=C:\Users\ramap\Documents\DECA-APP-Flutter"
 export "FLUTTER_TARGET=lib\main.dart"
 export "FLUTTER_BUILD_DIR=build"
 export "SYMROOT=${SOURCE_ROOT}/../build\ios"
