@@ -21,7 +21,6 @@ class ConnectionStream {
           yield val;
         }
       } catch (e) {
-        print(e);
         if (val != 404) {
           val = 404;
           yield val;
