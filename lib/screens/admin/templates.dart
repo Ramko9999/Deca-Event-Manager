@@ -1,18 +1,14 @@
-
 import 'package:deca_app/screens/admin/finder.dart';
 import 'package:deca_app/screens/admin/notification_sender.dart';
 import 'package:deca_app/screens/profile/templates.dart';
 import 'package:deca_app/utility/InheritedInfo.dart';
 import 'package:deca_app/utility/notifiers.dart';
-import 'package:deca_app/utility/transistion.dart';
-import 'package:flutter/material.dart';
+import 'package:deca_app/utility/transition.dart';
 import 'package:flutter/cupertino.dart';
-
+import 'package:flutter/material.dart';
 
 import 'events.dart';
 import 'groups.dart';
-
-
 
 class AdminScreenUI extends StatefulWidget {
   AdminScreenUI();
@@ -115,24 +111,15 @@ class EditMemberUIState extends State<EditMemberUI> {
             icon: Icon(Icons.arrow_back_ios),
             onPressed: () => {Navigator.of(context).pop()}),
       ),
-      body: Center(
-        child: Finder((BuildContext context, StateContainerState stateContainer,
-            Map userInfo) {
-          
-          stateContainer.setUserData(userInfo);
-          Navigator.push(
-              context,
-              NoTransition(
-                  builder: (context) => new EditMemberProfileUI()));
-        })
-      ),
+      body: Center(child: Finder((BuildContext context,
+          StateContainerState stateContainer, Map userInfo) {
+        stateContainer.setUserData(userInfo);
+        Navigator.push(context,
+            NoTransition(builder: (context) => new EditMemberProfileUI()));
+      })),
     );
   }
 }
-
-
-
-
 
 class EditMemberProfileUI extends StatelessWidget {
   String _uid;
@@ -141,7 +128,6 @@ class EditMemberProfileUI extends StatelessWidget {
   String _memberLevel;
 
   Widget build(BuildContext context) {
-
     final infoContainer = StateContainer.of(context);
     _uid = infoContainer.userData['uid'];
     _firstName = infoContainer.userData['first_name'];
@@ -152,10 +138,10 @@ class EditMemberProfileUI extends StatelessWidget {
           leading: IconButton(
               icon: Icon(Icons.arrow_back_ios),
               onPressed: () => {Navigator.pop(context)}),
-          
         ),
-        body: DynamicProfileUI(_uid, editable: true,));
+        body: DynamicProfileUI(
+          _uid,
+          editable: true,
+        ));
   }
 }
-
-

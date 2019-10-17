@@ -1,16 +1,17 @@
 import 'dart:collection';
 import 'dart:io';
+
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:camera/camera.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:deca_app/screens/admin/templates.dart';
 import 'package:deca_app/utility/InheritedInfo.dart';
 import 'package:deca_app/utility/notifiers.dart';
-import 'package:deca_app/utility/transistion.dart';
+import 'package:deca_app/utility/transition.dart';
 import 'package:firebase_ml_vision/firebase_ml_vision.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
+
 import 'events.dart';
 import 'finderscreen.dart';
 
@@ -40,29 +41,24 @@ class _ScannerState extends State<Scanner> {
         .collection("Users")
         .document(userUniqueID)
         .get();
-      
-      gpContainer.setUserData(userSnapshot.data);
-    
-      gpContainer.updateGP(userUniqueID);
-      String firstName = gpContainer.userData['first_name'];
-      _scaffoldKey.currentState.showSnackBar(SnackBar(
+
+    gpContainer.setUserData(userSnapshot.data);
+
+    gpContainer.updateGP(userUniqueID);
+    String firstName = gpContainer.userData['first_name'];
+    _scaffoldKey.currentState.showSnackBar(SnackBar(
         backgroundColor: Color.fromRGBO(46, 204, 113, 1),
         content: Text("Scanned " + firstName),
-        duration: Duration(milliseconds: 500)
-      ));
-      return "Ok";
-    
+        duration: Duration(milliseconds: 500)));
+    return "Ok";
   }
 
   void runStream() {
-    
     _scannedUids = new HashSet();
     bool turnOffStream = false;
-    
+
     _mainCamera.startImageStream((image) {
-      
       FirebaseVisionImageMetadata metadata;
-      
       //metadata tag for the for image format.
       //source https://github.com/flutter/flutter/issues/26348
       metadata = FirebaseVisionImageMetadata(
@@ -83,22 +79,16 @@ class _ScannerState extends State<Scanner> {
           .detectInImage(visionImage)
           .then((barcodes) {
         for (Barcode barcode in barcodes) {
-          if(!_scannedUids.contains(barcode.rawValue))
-          {
-            if(turnOffStream)
-            {
-            print("Stream is turned off");
+          if (!_scannedUids.contains(barcode.rawValue)) {
+            if (turnOffStream) {
+              print("Stream is turned off");
+            } else {
+              turnOffStream = true;
+              _scannedUids.add(barcode.rawValue);
+              pushToDB(barcode.rawValue)
+                  .then((onValue) => turnOffStream = false);
+            }
           }
-          else
-          {
-            turnOffStream = true;
-            _scannedUids.add(barcode.rawValue);
-            pushToDB(barcode.rawValue).then( (onValue)=> turnOffStream = false);
-          }
-          }
-          
-          
-          
         }
       }).catchError((error) {
         if (error.runtimeType == CameraException) {
@@ -189,10 +179,10 @@ class _ScannerState extends State<Scanner> {
   }
 
   void dispose() {
-    if(_mainCamera != null){
+    if (_mainCamera != null) {
       _mainCamera.dispose();
     }
-    
+
     super.dispose();
   }
 
@@ -202,14 +192,14 @@ class _ScannerState extends State<Scanner> {
     isManualEnter = container.isManualEnter;
     //check first whether camera is init
     if (_isCameraInitalized) {
-        //check whether camera is already is streaming images
-        if (!_mainCamera.value.isStreamingImages) {
-          runStream();
-        }
-        //if there is an error, then stop the stream
-        else if (StateContainer.of(context).isThereConnectionError) {
-          _mainCamera.stopImageStream();
-        }
+      //check whether camera is already is streaming images
+      if (!_mainCamera.value.isStreamingImages) {
+        runStream();
+      }
+      //if there is an error, then stop the stream
+      else if (StateContainer.of(context).isThereConnectionError) {
+        _mainCamera.stopImageStream();
+      }
     }
 
     double screenHeight = MediaQuery.of(context).size.height;
@@ -313,12 +303,11 @@ class _ScannerState extends State<Scanner> {
     final container = StateContainer.of(context);
     double screenHeight = MediaQuery.of(context).size.height;
     double screenWidth = MediaQuery.of(context).size.width;
-    if(_isCameraInitalized)
-      {
-          _mainCamera.stopImageStream();
-      }
+    if (_isCameraInitalized) {
+      _mainCamera.stopImageStream();
+    }
     Navigator.pop(context);
-    Navigator.of(context).push(NoTransition(
-        builder: (context) => FinderScreen()));
+    Navigator.of(context)
+        .push(NoTransition(builder: (context) => FinderScreen()));
   }
 }

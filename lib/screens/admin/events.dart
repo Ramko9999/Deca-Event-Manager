@@ -1,22 +1,17 @@
-
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:deca_app/screens/admin/scanner.dart';
-import 'package:deca_app/screens/admin/templates.dart';
 import 'package:deca_app/utility/InheritedInfo.dart';
 import 'package:deca_app/utility/format.dart';
 import 'package:deca_app/utility/notifiers.dart';
-import 'package:deca_app/utility/transistion.dart';
+import 'package:deca_app/utility/transition.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'package:intl/intl.dart';
-import 'package:flutter/cupertino.dart';
-
 
 import 'finderscreen.dart';
-
-
 
 //used for creating an event
 class CreateEventUI extends StatefulWidget {
@@ -83,16 +78,13 @@ class _CreateEventUIState extends State<CreateEventUI> {
 
       container.setEventMetadata(eventMetadata);
     }
-    
+
     Navigator.of(context).pop();
-    if(eventMetadata['enter_type'] == 'ME')
-    {
+    if (eventMetadata['enter_type'] == 'ME') {
       Navigator.of(context)
           .push(NoTransition(builder: (context) => FinderScreen()));
-    }
-    else {
-      Navigator.of(context)
-          .push(NoTransition(builder: (context) => Scanner()));
+    } else {
+      Navigator.of(context).push(NoTransition(builder: (context) => Scanner()));
     }
     //clearAll();
   }
@@ -269,7 +261,6 @@ class _CreateEventUIState extends State<CreateEventUI> {
                           color: Colors.blue,
                           textColor: Colors.white,
                           onPressed: () {
-                           
                             showCupertinoModalPopup(
                                 context: context,
                                 builder: (context) {
@@ -447,9 +438,7 @@ class _CreateEventUIState extends State<CreateEventUI> {
   }
 }
 
-
 //a class used to edit Previous events as well as delete previous events
-
 
 class EditEventUI extends StatefulWidget {
   EditEventUI();
@@ -467,29 +456,27 @@ class _EditEventUIState extends State<EditEventUI> {
   ListView _buildEventList(context, snapshot) {
     double sW = MediaQuery.of(context).size.width;
     double sH = MediaQuery.of(context).size.height;
-    
+
     return ListView.builder(
-      
       // Must have an item count equal to the number of items!
       itemCount: snapshot.data.documents.length,
       // A callback that will return a widget.
       itemBuilder: (context, int) {
         DocumentSnapshot eventInfo = snapshot.data.documents[int];
 
-        
         return Dismissible(
-            key: UniqueKey(),
-            
-            background: Container(
-                  alignment: Alignment.centerRight,
-                  padding: EdgeInsets.only(right: 20.0),
-                  color: Colors.red,
-                  child: Icon(
-                    Icons.delete,
-                    color: Colors.white,
-                  ),
-                ),
-            child: Card(
+          key: UniqueKey(),
+
+          background: Container(
+            alignment: Alignment.centerRight,
+            padding: EdgeInsets.only(right: 20.0),
+            color: Colors.red,
+            child: Icon(
+              Icons.delete,
+              color: Colors.white,
+            ),
+          ),
+          child: Card(
             child: ListTile(
               title: Text(eventInfo['event_name'],
                   textAlign: TextAlign.left,
@@ -498,42 +485,35 @@ class _EditEventUIState extends State<EditEventUI> {
                       fontSize: Sizer.getTextSize(sW, sH, 20))),
               subtitle: Text(eventInfo['event_type']),
               onTap: () {
-
                 //set the eventMetadata to be have the Map of the event that will be edited
                 final container = StateContainer.of(context);
                 container.setEventMetadata(eventInfo.data);
-                
+
                 /* If the event is a manual enter event then there will be no scanner */
-                if(eventInfo.data['enter_type'] == 'ME')
-                  {
-                     
-                    Navigator.of(context)
-                        .push(NoTransition(builder: (context) => FinderScreen()));
-                  }
-                else {
+                if (eventInfo.data['enter_type'] == 'ME') {
+                  Navigator.of(context)
+                      .push(NoTransition(builder: (context) => FinderScreen()));
+                } else {
                   Navigator.of(context)
                       .push(NoTransition(builder: (context) => Scanner()));
                 }
               },
-
-              
             ),
           ),
 
           onDismissed: (direction) async {
-            
-            /*grab all the users who have been to this event, so that we can remove this event 
+            /*grab all the users who have been to this event, so that we can remove this event
               and the gold points associated with this event in their map
             */
 
             //batches allow for multiple writes as a single operation
             WriteBatch batch = Firestore.instance.batch();
 
-            QuerySnapshot userDocs = await Firestore.instance.collection("Users").getDocuments();
-            
+            QuerySnapshot userDocs =
+                await Firestore.instance.collection("Users").getDocuments();
+
             //iterate through the users and remove instance of the event
-            for(DocumentSnapshot userDocument in userDocs.documents){
-              
+            for (DocumentSnapshot userDocument in userDocs.documents) {
               Map eventData = userDocument['events'];
 
               //remove the event name key as well the pair in the map
@@ -542,15 +522,11 @@ class _EditEventUIState extends State<EditEventUI> {
               //recompute the gold points
               num goldPoints = 0;
 
-              eventData.forEach(
-                (k,v){
-                  
-                  goldPoints += v;
-                }
-                );
+              eventData.forEach((k, v) {
+                goldPoints += v;
+              });
 
-
-              /*update the whole user document with the deletion of the event as well the 
+              /*update the whole user document with the deletion of the event as well the
               recomputation of gold points
               */
 
@@ -562,84 +538,65 @@ class _EditEventUIState extends State<EditEventUI> {
             }
 
             //all the operations done to the user documents are done in one move
-            batch.commit().then(
-              (_)
-              {
-                //delete the actual document containing the event once all the batch commits are deleted
+            batch.commit().then((_) {
+              //delete the actual document containing the event once all the batch commits are deleted
 
-                eventInfo.reference.delete().then( 
-                  (_)
-                  {
-                    
-                    //display a snackbar to show the user the event is deleted
-                    _scaffoldKey.currentState.showSnackBar(
-                      
-                      SnackBar(
-                        content: Text(
-                          "The event has been deleted",
-                          style: TextStyle(
-                            fontFamily: 'Lato',
-                            color: Colors.white
-                          ),
-                          ),
-                        backgroundColor: Colors.green,
-                        
-
-                      )
-
-                    );
-                    
-                  });
-
-              }
-              );
+              eventInfo.reference.delete().then((_) {
+                //display a snackbar to show the user the event is deleted
+                _scaffoldKey.currentState.showSnackBar(SnackBar(
+                  content: Text(
+                    "The event has been deleted",
+                    style: TextStyle(fontFamily: 'Lato', color: Colors.white),
+                  ),
+                  backgroundColor: Colors.green,
+                ));
+              });
+            });
           },
 
           // a way to guarantee that the user truly wants to delete the group
-          confirmDismiss: (direction){
-          return showDialog(
-            context: context,
-            builder: (context){
-
-              return 
-              
-              Platform.isAndroid ?
-              
-              AlertDialog(
-                content: Text("Everyone who has been to this event will lose their gold points for this event"),
-                title: Text("Are you sure?"),
-                actions: <Widget>[
-                  FlatButton(
-                    
-                    child: Text("Delete", style: TextStyle(color: Colors.red),),
-                    onPressed: ()=> Navigator.of(context).pop(true),
-
-                  ),
-                  FlatButton(
-                    child: Text("Don't Delete"),
-                    onPressed: ()=> Navigator.of(context).pop(),
-                  ),
-                ],
-              ):
-
-              CupertinoAlertDialog(
-                content: Text("Everyone who has been to this event will lose their gold points for this event"),
-                title: Text("Are you sure?"),
-                actions: <Widget>[
-                  FlatButton(
-                    
-                    child: Text("Delete", style: TextStyle(color: Colors.red),),
-                    onPressed: ()=> Navigator.of(context).pop(true),
-
-                  ),
-                  FlatButton(
-                    child: Text("Don't Delete"),
-                    onPressed: ()=> Navigator.of(context).pop(),
-                  ),
-                ],
-              );
-            }
-          );
+          confirmDismiss: (direction) {
+            return showDialog(
+                context: context,
+                builder: (context) {
+                  return Platform.isAndroid
+                      ? AlertDialog(
+                          content: Text(
+                              "Everyone who has been to this event will lose their gold points for this event"),
+                          title: Text("Are you sure?"),
+                          actions: <Widget>[
+                            FlatButton(
+                              child: Text(
+                                "Delete",
+                                style: TextStyle(color: Colors.red),
+                              ),
+                              onPressed: () => Navigator.of(context).pop(true),
+                            ),
+                            FlatButton(
+                              child: Text("Don't Delete"),
+                              onPressed: () => Navigator.of(context).pop(),
+                            ),
+                          ],
+                        )
+                      : CupertinoAlertDialog(
+                          content: Text(
+                              "Everyone who has been to this event will lose their gold points for this event"),
+                          title: Text("Are you sure?"),
+                          actions: <Widget>[
+                            FlatButton(
+                              child: Text(
+                                "Delete",
+                                style: TextStyle(color: Colors.red),
+                              ),
+                              onPressed: () => Navigator.of(context).pop(true),
+                            ),
+                            FlatButton(
+                              child: Text("Don't Delete"),
+                              onPressed: () => Navigator.of(context).pop(),
+                            ),
+                          ],
+                        );
+                });
           },
         );
       },
@@ -690,7 +647,6 @@ class _EditEventUIState extends State<EditEventUI> {
     );
   }
 }
-
 
 //event informaiton
 

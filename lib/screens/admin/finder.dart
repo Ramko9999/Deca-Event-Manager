@@ -1,11 +1,11 @@
 import 'dart:async';
 
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:deca_app/screens/admin/searcher.dart';
 import 'package:deca_app/utility/InheritedInfo.dart';
 import 'package:deca_app/utility/format.dart';
 import 'package:flutter/material.dart';
-import 'package:auto_size_text/auto_size_text.dart';
 
 //Finder is a widget that will show search results of users based on names
 class Finder extends StatefulWidget {
@@ -14,7 +14,6 @@ class Finder extends StatefulWidget {
   Widget title;
   Widget subtitle;
   Widget trailing;
-  
 
   Finder(Function t, {Widget a}) {
     this.alert = a;
@@ -32,34 +31,31 @@ class FinderState extends State<Finder> {
   bool hasSearched = false;
   Map recentCardInfo;
   List<DocumentSnapshot> userDocs;
-  ScrollController _listScroller = ScrollController();
+  StreamSubscription userDataListener;
 
   FinderState();
-
-  //get the user documents
-  void initalizeDocuments() async {
-    
-    
-      QuerySnapshot data = await Firestore.instance.collection("Users").getDocuments();
-      setState(() => userDocs = data.documents);
-  }
-
 
   @override
   void initState() {
     super.initState();
+    _firstName.addListener(() {
+      this.build(context);
+    });
+    _lastName.addListener(() {
+      this.build(context);
+    });
 
-
-    if(mounted){
-
-      initalizeDocuments();
-      
-    
-    }
+    userDataListener = Firestore.instance
+        .collection("Users")
+        .getDocuments()
+        .asStream()
+        .listen((data) {
+      setState(() => userDocs = data.documents);
+    });
   }
 
-  void dispose(){
-    _listScroller.dispose();
+  void dispose() {
+    userDataListener.cancel();
     super.dispose();
   }
 
@@ -67,17 +63,11 @@ class FinderState extends State<Finder> {
     final container = StateContainer.of(context);
 
     //query and update documents based on additions and deletions
-
-    
     Firestore.instance.collection("Users").getDocuments().then((documents) {
       if (this.mounted) {
         setState(() => userDocs = documents.documents);
       }
     });
-    
-
-    //print("Building...");
-
 
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
@@ -90,28 +80,22 @@ class FinderState extends State<Finder> {
             child: Column(children: <Widget>[
               Padding(
                 padding: const EdgeInsets.fromLTRB(0, 0, 0, 15),
-                child: Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: Container(
-                        child: TextField(
-                          controller: _firstName,
-                          onTap: ()=> _listScroller.jumpTo(0.0),
-                          onChanged: (value)=> _listScroller.jumpTo(0.0),
-                          decoration: InputDecoration(labelText: "First Name"),
-                        ),
-                      ),
-                    ),
-                    Expanded(
+                child: Row(children: <Widget>[
+                  Expanded(
+                    child: Container(
                       child: TextField(
-                        controller: _lastName,
-                        onTap: ()=> _listScroller.jumpTo(0.0),
-                        onChanged: (value)=> _listScroller.jumpTo(0.0),
-                        decoration: InputDecoration(labelText: "Last Name"),
+                        controller: _firstName,
+                        decoration: InputDecoration(labelText: "First Name"),
                       ),
                     ),
-                  ]
-                ),
+                  ),
+                  Expanded(
+                    child: TextField(
+                      controller: _lastName,
+                      decoration: InputDecoration(labelText: "Last Name"),
+                    ),
+                  ),
+                ]),
               ),
               Flexible(
                   child: userDocs == null
@@ -136,6 +120,7 @@ class FinderState extends State<Finder> {
       Map userData = userDocs[i].data;
       userList.add(userData);
     }
+
     Searcher searcher = new Searcher(userList, _firstName.text, _lastName.text);
     MaxList relevanceList = searcher.search();
     return relevanceList;
@@ -147,11 +132,8 @@ class FinderState extends State<Finder> {
     double sH = MediaQuery.of(context).size.height;
     MaxList list = getData();
     final infoContainer = StateContainer.of(context);
-    
     Node current = list.head;
-    
     return ListView.builder(
-        controller: _listScroller,
         shrinkWrap: true,
         itemCount: list.getSize(),
         itemBuilder: (context, i) {
@@ -210,8 +192,6 @@ class ManualEnterPopupState extends State<ManualEnterPopup> {
     pointController.text = 0.toString();
   }
 
-
-
   Widget build(BuildContext context) {
     final container = StateContainer.of(context);
     userData = container.userData;
@@ -248,32 +228,21 @@ class ManualEnterPopupState extends State<ManualEnterPopup> {
               onPressed: () {
                 String userUID = userData['uid'];
                 int points = int.parse(pointController.text);
-                if(points > 0){
+                if (points > 0) {
                   container.updateGP(userUID, points);
-                Scaffold.of(context).showSnackBar(SnackBar(
-                  content: Text(
-                    "Succesfully added ${points.toString()} to ${userData['first_name']}",
-                    style: TextStyle(
-                        fontFamily: 'Lato', fontSize: Sizer.getTextSize(screenWidth, screenHeight, 20), color: Colors.white),
-                  ),
-                  backgroundColor: Colors.green,
-                ));
-                container.setIsCardTapped(false);
-                container.setIsManualEnter(false);
-                }
-                else{
-                  
-                  pointController.text = 0.toString();
-                  //alert the user to enter a non negative value
                   Scaffold.of(context).showSnackBar(SnackBar(
-                  content: Text(
-                    "Enter a non negative value",
-                    style: TextStyle(
-                        fontFamily: 'Lato', fontSize: Sizer.getTextSize(screenWidth, screenHeight, 20), color: Colors.white),
-                  ),
-                  backgroundColor: Colors.red,
-                ));
-
+                    content: Text(
+                      "Succesfully added ${points.toString()} to ${userData['first_name']}",
+                      style: TextStyle(
+                          fontFamily: 'Lato',
+                          fontSize:
+                              Sizer.getTextSize(screenWidth, screenHeight, 20),
+                          color: Colors.white),
+                    ),
+                    backgroundColor: Colors.green,
+                  ));
+                  container.setIsCardTapped(false);
+                  container.setIsManualEnter(false);
                 }
               },
             )
