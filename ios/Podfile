@@ -61,9 +61,6 @@ target 'Runner' do
     #ML Vision Pod
     pod 'Firebase/Functions'
     pod 'Firebase/MLVisionBarcodeModel'
-
-    #FCM
-    pod 'Firebase/Messaging'
 end
 
 # Prevent Cocoapods from embedding a second Flutter framework and causing an error with the new Xcode build system.

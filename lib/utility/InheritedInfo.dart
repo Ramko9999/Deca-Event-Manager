@@ -104,7 +104,8 @@ class StateContainerState extends State<StateContainer> {
         .get()
         .then((userData) {
       int totalGP = 0;
-      Map eventsList = userData['events'];
+      Map eventsList = userData.data['events'];
+      print(eventsList);
       for (var gp in eventsList.keys) {
         totalGP += eventsList[gp];
       }

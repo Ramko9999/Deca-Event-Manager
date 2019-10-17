@@ -3,22 +3,21 @@ import 'dart:io';
 
 import 'package:connectivity/connectivity.dart';
 import 'package:deca_app/screens/admin/admin_main.dart';
-import 'package:deca_app/screens/admin/templates.dart';
+import 'package:deca_app/screens/code/qr_screen.dart';
 import 'package:deca_app/screens/notifications/templates.dart';
+import 'package:deca_app/screens/profile/templates.dart';
+import 'package:deca_app/screens/settings/setting_screen.dart';
 import 'package:deca_app/utility/InheritedInfo.dart';
 import 'package:deca_app/utility/global.dart';
 import 'package:deca_app/utility/network.dart';
 import 'package:deca_app/utility/notifiers.dart';
+import 'package:deca_app/utility/transition.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:deca_app/screens/settings/setting_screen.dart';
-import 'package:deca_app/screens/profile/templates.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
-import 'package:deca_app/screens/code/qr_screen.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:path_provider/path_provider.dart';
-
 
 class ProfileScreen extends StatefulWidget {
   ProfileScreen();
@@ -34,26 +33,25 @@ class ProfileScreenState extends State<ProfileScreen> {
 
   ProfileScreenState();
 
-
-  void startNetworkConnectionStream(){
+  void startNetworkConnectionStream() {
+    print("Stream is started");
     ConnectionStream networkStream = new ConnectionStream();
-    networkStream.startConnectionChecker().listen(
-      (onResponse){
-        if(onResponse == 404){
-          print(404);
-          /*
+    networkStream.startConnectionChecker().listen((onResponse) {
+      if (onResponse == 404) {
+        print(404);
+        /*
           StateContainer.of(context).isThereANetworkConnectionError = true;
           StateContainer.of(context).setConnectionErrorStatus(true);
           */
-        }
-        else{
-          print(200);
-          /*
+
+      } else {
+        print(200);
+
+        /*
           StateContainer.of(context).isThereANetworkConnectionError = false;
           StateContainer.of(context).setConnectionErrorStatus(false);
           */
-        }
-      
+      }
     });
   }
 
@@ -62,16 +60,15 @@ class ProfileScreenState extends State<ProfileScreen> {
     //check for connection, and notify different screens of connection issue
 
     Connectivity().onConnectivityChanged.listen((connectionResult) {
-      bool implictError = StateContainer.of(context).isThereANetworkConnectionError;
-      
+      bool implictError =
+          StateContainer.of(context).isThereANetworkConnectionError;
+
       if (connectionResult == ConnectivityResult.none) {
-        StateContainer.of(context).isThereAnExplicitConnectionError =true;
+        StateContainer.of(context).isThereAnExplicitConnectionError = true;
         StateContainer.of(context).setConnectionErrorStatus(true);
-      } 
-      else {
+      } else {
         StateContainer.of(context).setConnectionErrorStatus(implictError);
       }
-
     });
   }
 

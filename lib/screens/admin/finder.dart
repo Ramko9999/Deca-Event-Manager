@@ -1,9 +1,11 @@
+import 'dart:async';
+
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:deca_app/screens/admin/searcher.dart';
 import 'package:deca_app/utility/InheritedInfo.dart';
 import 'package:deca_app/utility/format.dart';
 import 'package:flutter/material.dart';
-import 'package:auto_size_text/auto_size_text.dart';
 
 //Finder is a widget that will show search results of users based on names
 class Finder extends StatefulWidget {
@@ -29,6 +31,7 @@ class FinderState extends State<Finder> {
   bool hasSearched = false;
   Map recentCardInfo;
   List<DocumentSnapshot> userDocs;
+  StreamSubscription userDataListener;
 
   FinderState();
 
@@ -41,9 +44,19 @@ class FinderState extends State<Finder> {
     _lastName.addListener(() {
       this.build(context);
     });
-    Firestore.instance.collection("Users").getDocuments().then((documents) {
-      setState(() => userDocs = documents.documents);
+
+    userDataListener = Firestore.instance
+        .collection("Users")
+        .getDocuments()
+        .asStream()
+        .listen((data) {
+      setState(() => userDocs = data.documents);
     });
+  }
+
+  void dispose() {
+    userDataListener.cancel();
+    super.dispose();
   }
 
   Widget build(BuildContext context) {
@@ -67,24 +80,22 @@ class FinderState extends State<Finder> {
             child: Column(children: <Widget>[
               Padding(
                 padding: const EdgeInsets.fromLTRB(0, 0, 0, 15),
-                child: Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: Container(
-                        child: TextField(
-                          controller: _firstName,
-                          decoration: InputDecoration(labelText: "First Name"),
-                        ),
-                      ),
-                    ),
-                    Expanded(
+                child: Row(children: <Widget>[
+                  Expanded(
+                    child: Container(
                       child: TextField(
-                        controller: _lastName,
-                        decoration: InputDecoration(labelText: "Last Name"),
+                        controller: _firstName,
+                        decoration: InputDecoration(labelText: "First Name"),
                       ),
                     ),
-                  ]
-                ),
+                  ),
+                  Expanded(
+                    child: TextField(
+                      controller: _lastName,
+                      decoration: InputDecoration(labelText: "Last Name"),
+                    ),
+                  ),
+                ]),
               ),
               Flexible(
                   child: userDocs == null
@@ -217,18 +228,21 @@ class ManualEnterPopupState extends State<ManualEnterPopup> {
               onPressed: () {
                 String userUID = userData['uid'];
                 int points = int.parse(pointController.text);
-                if(points > 0){
+                if (points > 0) {
                   container.updateGP(userUID, points);
-                Scaffold.of(context).showSnackBar(SnackBar(
-                  content: Text(
-                    "Succesfully added ${points.toString()} to ${userData['first_name']}",
-                    style: TextStyle(
-                        fontFamily: 'Lato', fontSize: Sizer.getTextSize(screenWidth, screenHeight, 20), color: Colors.white),
-                  ),
-                  backgroundColor: Colors.green,
-                ));
-                container.setIsCardTapped(false);
-                container.setIsManualEnter(false);
+                  Scaffold.of(context).showSnackBar(SnackBar(
+                    content: Text(
+                      "Succesfully added ${points.toString()} to ${userData['first_name']}",
+                      style: TextStyle(
+                          fontFamily: 'Lato',
+                          fontSize:
+                              Sizer.getTextSize(screenWidth, screenHeight, 20),
+                          color: Colors.white),
+                    ),
+                    backgroundColor: Colors.green,
+                  ));
+                  container.setIsCardTapped(false);
+                  container.setIsManualEnter(false);
                 }
               },
             )

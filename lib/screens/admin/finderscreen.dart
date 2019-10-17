@@ -1,14 +1,13 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:deca_app/screens/admin/scanner.dart';
-import 'package:deca_app/screens/admin/searcher.dart';
-import 'package:deca_app/screens/admin/templates.dart';
 import 'package:deca_app/utility/InheritedInfo.dart';
 import 'package:deca_app/utility/format.dart';
 import 'package:deca_app/utility/notifiers.dart';
+import 'package:deca_app/utility/transition.dart';
 import 'package:flutter/material.dart';
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
+import 'events.dart';
 import 'finder.dart';
 
 class FinderScreen extends StatefulWidget {
@@ -43,8 +42,8 @@ class FinderScreenState extends State<FinderScreen> {
                   Navigator.of(context).pop();
                 } else {
                   Navigator.of(context).pop();
-                  Navigator.of(context).push(NoTransition(
-                      builder: (context) => EditEventUI()));
+                  Navigator.of(context)
+                      .push(NoTransition(builder: (context) => EditEventUI()));
                 }
               }),
           actions: <Widget>[
@@ -70,8 +69,8 @@ class FinderScreenState extends State<FinderScreen> {
                         label: Text('Add with QR Code'),
                         onPressed: () {
                           Navigator.of(context).pop();
-                          Navigator.of(context).push(NoTransition(
-                            builder: (context) => Scanner()));
+                          Navigator.of(context).push(
+                              NoTransition(builder: (context) => Scanner()));
                         }),
                   ),
                 ),

@@ -1,6 +1,6 @@
+import 'package:deca_app/screens/authentication/templates.dart';
 import 'package:deca_app/utility/format.dart';
 import 'package:flutter/material.dart';
-import 'package:deca_app/screens/authentication/templates.dart';
 
 class AuthenticationScreen extends StatefulWidget {
   @override
@@ -64,53 +64,52 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
             Flexible(
                 flex: 4,
                 child: Container(
-                    child: Align(
-                        alignment: Alignment.bottomCenter,
-                        child: Column(children: [
-                          Container(
-                              width: screenWidth * 0.85,
-                              height: screenHeight * 0.08,
-                              child: new RaisedButton(
-                                child: Text('Sign In',
-                                    style: new TextStyle(
-                                      fontSize: 20.0,
-                                    )),
-                                textColor: Colors.white,
-                                color: Colors.blue,
-                                onPressed: createNewLoginTemplate,
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(30)),
-                              )),
-                          Container(
-                            height: 15,
-                          ),
-                          Container(
-                              width: screenWidth * 0.85,
-                              height: screenHeight * 0.08,
-                              child: new RaisedButton(
-                                  child: Text('Sign Up',
-                                      style: new TextStyle(
-                                        fontSize: 20.0,
-                                      )),
-                                  textColor: Colors.black,
-                                  color: Colors.white,
-                                  onPressed: createNewRegisterTemplate,
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius:
-                                          BorderRadius.circular(30)))),
-                          FlatButton(
-                            textColor: Colors.blue,
-                            child: Text(
-                              "Forgot Password?",
-                              style: TextStyle(
-                                fontFamily: 'Lato',
+                    child: Column(children: [
+                  Container(
+                      width: screenWidth * 0.85,
+                      height: screenHeight * 0.08,
+                      child: new RaisedButton(
+                        child: Text('Sign In',
+                            style: new TextStyle(
+                              fontSize: Sizer.getTextSize(
+                                  screenWidth, screenHeight, 20),
+                            )),
+                        textColor: Colors.white,
+                        color: Colors.blue,
+                        onPressed: createNewLoginTemplate,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30)),
+                      )),
+                  Container(
+                    height: 15,
+                  ),
+                  Container(
+                      width: screenWidth * 0.85,
+                      height: screenHeight * 0.08,
+                      child: new RaisedButton(
+                          child: Text('Sign Up',
+                              style: new TextStyle(
                                 fontSize: Sizer.getTextSize(
-                                    screenWidth, screenHeight, 16),
-                              ),
-                            ),
-                            onPressed: createNewForgotPasswordTemplate,
-                          )
-                        ])))),
+                                    screenWidth, screenHeight, 20),
+                              )),
+                          textColor: Colors.black,
+                          color: Colors.white,
+                          onPressed: createNewRegisterTemplate,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30)))),
+                  FlatButton(
+                    textColor: Colors.blue,
+                    child: Text(
+                      "Forgot Password?",
+                      style: TextStyle(
+                        fontFamily: 'Lato',
+                        fontSize:
+                            Sizer.getTextSize(screenWidth, screenHeight, 16),
+                      ),
+                    ),
+                    onPressed: createNewForgotPasswordTemplate,
+                  )
+                ]))),
           ]),
           //handles pulling up the login template
           if (_isLoginButtonClicked)
