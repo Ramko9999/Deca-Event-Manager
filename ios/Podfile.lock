@@ -212,6 +212,7 @@ DEPENDENCIES:
   - cloud_firestore (from `.symlinks/plugins/cloud_firestore/ios`)
   - connectivity (from `.symlinks/plugins/connectivity/ios`)
   - Firebase/Functions
+  - Firebase/Messaging
   - Firebase/MLVisionBarcodeModel
   - firebase_auth (from `.symlinks/plugins/firebase_auth/ios`)
   - firebase_core (from `.symlinks/plugins/firebase_core/ios`)
@@ -322,6 +323,6 @@ SPEC CHECKSUMS:
   Protobuf: 1097ca58584c8d9be81bfbf2c5ff5975648dd87a
   Reachability: 33e18b67625424e47b6cde6d202dce689ad7af96
 
-PODFILE CHECKSUM: dee100c8f09d727b9f388e7cd2add2eadc1b0110
+PODFILE CHECKSUM: 3a6f524769327f3a79e1813983a588fe70b610b2
 
 COCOAPODS: 1.7.5
