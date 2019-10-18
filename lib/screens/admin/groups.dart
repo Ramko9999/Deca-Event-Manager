@@ -39,7 +39,7 @@ class _CreateGroupUIState extends State<CreateGroupUI> {
           ),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: Text("Add Users to Group"),
+        title: Text("Add Users to Committee"),
       ),
       body: Stack(
         children: <Widget>[
@@ -129,67 +129,77 @@ class _CreateGroupUIState extends State<CreateGroupUI> {
                         color: Colors.white,
                       ),
                       width: sW * 0.7,
-                      height: sH * 0.25,
-                      child: Column(
-                        children: <Widget>[
-                          Text(
-                            "Group Name",
-                            style: TextStyle(
-                                fontSize: Sizer.getTextSize(sW, sH, 21)),
-                          ),
-                          Container(
-                            width: sW * 0.6,
-                            child: TextField(
-                              controller: _groupName,
-                              style: TextStyle(
-                                  fontSize: Sizer.getTextSize(sW, sH, 15)),
-                              decoration: InputDecoration(
-                                labelText: "Group Name",
+                      height: sH * 0.2,
+                      child: Center(
+                        child: Container(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: <Widget>[
+                              Text(
+                                "Add a New Committee",
+                                style: TextStyle(
+                                    fontSize: Sizer.getTextSize(sW, sH, 17)),
                               ),
-                            ),
+                              Container(
+                                width: sW * 0.6,
+                                child: TextField(
+                                  controller: _groupName,
+                                  style: TextStyle(
+                                      fontSize: Sizer.getTextSize(sW, sH, 17)),
+                                  decoration: InputDecoration(
+                                    labelText: "Committee Name",
+                                  ),
+                                ),
+                              ),
+                              FlatButton(
+                                child: Text(
+                                  "Create",
+                                  style: TextStyle(
+                                      fontSize: Sizer.getTextSize(sW, sH, 17)),
+                                ),
+                                textColor: Colors.blue,
+                                onPressed: () async {
+                                  if (_groupName.text != null) {
+                                    QuerySnapshot groupSnap = await Firestore
+                                        .instance
+                                        .collection("Groups")
+                                        .getDocuments();
+
+                                    //create a map of the documents by the first name field
+                                    List groups = groupSnap.documents
+                                        .map((f) => f.data['name'])
+                                        .toList();
+
+                                    if (!groups.contains(_groupName.text)) {
+                                      Firestore.instance
+                                          .collection("Groups")
+                                          .add({'name': _groupName.text});
+                                      StateContainer.of(context)
+                                          .setGroup(_groupName.text);
+
+                                      setState(() => _hasCreatedGroup = true);
+                                    } else {
+                                      _scaffoldKey.currentState
+                                          .showSnackBar(SnackBar(
+                                        content: Text(
+                                          "${_groupName.text} already exists",
+                                          style: TextStyle(
+                                              fontFamily: 'Lato',
+                                              fontSize:
+                                                  Sizer.getTextSize(sW, sH, 18),
+                                              color: Colors.white),
+                                        ),
+                                        backgroundColor: Colors.red,
+                                        duration: Duration(seconds: 1),
+                                      ));
+                                    }
+                                  }
+                                },
+                              )
+                            ],
                           ),
-                          FlatButton(
-                            child: Text("Create"),
-                            textColor: Colors.blue,
-                            onPressed: () async {
-                              if (_groupName.text != null) {
-                                QuerySnapshot groupSnap = await Firestore
-                                    .instance
-                                    .collection("Groups")
-                                    .getDocuments();
-
-                                //create a map of the documents by the first name field
-                                List groups = groupSnap.documents
-                                    .map((f) => f.data['name'])
-                                    .toList();
-
-                                if (!groups.contains(_groupName.text)) {
-                                  Firestore.instance
-                                      .collection("Groups")
-                                      .add({'name': _groupName.text});
-                                  StateContainer.of(context)
-                                      .setGroup(_groupName.text);
-
-                                  setState(() => _hasCreatedGroup = true);
-                                } else {
-                                  _scaffoldKey.currentState
-                                      .showSnackBar(SnackBar(
-                                    content: Text(
-                                      "${_groupName.text} already exists",
-                                      style: TextStyle(
-                                          fontFamily: 'Lato',
-                                          fontSize:
-                                              Sizer.getTextSize(sW, sH, 18),
-                                          color: Colors.white),
-                                    ),
-                                    backgroundColor: Colors.red,
-                                    duration: Duration(seconds: 1),
-                                  ));
-                                }
-                              }
-                            },
-                          )
-                        ],
+                        ),
                       ),
                     ),
                   ),
