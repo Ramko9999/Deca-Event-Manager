@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:collection';
 import 'dart:io';
 
@@ -23,7 +24,7 @@ class Scanner extends StatefulWidget {
 }
 
 class _ScannerState extends State<Scanner> {
-  HashSet<String> _scannedUids; //used to keep track of already scanned codes
+
   CameraController _mainCamera; //camera that will give us the feed
   bool _isCameraInitalized = false;
   Map eventMetadata;
@@ -33,41 +34,16 @@ class _ScannerState extends State<Scanner> {
   bool _cameraPermission = true;
   final _scaffoldKey = new GlobalKey<ScaffoldState>();
   bool isManualEnter;
+  StreamController _processor = StreamController();
+  Queue<String> barcodeQueue = Queue();
 
-  Future<String> pushToDB(String userUniqueID) async {
-    final gpContainer = StateContainer.of(
-        _scaffoldKey.currentContext); //This is actually smart as hell
-
-    DocumentSnapshot userSnapshot = await Firestore.instance
-        .collection("Users")
-        .document(userUniqueID)
-        .get();
-
-    gpContainer.setUserData(userSnapshot.data);
-
-    gpContainer.updateGP(userUniqueID);
-    String firstName = gpContainer.userData['first_name'];
-    _scaffoldKey.currentState.showSnackBar(SnackBar(
-        backgroundColor: Color.fromRGBO(46, 204, 113, 1),
-        content: Text(
-          "Scanned " + firstName,
-          style: TextStyle(
-              fontFamily: 'Lato',
-              fontSize: Sizer.getTextSize(MediaQuery.of(context).size.width,
-                  MediaQuery.of(context).size.width, 20),
-              color: Colors.white),
-          textAlign: TextAlign.center,
-        ),
-        duration: Duration(milliseconds: 500)));
-    return "Ok";
-  }
-
+  //handles running the actual scanner camera stream
   void runStream() {
-    _scannedUids = new HashSet();
-    bool turnOffStream = false;
 
-    _mainCamera.startImageStream((image) {
+
+    _mainCamera.startImageStream((image) async {
       FirebaseVisionImageMetadata metadata;
+
       //metadata tag for the for image format.
       //source https://github.com/flutter/flutter/issues/26348
       metadata = FirebaseVisionImageMetadata(
@@ -83,55 +59,69 @@ class _ScannerState extends State<Scanner> {
       FirebaseVisionImage visionImage =
           FirebaseVisionImage.fromBytes(image.planes[0].bytes, metadata);
 
-      FirebaseVision.instance
+      List<Barcode> barcodes  = await FirebaseVision.instance
           .barcodeDetector()
-          .detectInImage(visionImage)
-          .then((barcodes) {
+          .detectInImage(visionImage);
+
         for (Barcode barcode in barcodes) {
-          if (!_scannedUids.contains(barcode.rawValue)) {
-            if (turnOffStream) {
-              print("Stream is turned off");
-            } else {
-              turnOffStream = true;
-              _scannedUids.add(barcode.rawValue);
-              pushToDB(barcode.rawValue)
-                  .then((onValue) => turnOffStream = false);
+
+          /*
+          Using the length and last element o fthe barcodeQueue to print multiple snackbars from showing up
+          */
+          if(barcodeQueue.length != 0)
+
+          {
+
+            //check whether the scanned element is the same as the last element in queue so spam doesn't occur
+            if(barcodeQueue.last != barcode.rawValue)
+            {
+              barcodeQueue.add(barcode.rawValue);
+            _processor.add(barcode.rawValue);
+            }
+            else{
+              print("Barcode has already been scanned");
             }
           }
+          else{
+            barcodeQueue.add(barcode.rawValue);
+            _processor.add(barcode.rawValue);
+          }
+
         }
-      }).catchError((error) {
-        if (error.runtimeType == CameraException) {
-          _scaffoldKey.currentState.showSnackBar(SnackBar(
-            content: Text("Issues with Camera"),
-          ));
-        }
-      });
+
     });
   }
 
   //get a list of permissions that are still denied
   Future<List> getPermissionsThatNeedToBeChecked(
+
       PermissionGroup cameraPermission,
-      PermissionGroup microphonePermission) async {
+      PermissionGroup microphonePermission)
+      async {
+
+
     PermissionStatus cameraPermStatus =
         await PermissionHandler().checkPermissionStatus(cameraPermission);
     PermissionStatus microphonePermStatus =
         await PermissionHandler().checkPermissionStatus(microphonePermission);
+
     List<PermissionGroup> stillNeedToBeGranted = [];
+
     if (cameraPermStatus == PermissionStatus.denied) {
       stillNeedToBeGranted.add(cameraPermission);
     }
+
     if (microphonePermStatus == PermissionStatus.denied) {
       stillNeedToBeGranted.add(microphonePermission);
     }
+
     return stillNeedToBeGranted;
   }
 
   //create camera based on permissions
-  void createCamera() {
-    getPermissionsThatNeedToBeChecked(
-            PermissionGroup.camera, PermissionGroup.microphone)
-        .then((permList) {
+  void createCamera() async {
+    List<PermissionGroup> permList = await getPermissionsThatNeedToBeChecked(PermissionGroup.camera, PermissionGroup.microphone);
+
       if (permList.length == 0) {
         //get all the avaliable cameras
         availableCameras().then((allCameras) {
@@ -144,7 +134,38 @@ class _ScannerState extends State<Scanner> {
             setState(() {
               _isCameraInitalized = true;
             }); //show the actual camera
+
             runStream();
+
+            _processor.stream.listen((onData) async {
+
+
+      final gpContainer = StateContainer.of(
+        _scaffoldKey.currentContext); //This is actually smart as hell
+
+    DocumentSnapshot userSnapshot = await Firestore.instance
+        .collection("Users")
+        .document(onData)
+        .get();
+
+    gpContainer.setUserData(userSnapshot.data);
+
+    gpContainer.updateGP(onData);
+
+    String firstName = gpContainer.userData['first_name'];
+
+
+    //show scaffold here
+    _scaffoldKey.currentState.showSnackBar(Text("Scanned " + firstName,
+      style: TextStyle(
+          fontFamily: 'Lato',
+          fontSize: Sizer.getTextSize(MediaQuery.of(context).size.width,
+              MediaQuery.of(context).size.width, 20),
+          color: Colors.white),
+      textAlign: TextAlign.center,
+    ),
+        duration: Duration(milliseconds: 500)));
+
           }).catchError((onError) {
             //permission denied
             if (onError.toString().contains("permission not granted")) {
@@ -159,7 +180,7 @@ class _ScannerState extends State<Scanner> {
           _cameraPermission = false;
         });
       }
-    });
+
   }
 
   //request permissions and check until all are requestsed
@@ -199,6 +220,7 @@ class _ScannerState extends State<Scanner> {
     final container = StateContainer.of(context);
     eventMetadata = container.eventMetadata;
     isManualEnter = container.isManualEnter;
+
     //check first whether camera is init
     if (_isCameraInitalized) {
       //check whether camera is already is streaming images
@@ -214,7 +236,6 @@ class _ScannerState extends State<Scanner> {
     double screenHeight = MediaQuery.of(context).size.height;
     double screenWidth = MediaQuery.of(context).size.width;
 
-    _scannedUids = new HashSet();
 
     pointVal = eventMetadata['gold_points'];
     scanCount = eventMetadata['attendee_count'];
@@ -312,9 +333,7 @@ class _ScannerState extends State<Scanner> {
   }
 
   void changeToSearcher(BuildContext context) {
-    final container = StateContainer.of(context);
-    double screenHeight = MediaQuery.of(context).size.height;
-    double screenWidth = MediaQuery.of(context).size.width;
+
     if (_isCameraInitalized) {
       _mainCamera.stopImageStream();
     }
