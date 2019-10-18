@@ -5,6 +5,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:camera/camera.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:deca_app/utility/InheritedInfo.dart';
+import 'package:deca_app/utility/format.dart';
 import 'package:deca_app/utility/notifiers.dart';
 import 'package:deca_app/utility/transition.dart';
 import 'package:firebase_ml_vision/firebase_ml_vision.dart';
@@ -48,7 +49,15 @@ class _ScannerState extends State<Scanner> {
     String firstName = gpContainer.userData['first_name'];
     _scaffoldKey.currentState.showSnackBar(SnackBar(
         backgroundColor: Color.fromRGBO(46, 204, 113, 1),
-        content: Text("Scanned " + firstName),
+        content: Text(
+          "Scanned " + firstName,
+          style: TextStyle(
+              fontFamily: 'Lato',
+              fontSize: Sizer.getTextSize(MediaQuery.of(context).size.width,
+                  MediaQuery.of(context).size.width, 20),
+              color: Colors.white),
+          textAlign: TextAlign.center,
+        ),
         duration: Duration(milliseconds: 500)));
     return "Ok";
   }
@@ -293,7 +302,10 @@ class _ScannerState extends State<Scanner> {
                 height: screenHeight,
                 decoration: new BoxDecoration(color: Colors.black45),
                 child: Align(
-                    alignment: Alignment.center, child: new EventInfoUI()),
+                    alignment: Alignment.center,
+                    child: new EventInfoUI(
+                      scaffoldKey: _scaffoldKey,
+                    )),
               ),
             )
         ]));

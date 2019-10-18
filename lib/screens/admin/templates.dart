@@ -57,20 +57,20 @@ class _AdminUIState extends State<AdminScreenUI> {
                 Card(
                     child: ListTile(
                   leading: Icon(Icons.group_add),
-                  title: Text('Create a Group'),
+                  title: Text('Create a Committee'),
                   onTap: () => Navigator.push(context,
                       NoTransition(builder: (context) => CreateGroupUI())),
                 )),
                 Card(
                     child: ListTile(
                   leading: Icon(Icons.group),
-                  title: Text('Edit a Group'),
+                  title: Text('Edit a Committee'),
                   onTap: () => Navigator.push(context,
                       NoTransition(builder: (context) => EditGroupUI())),
                 )),
                 Card(
                     child: ListTile(
-                  leading: Icon(Icons.person),
+                  leading: Icon(Icons.account_circle),
                   title: Text('Edit Members'),
                   onTap: () => Navigator.push(context,
                       NoTransition(builder: (context) => EditMemberUI())),

@@ -1,5 +1,6 @@
-import 'dart:async';
+import 'dart:io';
 
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:deca_app/utility/InheritedInfo.dart';
 import 'package:deca_app/utility/format.dart';
@@ -7,8 +8,6 @@ import 'package:deca_app/utility/global.dart';
 import 'package:deca_app/utility/notifiers.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
-import 'package:intl/intl.dart';
 
 class Sender extends StatefulWidget {
   Sender();
@@ -19,8 +18,9 @@ class Sender extends StatefulWidget {
 }
 
 class SenderState extends State<Sender> {
-  String filter = "Any"; //used to only send notifications to certain committies
+  String filter = "All"; //used to only send notifications to certain committies
   String date;
+  String dropdownValue;
   List<String> groups = [];
   TextEditingController header = new TextEditingController();
   TextEditingController message = new TextEditingController();
@@ -35,7 +35,7 @@ class SenderState extends State<Sender> {
       documents.documents.forEach((d) {
         potentialGroups.add(d.data['name']);
       });
-      potentialGroups.add("Any");
+      potentialGroups.add("All");
       setState(() {
         groups = potentialGroups;
         filter = groups.last;
@@ -57,7 +57,7 @@ class SenderState extends State<Sender> {
       notificationData.addAll({'date': date});
     }
 
-    if (filter != "Any") {
+    if (filter != "All") {
       notificationData.addAll({'filter': filter});
     }
 
@@ -74,20 +74,34 @@ class SenderState extends State<Sender> {
 
       _scaffoldKey.currentState.showSnackBar(
         SnackBar(
-          content: Text("Pushed!", style: TextStyle(color: Colors.white)),
+          content: Text(
+            "Message Sent!",
+            style: TextStyle(
+                fontFamily: 'Lato',
+                fontSize: Sizer.getTextSize(MediaQuery.of(context).size.width,
+                    MediaQuery.of(context).size.width, 20),
+                color: Colors.white),
+            textAlign: TextAlign.center,
+          ),
           backgroundColor: Colors.green,
+          duration: Duration(seconds: 1),
         ),
       );
+      setState(() {
+        dropdownValue = null;
+      });
     }, onError: (e) {});
   }
 
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
+    double sW = MediaQuery.of(context).size.width;
+    double sH = MediaQuery.of(context).size.height;
     return Scaffold(
         key: _scaffoldKey,
         appBar: AppBar(
-          title: Text("Send Notifications"),
+          title: Text("Send a Notification"),
           leading: IconButton(
             icon: Icon(Icons.arrow_back_ios),
             onPressed: () {
@@ -155,128 +169,139 @@ class SenderState extends State<Sender> {
                                     borderSide: BorderSide(color: Colors.grey),
                                   ))),
                         ),
-                        Padding(
-                          padding: EdgeInsets.only(top: screenHeight * 0.03),
-                          child: Container(
-                              width: screenWidth / 1.7,
-                              child: groups.isEmpty
-                                  ? Text(
-                                      "Loading Groups...",
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(color: Colors.blue),
-                                    )
-                                  : DropdownButton(
-                                      value: filter,
-                                      isExpanded: true,
-                                      hint: Text(
-                                          "Send Notification to Specific Committie"),
-                                      onChanged: (String group) {
-                                        setState(() => filter = group);
-                                      },
-                                      items: groups.map((String group) {
-                                        return DropdownMenuItem<String>(
-                                          value: group,
-                                          child: Text(
-                                            group,
-                                            style: TextStyle(
-                                                fontFamily: 'Lato',
-                                                fontSize: Sizer.getTextSize(
-                                                    screenWidth,
-                                                    screenHeight,
-                                                    17),
-                                                color: Colors.blue),
-                                            textAlign: TextAlign.center,
-                                          ),
+                        if (Platform.isAndroid)
+                          Padding(
+                            padding: EdgeInsets.only(top: screenHeight * 0.03),
+                            child: Container(
+                                width: screenWidth / 1.7,
+                                child: groups.isEmpty
+                                    ? Text(
+                                        "Loading Committees...",
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(color: Colors.blue),
+                                      )
+                                    : DropdownButton(
+                                        value: filter,
+                                        isExpanded: true,
+                                        hint: Text("Notification Destination"),
+                                        onChanged: (String group) {
+                                          setState(() => filter = group);
+                                        },
+                                        items: groups.map((String group) {
+                                          return DropdownMenuItem<String>(
+                                            value: group,
+                                            child: Text(
+                                              group,
+                                              style: TextStyle(
+                                                  fontFamily: 'Lato',
+                                                  fontSize: Sizer.getTextSize(
+                                                      screenWidth,
+                                                      screenHeight,
+                                                      17),
+                                                  color: Colors.blue),
+                                              textAlign: TextAlign.center,
+                                            ),
+                                          );
+                                        }).toList(),
+                                      )),
+                          ),
+                        if (Platform.isIOS)
+                          Container(
+                              padding: new EdgeInsets.only(top: sH * 0.03),
+                              width: sW * 0.9,
+                              height: sH * 0.12,
+                              child: RaisedButton(
+                                child: AutoSizeText(
+                                  (dropdownValue == null)
+                                      ? "Choose Notification Destination"
+                                      : "Destination: " + dropdownValue,
+                                  textAlign: TextAlign.center,
+                                  style: new TextStyle(
+                                      fontSize: Sizer.getTextSize(sW, sH, 17),
+                                      fontFamily: 'Lato'),
+                                ),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10)),
+                                color: Colors.blue,
+                                textColor: Colors.white,
+                                onPressed: () {
+                                  showCupertinoModalPopup(
+                                      context: context,
+                                      builder: (context) {
+                                        return CupertinoActionSheet(
+                                          title:
+                                              Text('Notification Destination'),
+                                          actions: groups.map((String group) {
+                                            return CupertinoActionSheetAction(
+                                              onPressed: () {
+                                                setState(() {
+                                                  dropdownValue = group;
+                                                  Navigator.pop(context);
+                                                });
+                                              },
+                                              child: Text(
+                                                group,
+                                                style: TextStyle(
+                                                    fontFamily: 'Lato',
+                                                    fontSize: Sizer.getTextSize(
+                                                        screenWidth,
+                                                        screenHeight,
+                                                        17),
+                                                    color: Colors.blue),
+                                                textAlign: TextAlign.center,
+                                              ),
+                                            );
+                                          }).toList(),
                                         );
-                                      }).toList(),
-                                    )),
-                        ),
+                                      });
+                                },
+                              )),
                         Padding(
                           padding: EdgeInsets.only(top: screenHeight * 0.03),
                           child: Container(
-                            width: screenWidth / 1.1,
-                            child: FlatButton(
-                              child: Text(
-                                date == null ? "Send as a Reminder" : date,
-                                style: TextStyle(
-                                  fontFamily: 'Lato',
-                                  fontSize: Sizer.getTextSize(
-                                      screenWidth, screenHeight, 18),
-                                ),
-                              ),
-                              textColor: Colors.blue,
-                              onPressed: () {
-                                DatePicker.showDatePicker(context,
-                                    showTitleActions: true,
-                                    minTime: DateTime(2019, 8, 31),
-                                    onChanged: (DateTime dateTime) {
-                                  setState(() {
-                                    date = new DateFormat('yyyy-MM-dd')
-                                        .format(dateTime)
-                                        .toString();
-                                  });
-                                });
-                              },
-                            ),
-                          ),
-                        ),
-                        FlatButton(
-                          child: date == null
-                              ? Text(
-                                  "Optional Feature",
-                                  style: TextStyle(
-                                      color: Colors.grey,
-                                      fontSize: Sizer.getTextSize(
-                                          screenWidth, screenHeight, 12)),
-                                )
-                              : Text(
-                                  "Don't send as reminder",
-                                  style: TextStyle(
-                                      color: Colors.red,
-                                      fontSize: Sizer.getTextSize(
-                                          screenWidth, screenHeight, 12)),
-                                ),
-                          onPressed: date == null
-                              ? () => print("Nothing shall happen")
-                              : () {
-                                  setState(() => date = null);
+                              width: screenWidth * 0.45,
+                              height: screenHeight * 0.08,
+                              child: new RaisedButton(
+                                child: Text('Send',
+                                    style: new TextStyle(
+                                        fontSize: Sizer.getTextSize(
+                                            screenWidth, screenHeight, 17),
+                                        fontFamily: 'Lato')),
+                                textColor: Colors.white,
+                                color: Color.fromRGBO(46, 204, 113, 1),
+                                onPressed: () {
+                                  try {
+                                    if (header.text.trim() == "") {
+                                      throw Exception("Header cannot be empty");
+                                    }
+                                    if (message.text.trim() == "") {
+                                      throw Exception("Body cannot be empty");
+                                    }
+                                    executeNotification();
+                                  } catch (error) {
+                                    _scaffoldKey.currentState
+                                        .showSnackBar(SnackBar(
+                                      content: Text(error.toString(),
+                                          style: TextStyle(
+                                              fontFamily: 'Lato',
+                                              fontSize: Sizer.getTextSize(
+                                                  MediaQuery.of(context)
+                                                      .size
+                                                      .width,
+                                                  MediaQuery.of(context)
+                                                      .size
+                                                      .width,
+                                                  20),
+                                              color: Colors.white)),
+                                      backgroundColor: Colors.red,
+                                      duration: Duration(seconds: 1),
+                                    ));
+                                  }
                                 },
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10)),
+                              )),
                         ),
-                        Padding(
-                          padding: EdgeInsets.only(top: screenHeight * 0.10),
-                          child: Container(
-                            width: screenWidth / 1.1,
-                            child: FlatButton(
-                              child: Text(
-                                "Push",
-                                style: TextStyle(
-                                    fontFamily: 'Lato',
-                                    fontSize: Sizer.getTextSize(
-                                        screenWidth, screenHeight, 24),
-                                    color: Colors.green),
-                              ),
-                              onPressed: () {
-                                try {
-                                  if (header.text.trim() == "") {
-                                    throw Exception("Header cannot be empty");
-                                  }
-                                  if (message.text.trim() == "") {
-                                    throw Exception("Body cannot be empty");
-                                  }
-                                  executeNotification();
-                                } catch (error) {
-                                  _scaffoldKey.currentState
-                                      .showSnackBar(SnackBar(
-                                    content: Text(error.toString(),
-                                        style: TextStyle(color: Colors.white)),
-                                    backgroundColor: Colors.red,
-                                    duration: Duration(seconds: 1),
-                                  ));
-                                }
-                              },
-                            ),
-                          ),
-                        )
                       ],
                     ),
                   ),

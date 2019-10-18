@@ -20,6 +20,7 @@ class FinderScreenState extends State<FinderScreen> {
   Map eventMetadata;
   bool isInfo = false;
   bool isManualEnter;
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   Widget build(BuildContext context) {
@@ -30,6 +31,7 @@ class FinderScreenState extends State<FinderScreen> {
     double sH = MediaQuery.of(context).size.height;
 
     return Scaffold(
+        key: _scaffoldKey,
         appBar: new AppBar(
           title: AutoSizeText(
             "Add Members to \'" + eventMetadata['event_name'] + "\'",
@@ -84,13 +86,14 @@ class FinderScreenState extends State<FinderScreen> {
                       if (stateContainer.eventMetadata['enter_type'] == 'QE') {
                         stateContainer.updateGP(userInfo['uid']);
                         Scaffold.of(context).showSnackBar(SnackBar(
-                          duration: Duration(seconds: 1),
+                          duration: Duration(milliseconds: 300),
                           content: Text(
                             "Succesfully added ${stateContainer.eventMetadata['gold_points'].toString()} to ${userInfo['first_name']}",
                             style: TextStyle(
                                 fontFamily: 'Lato',
                                 fontSize: Sizer.getTextSize(sW, sH, 20),
                                 color: Colors.white),
+                            textAlign: TextAlign.center,
                           ),
                           backgroundColor: Colors.green,
                         ));
@@ -124,7 +127,10 @@ class FinderScreenState extends State<FinderScreen> {
                 height: sH,
                 decoration: new BoxDecoration(color: Colors.black45),
                 child: Align(
-                    alignment: Alignment.center, child: new EventInfoUI()),
+                    alignment: Alignment.center,
+                    child: new EventInfoUI(
+                      scaffoldKey: _scaffoldKey,
+                    )),
               ),
             )
         ]));
