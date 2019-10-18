@@ -129,75 +129,86 @@ class _CreateGroupUIState extends State<CreateGroupUI> {
                         color: Colors.white,
                       ),
                       width: sW * 0.7,
-                      height: sH * 0.2,
+                      height: sH * 0.3,
                       child: Center(
                         child: Container(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: <Widget>[
-                              Text(
-                                "Add a New Committee",
-                                style: TextStyle(
-                                    fontSize: Sizer.getTextSize(sW, sH, 17)),
-                              ),
-                              Container(
-                                width: sW * 0.6,
-                                child: TextField(
-                                  controller: _groupName,
+                          child: Padding(
+                            padding: const EdgeInsets.all(10.0),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: <Widget>[
+                                Text(
+                                  "Add a New Committee",
                                   style: TextStyle(
-                                      fontSize: Sizer.getTextSize(sW, sH, 17)),
-                                  decoration: InputDecoration(
-                                    labelText: "Committee Name",
+                                      fontSize: Sizer.getTextSize(sW, sH, 17),
+                                      fontWeight: FontWeight.bold),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Container(
+                                    width: sW * 0.6,
+                                    child: TextField(
+                                      controller: _groupName,
+                                      style: TextStyle(
+                                          fontSize:
+                                              Sizer.getTextSize(sW, sH, 17)),
+                                      decoration: InputDecoration(
+                                        labelText: "Committee Name",
+                                      ),
+                                    ),
                                   ),
                                 ),
-                              ),
-                              FlatButton(
-                                child: Text(
-                                  "Create",
-                                  style: TextStyle(
-                                      fontSize: Sizer.getTextSize(sW, sH, 17)),
-                                ),
-                                textColor: Colors.blue,
-                                onPressed: () async {
-                                  if (_groupName.text != null) {
-                                    QuerySnapshot groupSnap = await Firestore
-                                        .instance
-                                        .collection("Groups")
-                                        .getDocuments();
-
-                                    //create a map of the documents by the first name field
-                                    List groups = groupSnap.documents
-                                        .map((f) => f.data['name'])
-                                        .toList();
-
-                                    if (!groups.contains(_groupName.text)) {
-                                      Firestore.instance
+                                RaisedButton(
+                                  child: Text('Update',
+                                      style: new TextStyle(
+                                          fontSize:
+                                              Sizer.getTextSize(sW, sH, 17),
+                                          fontFamily: 'Lato')),
+                                  textColor: Colors.white,
+                                  color: Color.fromRGBO(46, 204, 113, 1),
+                                  onPressed: () async {
+                                    if (_groupName.text != null) {
+                                      QuerySnapshot groupSnap = await Firestore
+                                          .instance
                                           .collection("Groups")
-                                          .add({'name': _groupName.text});
-                                      StateContainer.of(context)
-                                          .setGroup(_groupName.text);
+                                          .getDocuments();
 
-                                      setState(() => _hasCreatedGroup = true);
-                                    } else {
-                                      _scaffoldKey.currentState
-                                          .showSnackBar(SnackBar(
-                                        content: Text(
-                                          "${_groupName.text} already exists",
-                                          style: TextStyle(
-                                              fontFamily: 'Lato',
-                                              fontSize:
-                                                  Sizer.getTextSize(sW, sH, 18),
-                                              color: Colors.white),
-                                        ),
-                                        backgroundColor: Colors.red,
-                                        duration: Duration(seconds: 1),
-                                      ));
+                                      //create a map of the documents by the first name field
+                                      List groups = groupSnap.documents
+                                          .map((f) => f.data['name'])
+                                          .toList();
+
+                                      if (!groups.contains(_groupName.text)) {
+                                        Firestore.instance
+                                            .collection("Groups")
+                                            .add({'name': _groupName.text});
+                                        StateContainer.of(context)
+                                            .setGroup(_groupName.text);
+
+                                        setState(() => _hasCreatedGroup = true);
+                                      } else {
+                                        _scaffoldKey.currentState
+                                            .showSnackBar(SnackBar(
+                                          content: Text(
+                                            "${_groupName.text} already exists",
+                                            style: TextStyle(
+                                                fontFamily: 'Lato',
+                                                fontSize: Sizer.getTextSize(
+                                                    sW, sH, 17),
+                                                color: Colors.white),
+                                          ),
+                                          backgroundColor: Colors.red,
+                                          duration: Duration(seconds: 1),
+                                        ));
+                                      }
                                     }
-                                  }
-                                },
-                              )
-                            ],
+                                  },
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10)),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
