@@ -6,6 +6,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:camera/camera.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:deca_app/utility/InheritedInfo.dart';
+import 'package:deca_app/utility/format.dart';
 import 'package:deca_app/utility/notifiers.dart';
 import 'package:deca_app/utility/transition.dart';
 import 'package:firebase_ml_vision/firebase_ml_vision.dart';
@@ -23,7 +24,7 @@ class Scanner extends StatefulWidget {
 }
 
 class _ScannerState extends State<Scanner> {
- 
+
   CameraController _mainCamera; //camera that will give us the feed
   bool _isCameraInitalized = false;
   Map eventMetadata;
@@ -38,11 +39,11 @@ class _ScannerState extends State<Scanner> {
 
   //handles running the actual scanner camera stream
   void runStream() {
-    
+
 
     _mainCamera.startImageStream((image) async {
       FirebaseVisionImageMetadata metadata;
-      
+
       //metadata tag for the for image format.
       //source https://github.com/flutter/flutter/issues/26348
       metadata = FirebaseVisionImageMetadata(
@@ -61,14 +62,14 @@ class _ScannerState extends State<Scanner> {
       List<Barcode> barcodes  = await FirebaseVision.instance
           .barcodeDetector()
           .detectInImage(visionImage);
-          
+
         for (Barcode barcode in barcodes) {
-          
+
           /*
           Using the length and last element o fthe barcodeQueue to print multiple snackbars from showing up
           */
           if(barcodeQueue.length != 0)
-          
+
           {
 
             //check whether the scanned element is the same as the last element in queue so spam doesn't occur
@@ -85,17 +86,17 @@ class _ScannerState extends State<Scanner> {
             barcodeQueue.add(barcode.rawValue);
             _processor.add(barcode.rawValue);
           }
-          
+
         }
-      
+
     });
   }
 
   //get a list of permissions that are still denied
   Future<List> getPermissionsThatNeedToBeChecked(
-      
+
       PermissionGroup cameraPermission,
-      PermissionGroup microphonePermission) 
+      PermissionGroup microphonePermission)
       async {
 
 
@@ -103,24 +104,24 @@ class _ScannerState extends State<Scanner> {
         await PermissionHandler().checkPermissionStatus(cameraPermission);
     PermissionStatus microphonePermStatus =
         await PermissionHandler().checkPermissionStatus(microphonePermission);
-    
+
     List<PermissionGroup> stillNeedToBeGranted = [];
-    
+
     if (cameraPermStatus == PermissionStatus.denied) {
       stillNeedToBeGranted.add(cameraPermission);
     }
-    
+
     if (microphonePermStatus == PermissionStatus.denied) {
       stillNeedToBeGranted.add(microphonePermission);
     }
-   
+
     return stillNeedToBeGranted;
   }
 
   //create camera based on permissions
   void createCamera() async {
     List<PermissionGroup> permList = await getPermissionsThatNeedToBeChecked(PermissionGroup.camera, PermissionGroup.microphone);
-        
+
       if (permList.length == 0) {
         //get all the avaliable cameras
         availableCameras().then((allCameras) {
@@ -133,11 +134,11 @@ class _ScannerState extends State<Scanner> {
             setState(() {
               _isCameraInitalized = true;
             }); //show the actual camera
-            
+
             runStream();
 
             _processor.stream.listen((onData) async {
-              
+
 
       final gpContainer = StateContainer.of(
         _scaffoldKey.currentContext); //This is actually smart as hell
@@ -152,14 +153,26 @@ class _ScannerState extends State<Scanner> {
     gpContainer.updateGP(onData);
 
     String firstName = gpContainer.userData['first_name'];
-    
-              
+
+
     //show scaffold here
     _scaffoldKey.currentState.showSnackBar(SnackBar(
         backgroundColor: Color.fromRGBO(46, 204, 113, 1),
-        content: Text("Scanned " + firstName),
+        content: Text("Scanned " + firstName,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+                fontFamily: 'Lato',
+                color: Colors.white,
+                fontSize: Sizer.getTextSize(
+                    MediaQuery.of(context)
+                        .size
+                        .width,
+                    MediaQuery.of(context)
+                        .size
+                        .height,
+                    18))),
         duration: Duration(milliseconds: 500)));
-              
+
             });
 
 
@@ -177,7 +190,7 @@ class _ScannerState extends State<Scanner> {
           _cameraPermission = false;
         });
       }
-    
+
   }
 
   //request permissions and check until all are requestsed
@@ -217,7 +230,7 @@ class _ScannerState extends State<Scanner> {
     final container = StateContainer.of(context);
     eventMetadata = container.eventMetadata;
     isManualEnter = container.isManualEnter;
-    
+
     //check first whether camera is init
     if (_isCameraInitalized) {
       //check whether camera is already is streaming images
@@ -320,7 +333,10 @@ class _ScannerState extends State<Scanner> {
                 height: screenHeight,
                 decoration: new BoxDecoration(color: Colors.black45),
                 child: Align(
-                    alignment: Alignment.center, child: new EventInfoUI()),
+                    alignment: Alignment.center,
+                    child: new EventInfoUI(
+                      scaffoldKey: _scaffoldKey,
+                    )),
               ),
             )
         ]));
