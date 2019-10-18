@@ -156,15 +156,25 @@ class _ScannerState extends State<Scanner> {
 
 
     //show scaffold here
-    _scaffoldKey.currentState.showSnackBar(Text("Scanned " + firstName,
-      style: TextStyle(
-          fontFamily: 'Lato',
-          fontSize: Sizer.getTextSize(MediaQuery.of(context).size.width,
-              MediaQuery.of(context).size.width, 20),
-          color: Colors.white),
-      textAlign: TextAlign.center,
-    ),
+    _scaffoldKey.currentState.showSnackBar(SnackBar(
+        backgroundColor: Color.fromRGBO(46, 204, 113, 1),
+        content: Text("Scanned " + firstName,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+                fontFamily: 'Lato',
+                color: Colors.white,
+                fontSize: Sizer.getTextSize(
+                    MediaQuery.of(context)
+                        .size
+                        .width,
+                    MediaQuery.of(context)
+                        .size
+                        .height,
+                    18))),
         duration: Duration(milliseconds: 500)));
+
+            });
+
 
           }).catchError((onError) {
             //permission denied
