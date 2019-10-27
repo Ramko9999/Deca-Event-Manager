@@ -1,19 +1,16 @@
-import 'dart:async';
 import 'dart:collection';
 import 'dart:io';
-
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:camera/camera.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:deca_app/screens/admin/templates.dart';
 import 'package:deca_app/utility/InheritedInfo.dart';
-import 'package:deca_app/utility/format.dart';
 import 'package:deca_app/utility/notifiers.dart';
-import 'package:deca_app/utility/transition.dart';
+import 'package:deca_app/utility/transistion.dart';
 import 'package:firebase_ml_vision/firebase_ml_vision.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
-
 import 'events.dart';
 import 'finderscreen.dart';
 
@@ -24,6 +21,7 @@ class Scanner extends StatefulWidget {
 }
 
 class _ScannerState extends State<Scanner> {
+  HashSet<String> _scannedUids; //used to keep track of already scanned codes
   CameraController _mainCamera; //camera that will give us the feed
   bool _isCameraInitalized = false;
   Map eventMetadata;
@@ -33,14 +31,38 @@ class _ScannerState extends State<Scanner> {
   bool _cameraPermission = true;
   final _scaffoldKey = new GlobalKey<ScaffoldState>();
   bool isManualEnter;
-  StreamController _processor = StreamController();
-  Queue<String> barcodeQueue = Queue();
 
-  //handles running the actual scanner camera stream
+  Future<String> pushToDB(String userUniqueID) async {
+    final gpContainer = StateContainer.of(
+        _scaffoldKey.currentContext); //This is actually smart as hell
+
+    DocumentSnapshot userSnapshot = await Firestore.instance
+        .collection("Users")
+        .document(userUniqueID)
+        .get();
+      
+      gpContainer.setUserData(userSnapshot.data);
+    
+      gpContainer.updateGP(userUniqueID);
+      String firstName = gpContainer.userData['first_name'];
+      _scaffoldKey.currentState.showSnackBar(SnackBar(
+        backgroundColor: Color.fromRGBO(46, 204, 113, 1),
+        content: Text("Scanned " + firstName),
+        duration: Duration(milliseconds: 500)
+      ));
+      return "Ok";
+    
+  }
+
   void runStream() {
-    _mainCamera.startImageStream((image) async {
+    
+    _scannedUids = new HashSet();
+    bool turnOffStream = false;
+    
+    _mainCamera.startImageStream((image) {
+      
       FirebaseVisionImageMetadata metadata;
-
+      
       //metadata tag for the for image format.
       //source https://github.com/flutter/flutter/issues/26348
       metadata = FirebaseVisionImageMetadata(
@@ -56,27 +78,35 @@ class _ScannerState extends State<Scanner> {
       FirebaseVisionImage visionImage =
           FirebaseVisionImage.fromBytes(image.planes[0].bytes, metadata);
 
-      List<Barcode> barcodes = await FirebaseVision.instance
+      FirebaseVision.instance
           .barcodeDetector()
-          .detectInImage(visionImage);
-
-      for (Barcode barcode in barcodes) {
-        /*
-          Using the length and last element o fthe barcodeQueue to print multiple snackbars from showing up
-          */
-        if (barcodeQueue.length != 0) {
-          //check whether the scanned element is the same as the last element in queue so spam doesn't occur
-          if (barcodeQueue.last != barcode.rawValue) {
-            barcodeQueue.add(barcode.rawValue);
-            _processor.add(barcode.rawValue);
-          } else {
-            print("Barcode has already been scanned");
+          .detectInImage(visionImage)
+          .then((barcodes) {
+        for (Barcode barcode in barcodes) {
+          if(!_scannedUids.contains(barcode.rawValue))
+          {
+            if(turnOffStream)
+            {
+            print("Stream is turned off");
           }
-        } else {
-          barcodeQueue.add(barcode.rawValue);
-          _processor.add(barcode.rawValue);
+          else
+          {
+            turnOffStream = true;
+            _scannedUids.add(barcode.rawValue);
+            pushToDB(barcode.rawValue).then( (onValue)=> turnOffStream = false);
+          }
+          }
+          
+          
+          
         }
-      }
+      }).catchError((error) {
+        if (error.runtimeType == CameraException) {
+          _scaffoldKey.currentState.showSnackBar(SnackBar(
+            content: Text("Issues with Camera"),
+          ));
+        }
+      });
     });
   }
 
@@ -88,83 +118,49 @@ class _ScannerState extends State<Scanner> {
         await PermissionHandler().checkPermissionStatus(cameraPermission);
     PermissionStatus microphonePermStatus =
         await PermissionHandler().checkPermissionStatus(microphonePermission);
-
     List<PermissionGroup> stillNeedToBeGranted = [];
-
     if (cameraPermStatus == PermissionStatus.denied) {
       stillNeedToBeGranted.add(cameraPermission);
     }
-
     if (microphonePermStatus == PermissionStatus.denied) {
       stillNeedToBeGranted.add(microphonePermission);
     }
-
     return stillNeedToBeGranted;
   }
 
   //create camera based on permissions
-  void createCamera() async {
-    List<PermissionGroup> permList = await getPermissionsThatNeedToBeChecked(
-        PermissionGroup.camera, PermissionGroup.microphone);
+  void createCamera() {
+    getPermissionsThatNeedToBeChecked(
+            PermissionGroup.camera, PermissionGroup.microphone)
+        .then((permList) {
+      if (permList.length == 0) {
+        //get all the avaliable cameras
+        availableCameras().then((allCameras) {
+          _mainCamera = CameraController(allCameras[0], ResolutionPreset.low);
 
-    if (permList.length == 0) {
-      //get all the avaliable cameras
-      availableCameras().then((allCameras) {
-        _mainCamera = CameraController(allCameras[0], ResolutionPreset.low);
-
-        _mainCamera.initialize().then((_) {
-          if (!mounted) {
-            return;
-          }
-          setState(() {
-            _isCameraInitalized = true;
-          }); //show the actual camera
-
-          runStream();
-
-          _processor.stream.listen((onData) async {
-            final gpContainer = StateContainer.of(
-                _scaffoldKey.currentContext); //This is actually smart as hell
-
-            DocumentSnapshot userSnapshot = await Firestore.instance
-                .collection("Users")
-                .document(onData)
-                .get();
-
-            gpContainer.setUserData(userSnapshot.data);
-
-            gpContainer.updateGP(onData);
-
-            String firstName = gpContainer.userData['first_name'];
-
-            //show scaffold here
-            _scaffoldKey.currentState.showSnackBar(SnackBar(
-                backgroundColor: Color.fromRGBO(46, 204, 113, 1),
-                content: Text("Scanned " + firstName,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                        fontFamily: 'Lato',
-                        color: Colors.white,
-                        fontSize: Sizer.getTextSize(
-                            MediaQuery.of(context).size.width,
-                            MediaQuery.of(context).size.height,
-                            18))),
-                duration: Duration(milliseconds: 500)));
-          });
-        }).catchError((onError) {
-          //permission denied
-          if (onError.toString().contains("permission not granted")) {
+          _mainCamera.initialize().then((_) {
+            if (!mounted) {
+              return;
+            }
             setState(() {
-              _cameraPermission = false;
-            });
-          }
+              _isCameraInitalized = true;
+            }); //show the actual camera
+            runStream();
+          }).catchError((onError) {
+            //permission denied
+            if (onError.toString().contains("permission not granted")) {
+              setState(() {
+                _cameraPermission = false;
+              });
+            }
+          });
         });
-      });
-    } else {
-      setState(() {
-        _cameraPermission = false;
-      });
-    }
+      } else {
+        setState(() {
+          _cameraPermission = false;
+        });
+      }
+    });
   }
 
   //request permissions and check until all are requestsed
@@ -193,10 +189,10 @@ class _ScannerState extends State<Scanner> {
   }
 
   void dispose() {
-    if (_mainCamera != null) {
+    if(_mainCamera != null){
       _mainCamera.dispose();
     }
-
+    
     super.dispose();
   }
 
@@ -204,21 +200,22 @@ class _ScannerState extends State<Scanner> {
     final container = StateContainer.of(context);
     eventMetadata = container.eventMetadata;
     isManualEnter = container.isManualEnter;
-
     //check first whether camera is init
     if (_isCameraInitalized) {
-      //check whether camera is already is streaming images
-      if (!_mainCamera.value.isStreamingImages) {
-        runStream();
-      }
-      //if there is an error, then stop the stream
-      else if (StateContainer.of(context).isThereConnectionError) {
-        _mainCamera.stopImageStream();
-      }
+        //check whether camera is already is streaming images
+        if (!_mainCamera.value.isStreamingImages) {
+          runStream();
+        }
+        //if there is an error, then stop the stream
+        else if (StateContainer.of(context).isThereConnectionError) {
+          _mainCamera.stopImageStream();
+        }
     }
 
     double screenHeight = MediaQuery.of(context).size.height;
     double screenWidth = MediaQuery.of(context).size.width;
+
+    _scannedUids = new HashSet();
 
     pointVal = eventMetadata['gold_points'];
     scanCount = eventMetadata['attendee_count'];
@@ -306,21 +303,22 @@ class _ScannerState extends State<Scanner> {
                 height: screenHeight,
                 decoration: new BoxDecoration(color: Colors.black45),
                 child: Align(
-                    alignment: Alignment.center,
-                    child: new EventInfoUI(
-                      scaffoldKey: _scaffoldKey,
-                    )),
+                    alignment: Alignment.center, child: new EventInfoUI()),
               ),
             )
         ]));
   }
 
   void changeToSearcher(BuildContext context) {
-    if (_isCameraInitalized) {
-      _mainCamera.stopImageStream();
-    }
+    final container = StateContainer.of(context);
+    double screenHeight = MediaQuery.of(context).size.height;
+    double screenWidth = MediaQuery.of(context).size.width;
+    if(_isCameraInitalized)
+      {
+          _mainCamera.stopImageStream();
+      }
     Navigator.pop(context);
-    Navigator.of(context)
-        .push(NoTransition(builder: (context) => FinderScreen()));
+    Navigator.of(context).push(NoTransition(
+        builder: (context) => FinderScreen()));
   }
 }

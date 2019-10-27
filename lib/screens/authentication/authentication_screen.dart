@@ -1,6 +1,7 @@
-import 'package:deca_app/screens/authentication/templates.dart';
 import 'package:deca_app/utility/format.dart';
+import 'package:deca_app/utility/transistion.dart';
 import 'package:flutter/material.dart';
+import 'package:deca_app/screens/authentication/templates.dart';
 
 class AuthenticationScreen extends StatefulWidget {
   @override
@@ -11,19 +12,29 @@ class AuthenticationScreen extends StatefulWidget {
 }
 
 class _AuthenticationScreenState extends State<AuthenticationScreen> {
+  
+  //boolean values control which template will be shown
   bool _isLoginButtonClicked = false;
   bool _isRegisterButtonClicked = false;
   bool _isForgotPasswordClicked = false;
 
   void createNewLoginTemplate() {
+
+    
+    
+    //affirm that the other templates shall not show up
+
+    
     setState(() {
       _isLoginButtonClicked = true;
       _isRegisterButtonClicked = false;
       _isForgotPasswordClicked = false;
     });
+    
   }
 
   void createNewRegisterTemplate() {
+    
     setState(() {
       _isRegisterButtonClicked = true;
       _isLoginButtonClicked = false;
@@ -32,6 +43,7 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
   }
 
   void createNewForgotPasswordTemplate() {
+   
     setState(() {
       _isForgotPasswordClicked = true;
       _isLoginButtonClicked = false;
@@ -41,10 +53,12 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // TODO: implement build
+   
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
+    
     return Scaffold(
+     
         backgroundColor: Colors.white,
         body: Stack(children: [
           new Column(children: [
@@ -64,63 +78,65 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
             Flexible(
                 flex: 4,
                 child: Container(
-                    child: Column(children: [
-                  Container(
-                      width: screenWidth * 0.85,
-                      height: screenHeight * 0.08,
-                      child: new RaisedButton(
-                        child: Text('Sign In',
-                            style: new TextStyle(
-                              fontSize: Sizer.getTextSize(
-                                  screenWidth, screenHeight, 20),
-                            )),
-                        textColor: Colors.white,
-                        color: Colors.blue,
-                        onPressed: createNewLoginTemplate,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30)),
-                      )),
-                  Container(
-                    height: 15,
-                  ),
-                  Container(
-                      width: screenWidth * 0.85,
-                      height: screenHeight * 0.08,
-                      child: new RaisedButton(
-                          child: Text('Sign Up',
-                              style: new TextStyle(
-                                fontSize: Sizer.getTextSize(
-                                    screenWidth, screenHeight, 20),
+                    
+                        child: Column(children: [
+                          Container(
+                              width: screenWidth * 0.85,
+                              height: screenHeight * 0.08,
+                              child: new RaisedButton(
+                                child: Text('Sign In',
+                                    style: new TextStyle(
+                                      fontSize: Sizer.getTextSize(screenWidth, screenHeight, 20),
+                                    )),
+                                textColor: Colors.white,
+                                color: Colors.blue,
+                                onPressed: createNewLoginTemplate,
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(30)),
                               )),
-                          textColor: Colors.black,
-                          color: Colors.white,
-                          onPressed: createNewRegisterTemplate,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30)))),
-                  FlatButton(
-                    textColor: Colors.blue,
-                    child: Text(
-                      "Forgot Password?",
-                      style: TextStyle(
-                        fontFamily: 'Lato',
-                        fontSize:
-                            Sizer.getTextSize(screenWidth, screenHeight, 16),
-                      ),
-                    ),
-                    onPressed: createNewForgotPasswordTemplate,
-                  )
-                ]))),
+                          Container(
+                            height: 15,
+                          ),
+                          Container(
+                              width: screenWidth * 0.85,
+                              height: screenHeight * 0.08,
+                              child: new RaisedButton(
+                                  child: Text('Sign Up',
+                                      style: new TextStyle(
+                                        fontSize: Sizer.getTextSize(screenWidth, screenHeight, 20),
+                                      )),
+                                  textColor: Colors.black,
+                                  color: Colors.white,
+                                  onPressed: createNewRegisterTemplate,
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius:
+                                          BorderRadius.circular(30)))),
+                          FlatButton(
+                            textColor: Colors.blue,
+                            child: Text(
+                              "Forgot Password?",
+                              style: TextStyle(
+                                fontFamily: 'Lato',
+                                fontSize: Sizer.getTextSize(
+                                    screenWidth, screenHeight, 16),
+                              ),
+                            ),
+                            onPressed: createNewForgotPasswordTemplate,
+                          )
+                        ]))),
           ]),
           //handles pulling up the login template
           if (_isLoginButtonClicked)
             Stack(children: [
               GestureDetector(
                 child: Container(
+                  
                   color: Colors.black45,
                   width: screenWidth,
                   height: screenHeight,
                 ),
                 onTap: () {
+                  
                   setState(() {
                     FocusScope.of(context).requestFocus(FocusNode());
                     _isLoginButtonClicked = false;
@@ -146,6 +162,7 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
                 ),
               )
             ]),
+          
           if (_isRegisterButtonClicked)
             Stack(children: <Widget>[
               GestureDetector(
@@ -175,6 +192,7 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
             ]),
 
           if (_isForgotPasswordClicked)
+            
             Stack(
               children: <Widget>[
                 GestureDetector(

@@ -1,9 +1,12 @@
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:deca_app/screens/admin/templates.dart';
+import 'package:deca_app/screens/profile/profile_screen.dart';
 import 'package:deca_app/utility/InheritedInfo.dart';
 import 'package:deca_app/utility/format.dart';
-import 'package:deca_app/utility/transition.dart';
+import 'package:deca_app/utility/global.dart';
+import 'package:deca_app/utility/transistion.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 class DynamicProfileUI extends StatelessWidget {
@@ -15,9 +18,10 @@ class DynamicProfileUI extends StatelessWidget {
 
   DynamicProfileUI(String uid, {bool editable}) {
     this._uid = uid;
-    if (editable != null) {
+    if(editable != null){
       this._isEditable = editable;
     }
+    
   }
 
   Widget build(BuildContext context) {
@@ -89,8 +93,8 @@ class DynamicProfileUI extends StatelessWidget {
                           onTap: () => Navigator.push(
                               context,
                               NoTransition(
-                                  builder: (context) => new GPInfoScreen(_uid,
-                                      editable: _isEditable))),
+                                  builder: (context) =>
+                                      new GPInfoScreen(_uid, editable: _isEditable))),
                           trailing: Text(
                             _goldPoints.toString(),
                             textAlign: TextAlign.center,
@@ -175,10 +179,7 @@ class DynamicProfileUI extends StatelessWidget {
                                 context,
                                 NoTransition(
                                     builder: (context) =>
-                                        new CommitteeInfoScreen(
-                                          _uid,
-                                          editable: _isEditable,
-                                        ))),
+                                        new CommitteeInfoScreen(_uid, editable: _isEditable,))),
                           ),
                         )
                       ],
@@ -211,7 +212,7 @@ class CommitteeInfoScreen extends StatefulWidget {
   bool _isEditable;
   CommitteeInfoScreen(String u, {bool editable}) {
     this._uid = u;
-    if (editable != null) {
+    if(editable != null){
       this._isEditable = editable;
     }
   }
@@ -269,6 +270,7 @@ class CommitteeInfoScreenState extends State<CommitteeInfoScreen> {
                     if (comm != name) {
                       newList.add(comm);
                     }
+            
                   }
 
                   Firestore.instance
@@ -376,7 +378,7 @@ class GPInfoScreen extends StatefulWidget {
 
   GPInfoScreen(String uid, {bool editable}) {
     this._uid = uid;
-    if (editable != null) {
+    if(editable != null){
       this._isEditable = editable;
     }
   }
@@ -393,6 +395,7 @@ class GPInfoScreenState extends State<GPInfoScreen> {
   List<EventObject> eventList;
   String filterType;
   final _scaffoldKey = GlobalKey<ScaffoldState>();
+  
 
   ListView _buildEventList(context, eventSnapshot, userSnapshot) {
     double sW = MediaQuery.of(context).size.width;
@@ -446,7 +449,9 @@ class GPInfoScreenState extends State<GPInfoScreen> {
               for (EventObject eventItem in eventList) {
                 print(eventItem.info.data);
                 if (eventItem.info['event_name'] != event['event_name']) {
-                  newMap.addAll({eventItem.info['event_name']: eventItem.gp});
+                  newMap.addAll({
+                    eventItem.info['event_name']: eventItem.gp
+                  });
                 }
               }
 

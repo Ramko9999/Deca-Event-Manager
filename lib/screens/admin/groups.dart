@@ -1,13 +1,16 @@
+
 import 'dart:io';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:deca_app/screens/admin/finder.dart';
 import 'package:deca_app/utility/InheritedInfo.dart';
 import 'package:deca_app/utility/format.dart';
 import 'package:deca_app/utility/notifiers.dart';
-import 'package:deca_app/utility/transition.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:deca_app/utility/transistion.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
+
+
 
 //a scaffold where Admins can create groups
 class CreateGroupUI extends StatefulWidget {
@@ -31,6 +34,7 @@ class _CreateGroupUIState extends State<CreateGroupUI> {
     double sH = MediaQuery.of(context).size.height;
 
     return Scaffold(
+     
       key: _scaffoldKey,
       appBar: AppBar(
         leading: IconButton(
@@ -39,179 +43,163 @@ class _CreateGroupUIState extends State<CreateGroupUI> {
           ),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: Text("Add Users to Committee"),
+        title: Text("Add Users to Group"),
       ),
       body: Stack(
         children: <Widget>[
           //add people to a group on callback
           Finder((BuildContext context, StateContainerState stateContainer,
               Map userData) async {
-            DocumentSnapshot document = await Firestore.instance
-                .collection("Users")
-                .document(userData['uid'])
-                .get();
+            
+            
+            
+           DocumentSnapshot document = await Firestore.instance.collection("Users").document(userData['uid']).get();
+               
+              List data = document.data['groups'].toList();
+              //check if the person is already in the group
+              if (data.contains(stateContainer.group)) 
+              {
 
-            List data = document.data['groups'].toList();
-            //check if the person is already in the group
-            if (data.contains(stateContainer.group)) {
-              //display a scaffold snackbar to show the user that the user is already in the group
-              _scaffoldKey.currentState.showSnackBar(SnackBar(
-                content: Text(
-                  "${userData['first_name']} is already in ${stateContainer.group}",
-                  style: TextStyle(
-                      fontFamily: 'Lato',
-                      fontSize: Sizer.getTextSize(sW, sH, 18),
-                      color: Colors.white),
-                ),
-                backgroundColor: Colors.red,
-                duration: Duration(seconds: 3),
-                action: SnackBarAction(
-                  label: "REMOVE",
-                  textColor: Colors.amber,
-                  onPressed:
+                //display a scaffold snackbar to show the user that the user is already in the group
+                _scaffoldKey.currentState.showSnackBar(SnackBar(
+                  content: Text(
+                    "${userData['first_name']} is already in ${stateContainer.group}",
+                    style: TextStyle(
+                        fontFamily: 'Lato',
+                        fontSize: Sizer.getTextSize(sW, sH, 18),
+                        color: Colors.white),
+                  ),
+                  backgroundColor: Colors.red,
+                  duration: Duration(seconds: 3),
+                  action: SnackBarAction(
+                    label: "REMOVE",
+                    textColor: Colors.amber,
+                    onPressed: 
 
-                      //choice to remove the user from the group
-                      () {
-                    //remove the group
-                    data.remove(stateContainer.group);
+                    //choice to remove the user from the group
+                    ()
+                     {
+                      
+                      //remove the group
+                      data.remove(stateContainer.group);
 
-                    //remove user from firestore and show confirmation
-                    Firestore.instance
-                        .collection("Users")
-                        .document(userData['uid'])
-                        .updateData({'groups': data}).then((_) {
-                      _scaffoldKey.currentState.showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            "${userData['first_name']} removed from ${stateContainer.group}",
-                            style: TextStyle(
-                                fontFamily: 'Lato',
-                                fontSize: Sizer.getTextSize(sW, sH, 18),
-                                color: Colors.white),
+                      //remove user from firestore and show confirmation
+                      Firestore.instance
+                          .collection("Users")
+                          .document(userData['uid'])
+                          .updateData({'groups': data}).then((_) {
+                        _scaffoldKey.currentState.showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              "${userData['first_name']} removed from ${stateContainer.group}",
+                              style: TextStyle(
+                                  fontFamily: 'Lato',
+                                  fontSize: Sizer.getTextSize(sW, sH, 18),
+                                  color: Colors.white),
+                            ),
+                            duration: Duration(milliseconds: 250),
                           ),
-                          duration: Duration(milliseconds: 250),
-                        ),
-                      );
-                    });
-                  },
-                ),
-              ));
+                        );
+                      });
+                    },
+                  ),
+                ));
+              }
+              //add the person to the group
+              else {
+                data.add(stateContainer.group);
+                document.reference.updateData({'groups': data});
+               
+                //show snackbar alerting the admin that the user has been added to the group
+                _scaffoldKey.currentState.showSnackBar(SnackBar(
+                  content: Text(
+                    "Added ${userData['first_name']} to ${stateContainer.group}",
+                    style: TextStyle(
+                        fontFamily: 'Lato',
+                        fontSize: Sizer.getTextSize(sW, sH, 18),
+                        color: Colors.white),
+                  ),
+                  backgroundColor: Colors.green,
+                  duration: Duration(milliseconds: 250),
+                ));
+              }
             }
-            //add the person to the group
-            else {
-              data.add(stateContainer.group);
-              document.reference.updateData({'groups': data});
-
-              //show snackbar alerting the admin that the user has been added to the group
-              _scaffoldKey.currentState.showSnackBar(SnackBar(
-                content: Text(
-                  "Added ${userData['first_name']} to ${stateContainer.group}",
-                  style: TextStyle(
-                      fontFamily: 'Lato',
-                      fontSize: Sizer.getTextSize(sW, sH, 18),
-                      color: Colors.white),
-                ),
-                backgroundColor: Colors.green,
-                duration: Duration(milliseconds: 250),
-              ));
-            }
-          }),
+  
+          ),
           if (!_hasCreatedGroup)
             Container(
                 color: Colors.black45,
                 child: Center(
                   child: GestureDetector(
-                    onTap: () =>
-                        FocusScope.of(context).requestFocus(FocusNode()),
+                    onTap: ()=> FocusScope.of(context).requestFocus(FocusNode()),
                     child: Container(
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(10),
-                        color: Colors.white,
+                          color: Colors.white,
+                     
                       ),
+                       
                       width: sW * 0.7,
-                      height: sH * 0.3,
-                      child: Center(
-                        child: Container(
-                          child: Padding(
-                            padding: const EdgeInsets.all(10.0),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: <Widget>[
-                                Text(
-                                  "Add a New Committee",
-                                  style: TextStyle(
-                                      fontSize: Sizer.getTextSize(sW, sH, 17),
-                                      fontWeight: FontWeight.bold),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Container(
-                                    width: sW * 0.6,
-                                    child: TextField(
-                                      controller: _groupName,
-                                      style: TextStyle(
-                                          fontSize:
-                                              Sizer.getTextSize(sW, sH, 17)),
-                                      decoration: InputDecoration(
-                                        labelText: "Committee Name",
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                RaisedButton(
-                                  child: Text('Update',
-                                      style: new TextStyle(
-                                          fontSize:
-                                              Sizer.getTextSize(sW, sH, 17),
-                                          fontFamily: 'Lato')),
-                                  textColor: Colors.white,
-                                  color: Color.fromRGBO(46, 204, 113, 1),
-                                  onPressed: () async {
-                                    if (_groupName.text != null) {
-                                      QuerySnapshot groupSnap = await Firestore
-                                          .instance
-                                          .collection("Groups")
-                                          .getDocuments();
-
-                                      //create a map of the documents by the first name field
-                                      List groups = groupSnap.documents
-                                          .map((f) => f.data['name'])
-                                          .toList();
-
-                                      if (!groups.contains(_groupName.text)) {
-                                        Firestore.instance
-                                            .collection("Groups")
-                                            .add({'name': _groupName.text});
-                                        StateContainer.of(context)
-                                            .setGroup(_groupName.text);
-
-                                        setState(() => _hasCreatedGroup = true);
-                                      } else {
-                                        _scaffoldKey.currentState
-                                            .showSnackBar(SnackBar(
-                                          content: Text(
-                                            "${_groupName.text} already exists",
-                                            style: TextStyle(
-                                                fontFamily: 'Lato',
-                                                fontSize: Sizer.getTextSize(
-                                                    sW, sH, 17),
-                                                color: Colors.white),
-                                          ),
-                                          backgroundColor: Colors.red,
-                                          duration: Duration(seconds: 1),
-                                        ));
-                                      }
-                                    }
-                                  },
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10)),
-                                ),
-                              ],
-                            ),
+                      height: sH * 0.25,
+                      child: Column(
+                        children: <Widget>[
+                          Text(
+                            "Group Name",
+                            style: TextStyle(fontSize: Sizer.getTextSize(sW, sH, 21)),
                           ),
+
+                          Container(
+                            width: sW * 0.6,
+                            child: TextField(
+                        controller: _groupName,
+                        style: TextStyle(fontSize: Sizer.getTextSize(sW, sH, 15)),
+                        decoration: InputDecoration(
+                            labelText: "Group Name",
                         ),
                       ),
+                          ),
+                      FlatButton(
+                          child: Text("Create"),
+                          textColor: Colors.blue,
+                          onPressed: () async {
+                            if (_groupName.text != null) {
+                              QuerySnapshot groupSnap = await Firestore.instance
+                                  .collection("Groups")
+                                  .getDocuments();
+                              
+                              //create a map of the documents by the first name field
+                              List groups = groupSnap.documents
+                                  .map((f) => f.data['name'])
+                                  .toList();
+
+                              if (!groups.contains(_groupName.text)) {
+                                Firestore.instance
+                                    .collection("Groups")
+                                    .add({'name': _groupName.text});
+                                StateContainer.of(context)
+                                    .setGroup(_groupName.text);
+
+                                setState(() => _hasCreatedGroup = true);
+                              } else {
+                                _scaffoldKey.currentState.showSnackBar(SnackBar(
+                                  content: Text(
+                                    "${_groupName.text} already exists",
+                                    style: TextStyle(
+                                        fontFamily: 'Lato',
+                                        fontSize: Sizer.getTextSize(sW, sH, 18),
+                                        color: Colors.white),
+                                  ),
+                                  backgroundColor: Colors.red,
+                                  duration: Duration(seconds: 1),
+                                ));
+                              }
+                            }
+                          },
+                        )
+                        ],
+                      ),
+            
+                     
                     ),
                   ),
                 )),
@@ -223,8 +211,9 @@ class _CreateGroupUIState extends State<CreateGroupUI> {
   }
 }
 
-class GroupEditor extends StatefulWidget {
-  State<GroupEditor> createState() {
+class GroupEditor extends StatefulWidget{
+
+  State<GroupEditor> createState(){
     return GroupEditorState();
   }
 }
@@ -246,11 +235,15 @@ class GroupEditorState extends State<GroupEditor> {
       ),
       body: Stack(
         children: <Widget>[
+
+
           Finder(
 
-              //finder callback function
-              (BuildContext context, StateContainerState stateContainer,
-                  Map userData) {
+            //finder callback function
+            (BuildContext context, StateContainerState stateContainer,
+              Map userData) {
+              
+              
             Firestore.instance
                 .collection("Users")
                 .document(userData['uid'])
@@ -281,7 +274,8 @@ class GroupEditorState extends State<GroupEditor> {
                           .collection("Users")
                           .document(userData['uid'])
                           .updateData({'groups': data}).then((_) {
-                        print("Snack Bar should be displayed");
+                          
+                          print("Snack Bar should be displayed");
                         //once data is updated display a snackbar
                         _scaffoldKey.currentState.showSnackBar(
                           SnackBar(
@@ -302,8 +296,9 @@ class GroupEditorState extends State<GroupEditor> {
               }
               //add the person to the group
               else {
+                
                 data.add(stateContainer.group);
-
+                
                 document.reference.updateData({'groups': data});
                 _scaffoldKey.currentState.showSnackBar(SnackBar(
                   content: Text(
@@ -316,14 +311,20 @@ class GroupEditorState extends State<GroupEditor> {
                   backgroundColor: Colors.green,
                   duration: Duration(milliseconds: 250),
                 ));
+              
+              
+
+              
               }
-            });
-          }),
-          if (StateContainer.of(context).isThereConnectionError)
-            ConnectionError()
+              });}),
+      
+        if(StateContainer.of(context).isThereConnectionError)
+        ConnectionError()
+
         ],
       ),
     );
+  
   }
 }
 
@@ -336,6 +337,7 @@ class EditGroupUI extends StatefulWidget {
 }
 
 class _EditGroupUIState extends State<EditGroupUI> {
+
   final _scaffoldKey = GlobalKey<ScaffoldState>();
 
   ListView buildGroupList(context, snapshot) {
@@ -352,15 +354,15 @@ class _EditGroupUIState extends State<EditGroupUI> {
           key: UniqueKey(),
 
           background: Container(
-            alignment: Alignment.centerRight,
-            padding: EdgeInsets.only(right: 20.0),
-            color: Colors.red,
-            child: Icon(
-              Icons.delete,
-              color: Colors.white,
-            ),
-          ),
-
+                  alignment: Alignment.centerRight,
+                  padding: EdgeInsets.only(right: 20.0),
+                  color: Colors.red,
+                  child: Icon(
+                    Icons.delete,
+                    color: Colors.white,
+                  ),
+                ),
+          
           child: Card(
             child: ListTile(
               title: Text(groups['name'],
@@ -369,108 +371,134 @@ class _EditGroupUIState extends State<EditGroupUI> {
                       fontWeight: FontWeight.bold,
                       fontSize: Sizer.getTextSize(sW, sH, 20))),
               onTap: () {
+
                 /*set the group in the persistenance so that the group data will be saved and will appear
                 correctly */
 
                 final container = StateContainer.of(context);
                 container.setGroup(groups['name']);
-
+                
                 //push to the editor screen
                 Navigator.of(context)
                     .push(NoTransition(builder: (context) => GroupEditor()));
               },
             ),
           ),
-
+          
           //remove the group from Groups Collection as well remove all members of the group instantly
           onDismissed: (direction) async {
+            
             //batch supports multiple writes in one operation
             WriteBatch batch = Firestore.instance.batch();
 
             //acquire all the user documents
-            QuerySnapshot userSnapshot =
-                await Firestore.instance.collection("Users").getDocuments();
+            QuerySnapshot userSnapshot = await  Firestore.instance.collection("Users").getDocuments();
 
             //iterate through all users and remove them from the group
-            for (DocumentSnapshot userDoc in userSnapshot.documents) {
+            for(DocumentSnapshot userDoc in userSnapshot.documents){
+              
               List groupList = userDoc['groups'];
 
               //remove the group
-              groupList = groupList.where((v) => v != groups['name']).toList();
+              groupList = groupList.where( (v)=>  v != groups['name'] ).toList();
 
               //replace the "groups" key in the user data to the new groupList
               Map userData = userDoc.data;
               userData['groups'] = groupList;
-
+              
               //make change in the batch
               batch.setData(userDoc.reference, userData);
             }
 
             //commit batch and then delete the group from the groups collection
-            batch.commit().then((_) {
-              groups.reference.delete().then((_) {
-                //display a snackbar alerting the user that the group has been deleted
+            batch.commit().then(
+              
+              (_)
+              {
 
-                _scaffoldKey.currentState.showSnackBar(SnackBar(
-                  content: Text(
-                    "The group has been deleted",
-                    style: TextStyle(fontFamily: 'Lato', color: Colors.white),
+               groups.reference.delete().then(
+                 
+                 (_)
+                 {
+                   //display a snackbar alerting the user that the group has been deleted
+
+                    _scaffoldKey.currentState.showSnackBar(
+                      
+                      SnackBar(
+                        content: Text(
+                          "The group has been deleted",
+                          style: TextStyle(
+                            fontFamily: 'Lato',
+                            color: Colors.white
+                          ),
+                          ),
+                        backgroundColor: Colors.green,
+                        
+
+                      )
+
+                    );
+
+                 }
+               );
+
+
+              }
+
+             
+              );
+          },
+
+        // a way to guarantee that the user truly wants to delete the group
+        confirmDismiss: (direction){
+
+          return showDialog(
+            context: context,
+            builder: (context){
+
+              return 
+              
+              //show native alert dialogs
+              Platform.isAndroid ?
+
+              AlertDialog(
+                content: Text("Everyone will be kicked out of this group"),
+                title: Text("Are you sure?"),
+                actions: <Widget>[
+                  FlatButton(
+                    
+                    child: Text("Delete", style: TextStyle(color: Colors.red),),
+                    onPressed: ()=> Navigator.of(context).pop(true),
+
                   ),
-                  backgroundColor: Colors.green,
-                ));
-              });
-            });
-          },
+                  FlatButton(
+                    child: Text("Don't Delete"),
+                    onPressed: ()=> Navigator.of(context).pop(),
+                  ),
+                ],
+              ) :
 
-          // a way to guarantee that the user truly wants to delete the group
-          confirmDismiss: (direction) {
-            return showDialog(
-                context: context,
-                builder: (context) {
-                  return
+              CupertinoAlertDialog(
+                content: Text("Everyone will be kicked out of this group"),
+                title: Text("Are you sure?"),
+                actions: <Widget>[
+                  FlatButton(
+                    
+                    child: Text("Delete", style: TextStyle(color: Colors.red),),
+                    onPressed: ()=> Navigator.of(context).pop(true),
 
-                      //show native alert dialogs
-                      Platform.isAndroid
-                          ? AlertDialog(
-                              content: Text(
-                                  "Everyone will be kicked out of this group"),
-                              title: Text("Are you sure?"),
-                              actions: <Widget>[
-                                FlatButton(
-                                  child: Text(
-                                    "Delete",
-                                    style: TextStyle(color: Colors.red),
-                                  ),
-                                  onPressed: () =>
-                                      Navigator.of(context).pop(true),
-                                ),
-                                FlatButton(
-                                  child: Text("Don't Delete"),
-                                  onPressed: () => Navigator.of(context).pop(),
-                                ),
-                              ],
-                            )
-                          : CupertinoAlertDialog(
-                              content: Text(
-                                  "Everyone will be kicked out of this group"),
-                              title: Text("Are you sure?"),
-                              actions: <Widget>[
-                                FlatButton(
-                                  child: Text(
-                                    "Delete",
-                                    style: TextStyle(color: Colors.red),
-                                  ),
-                                  onPressed: () =>
-                                      Navigator.of(context).pop(true),
-                                ),
-                                FlatButton(
-                                  child: Text("Don't Delete"),
-                                  onPressed: () => Navigator.of(context).pop(),
-                                ),
-                              ],
-                            );
-                });
-          },
+                  ),
+                  FlatButton(
+                    child: Text("Don't Delete"),
+                    onPressed: ()=> Navigator.of(context).pop(),
+                  ),
+                ],
+              ); 
+
+            }
+          );
+        },
+         
         );
       },
     );
@@ -480,7 +508,7 @@ class _EditGroupUIState extends State<EditGroupUI> {
     double sW = MediaQuery.of(context).size.width;
     double sH = MediaQuery.of(context).size.height;
     return Scaffold(
-        key: _scaffoldKey,
+      key: _scaffoldKey,
         appBar: new AppBar(
           title: Text("Edit Committees"),
           leading: IconButton(
@@ -517,3 +545,4 @@ class _EditGroupUIState extends State<EditGroupUI> {
         ));
   }
 }
+
