@@ -91,18 +91,21 @@ class ProfileScreenState extends State<ProfileScreen> {
     //listen for notifications on profile screen due to the fact profile screen will never be popped out of navigator
     final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
 
-    _firebaseMessaging.configure(onLaunch: (notification) {
-      print("On Launch");
 
+    _firebaseMessaging.configure(onLaunch: (Map<String, dynamic> notification) async {
       //append notification
       StateContainer.of(context).addToNotifications(notification);
       Global.notificationDataFile.writeAsStringSync(
           json.encode(StateContainer.of(context).notifications));
-    }, onMessage: (notification) {
-      print("On Message");
+    }, onMessage: (Map<String, dynamic> notification) async {
+      StateContainer.of(context).addToNotifications(notification);
+      Global.notificationDataFile.writeAsStringSync(
+          json.encode(StateContainer.of(context).notifications));
       scheduleLocalNotification(notification);
-    }, onResume: (notification) {
-      print("On Resume");
+    }, onResume: (Map<String, dynamic> notification) async {
+      StateContainer.of(context).addToNotifications(notification);
+      Global.notificationDataFile.writeAsStringSync(
+          json.encode(StateContainer.of(context).notifications));
 
       //append notification
       StateContainer.of(context).addToNotifications(notification);
@@ -144,7 +147,18 @@ class ProfileScreenState extends State<ProfileScreen> {
     StateContainer.of(context).addToNotifications(notification);
     Global.notificationDataFile.writeAsStringSync(
         json.encode(StateContainer.of(context).notifications));
+    String header;
+    String body;
 
+    if(Platform.isIOS)
+    {
+      header = notification['header'];
+      body = notification['body'];
+    }
+    else{
+      header = notification['data']['header'];
+      body = notification['data']['body'];
+    }
     //init settings
     AndroidNotificationDetails androidSettings = AndroidNotificationDetails(
         "channel id", "channel NAME", "CHANNEL DESCRIPTION");
@@ -153,16 +167,16 @@ class ProfileScreenState extends State<ProfileScreen> {
         NotificationDetails(androidSettings, iosSettings);
 
     //show the actual notification
-    showSimpleNotification(Text(notification['data']['header']),
-        subtitle: Text(notification['data']['body']));
+    showSimpleNotification(Text(header),
+        subtitle: Text(body));
     //schedule a notification for future
 
     //not working right now on android
-    if (notification['data'].keys.contains("date")) {
+    if (notification.keys.contains("date")) {
       await FlutterLocalNotificationsPlugin().schedule(
           0,
-          notification['data']['header'],
-          notification['data']['body'],
+          header,
+          body,
           DateTime.now().add(Duration(seconds: 10)),
           platformSettings);
     }

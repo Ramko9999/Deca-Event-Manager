@@ -1,9 +1,9 @@
 import 'package:connectivity/connectivity.dart';
+import 'package:deca_app/utility/InheritedInfo.dart';
 import 'package:deca_app/utility/format.dart';
 import 'package:deca_app/utility/global.dart';
 import 'package:deca_app/utility/network.dart';
 import 'package:deca_app/utility/notifiers.dart';
-import 'package:deca_app/utility/transistion.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -45,8 +45,7 @@ class _LoginTemplateState extends State<LoginTemplate> {
         await getApplicationDocumentsDirectory(); //get app directory
 
     //check whether the file exists
-    if (File(appDirectory.path + "/user.json").existsSync()) 
-    {
+    if (File(appDirectory.path + "/user.json").existsSync()) {
       Map userInfo = json.decode(File(appDirectory.path + "/user.json")
           .readAsStringSync()); //read data from file
 
@@ -59,16 +58,13 @@ class _LoginTemplateState extends State<LoginTemplate> {
           _password.text = userInfo['password'];
         }
       });
-    } 
-    else 
-    {
+    } else {
       Global.userDataFile = File(appDirectory.path + "/user.json");
     }
   }
 
   //try executing the actual login process
-  void executeLogin() async 
-  {
+  void executeLogin() async {
     FirebaseAuth.instance
         .signInWithEmailAndPassword(
             email: _username.text, password: _password.text)
@@ -100,16 +96,14 @@ class _LoginTemplateState extends State<LoginTemplate> {
           json.encode(jsonInformation)); //update file information
 
       //changes screen to profile screen
-      Navigator.of(context).push(
-         NoTransition(builder: (context) => new ProfileScreen()));
+      Navigator.push(context,
+          MaterialPageRoute(builder: (context) => new ProfileScreen()));
     }).catchError((error) {
-      
       setState(() => _isLogginIn = false);
       //if credentials are invalid then throw the error
       if (error.toString().contains("INVALID") ||
           error.toString().contains("WRONG") ||
           error.toString().contains("NOT_FOUND")) {
-        
         showDialog(
             context: context,
             builder: (context) {
@@ -148,8 +142,7 @@ class _LoginTemplateState extends State<LoginTemplate> {
       if (connectionState == ConnectivityResult.none) {
         //connection is not established
         throw Exception("Phone is not connected to wifi");
-      } 
-      else {
+      } else {
         executeLogin();
       }
     }).catchError((error) {
@@ -314,12 +307,9 @@ class _LoginTemplateState extends State<LoginTemplate> {
                               //logging into firebase
                               if (_loginFormKey.currentState.validate() &&
                                   !_isLogginIn) {
-                                
-                                ConnectionStream cs = new ConnectionStream();
+                                     ConnectionStream cs = new ConnectionStream();
 
-                                
-                                cs.quickCheckConnection().then((status)=> print("Status is $status"));
-                                
+            cs.quickCheckConnection().then((status)=> print("Status is $status"));
                                 tryToLogin();
                               }
                             },
@@ -405,9 +395,7 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
       }).then((_) /* call back for creating a users document*/ {
         setState(() => _isTryingToRegister = false);
 
-        print("Registered");
-        Navigator.of(context).push(
-          NoTransition(
+        Navigator.of(context).push(MaterialPageRoute(
             builder: (context) => ProfileScreen())); //go to profile screen
       });
       //catching invalid email error
@@ -583,7 +571,6 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
                           style: new TextStyle(
                               fontFamily: 'Lato',
                               fontSize: 18 * screenWidth / pixelTwoWidth),
-                          
                           validator: (val) {
                             //validate password
                             if (val == "") {
@@ -661,17 +648,12 @@ class ForgotPasswordTemplateState extends State<ForgotPasswordTemplate> {
 
   //sends reset email
   void sendEmail() {
-    
-    //send the reset email
     FirebaseAuth.instance
         .sendPasswordResetEmail(email: this.email.text)
         .then((_) {
       setState(() => _isEmailSent = true);
     }).catchError((error) {
-      
-      //handle if the user is not in the system
       if (error.toString().contains("USER_NOT")) {
-        
         showDialog(
             context: context,
             builder: (context) {
@@ -707,7 +689,7 @@ class ForgotPasswordTemplateState extends State<ForgotPasswordTemplate> {
                   top: screenHeight * 0.03, bottom: screenHeight * 0.06),
               child: Container(
                 child: Text(
-                  "We have sent an email to ${email.text}. It should have intrsuctions on how to reset your password.",
+                  "We have sent an email to ${email.text}. It should have instructions on how to reset your password.",
                   textAlign: TextAlign.center,
                   style: TextStyle(
                       fontFamily: "Lato",
