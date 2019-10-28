@@ -3,23 +3,21 @@ import 'dart:io';
 
 import 'package:connectivity/connectivity.dart';
 import 'package:deca_app/screens/admin/admin_main.dart';
-import 'package:deca_app/screens/admin/templates.dart';
+import 'package:deca_app/screens/code/qr_screen.dart';
 import 'package:deca_app/screens/notifications/templates.dart';
+import 'package:deca_app/screens/profile/templates.dart';
+import 'package:deca_app/screens/settings/setting_screen.dart';
 import 'package:deca_app/utility/InheritedInfo.dart';
 import 'package:deca_app/utility/global.dart';
 import 'package:deca_app/utility/network.dart';
 import 'package:deca_app/utility/notifiers.dart';
-import 'package:deca_app/utility/transistion.dart';
+import 'package:deca_app/utility/transition.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:deca_app/screens/settings/setting_screen.dart';
-import 'package:deca_app/screens/profile/templates.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
-import 'package:deca_app/screens/code/qr_screen.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:path_provider/path_provider.dart';
-
 
 class ProfileScreen extends StatefulWidget {
   ProfileScreen();
@@ -35,32 +33,25 @@ class ProfileScreenState extends State<ProfileScreen> {
 
   ProfileScreenState();
 
-
-  void startNetworkConnectionStream(){
+  void startNetworkConnectionStream() {
     print("Stream is started");
     ConnectionStream networkStream = new ConnectionStream();
-    networkStream.startConnectionChecker().listen(
-      (onResponse){
-
-        print("On Response $onResponse");
-
-        if(onResponse == 404){
-         
-          /*
+    networkStream.startConnectionChecker().listen((onResponse) {
+      if (onResponse == 404) {
+        print(404);
+        /*
           StateContainer.of(context).isThereANetworkConnectionError = true;
           StateContainer.of(context).setConnectionErrorStatus(true);
           */
-          
-        }
-        else{
-         
-          
-          /*
+
+      } else {
+        print(200);
+
+        /*
           StateContainer.of(context).isThereANetworkConnectionError = false;
           StateContainer.of(context).setConnectionErrorStatus(false);
           */
-        }
-      
+      }
     });
   }
 
@@ -69,16 +60,15 @@ class ProfileScreenState extends State<ProfileScreen> {
     //check for connection, and notify different screens of connection issue
 
     Connectivity().onConnectivityChanged.listen((connectionResult) {
-      bool implictError = StateContainer.of(context).isThereANetworkConnectionError;
-      
+      bool implictError =
+          StateContainer.of(context).isThereANetworkConnectionError;
+
       if (connectionResult == ConnectivityResult.none) {
-        StateContainer.of(context).isThereAnExplicitConnectionError =true;
+        StateContainer.of(context).isThereAnExplicitConnectionError = true;
         StateContainer.of(context).setConnectionErrorStatus(true);
-      } 
-      else {
+      } else {
         StateContainer.of(context).setConnectionErrorStatus(implictError);
       }
-
     });
   }
 
@@ -101,18 +91,21 @@ class ProfileScreenState extends State<ProfileScreen> {
     //listen for notifications on profile screen due to the fact profile screen will never be popped out of navigator
     final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
 
-    _firebaseMessaging.configure(onLaunch: (notification) {
-      print("On Launch");
 
+    _firebaseMessaging.configure(onLaunch: (Map<String, dynamic> notification) async {
       //append notification
       StateContainer.of(context).addToNotifications(notification);
       Global.notificationDataFile.writeAsStringSync(
           json.encode(StateContainer.of(context).notifications));
-    }, onMessage: (notification) {
-      print("On Message");
+    }, onMessage: (Map<String, dynamic> notification) async {
+      StateContainer.of(context).addToNotifications(notification);
+      Global.notificationDataFile.writeAsStringSync(
+          json.encode(StateContainer.of(context).notifications));
       scheduleLocalNotification(notification);
-    }, onResume: (notification) {
-      print("On Resume");
+    }, onResume: (Map<String, dynamic> notification) async {
+      StateContainer.of(context).addToNotifications(notification);
+      Global.notificationDataFile.writeAsStringSync(
+          json.encode(StateContainer.of(context).notifications));
 
       //append notification
       StateContainer.of(context).addToNotifications(notification);
@@ -126,21 +119,17 @@ class ProfileScreenState extends State<ProfileScreen> {
   //used to get the locally stored notifications
   void initNotifications() {
     getApplicationDocumentsDirectory().then((appDirec) async {
-     
-     //get the user name
       String userInformation = Global.userDataFile.readAsStringSync();
       String username = json.decode(userInformation)['username'];
 
       //so different accounts don't collide
       File notificationFile = File(appDirec.path + "/$username-notify.json");
 
-      //if file exists then init the notifications from data on the file
       if (notificationFile.existsSync()) {
         List localNotifications =
             json.decode(notificationFile.readAsStringSync());
         StateContainer.of(context).initNotifications(localNotifications);
       } else {
-        
         notificationFile.createSync();
         //encode a dummy list
         notificationFile.writeAsStringSync(json.encode([]));
@@ -149,46 +138,49 @@ class ProfileScreenState extends State<ProfileScreen> {
     });
   }
 
-  //dummy callback for what occurs when a noitifcaiton is cicked
   Future notificationOnSelect(String payload) {
     setState(() => _selectedIndex = 2);
   }
 
   void scheduleLocalNotification(Map notification) async {
-    
     //used for scheduling as well as displaying notifications
     StateContainer.of(context).addToNotifications(notification);
     Global.notificationDataFile.writeAsStringSync(
         json.encode(StateContainer.of(context).notifications));
+    String header;
+    String body;
 
-    //init settings for both platforms 
+    if(Platform.isIOS)
+    {
+      header = notification['header'];
+      body = notification['body'];
+    }
+    else{
+      header = notification['data']['header'];
+      body = notification['data']['body'];
+    }
+    //init settings
     AndroidNotificationDetails androidSettings = AndroidNotificationDetails(
         "channel id", "channel NAME", "CHANNEL DESCRIPTION");
-    
     IOSNotificationDetails iosSettings = IOSNotificationDetails();
-    
-    //init settings executed
     NotificationDetails platformSettings =
         NotificationDetails(androidSettings, iosSettings);
 
     //show the actual notification
-    showSimpleNotification(Text(notification['data']['header']),
-        subtitle: Text(notification['data']['body']));
+    showSimpleNotification(Text(header),
+        subtitle: Text(body));
     //schedule a notification for future
 
     //not working right now on android
-
-    /*
-    if (notification['data'].keys.contains("date")) {
+    if (notification.keys.contains("date")) {
       await FlutterLocalNotificationsPlugin().schedule(
           0,
-          notification['data']['header'],
-          notification['data']['body'],
+          header,
+          body,
           DateTime.now().add(Duration(seconds: 10)),
           platformSettings);
-        */
     }
-  
+  }
 
   Widget changeScreen(int currentIndex) {
     switch (currentIndex) {

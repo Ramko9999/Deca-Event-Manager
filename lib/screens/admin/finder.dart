@@ -7,6 +7,7 @@ import 'package:deca_app/utility/format.dart';
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 
+
 //Finder is a widget that will show search results of users based on names
 class Finder extends StatefulWidget {
   Widget alert; //an alert widget to pop up when a card is tapped

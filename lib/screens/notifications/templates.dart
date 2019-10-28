@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:deca_app/utility/InheritedInfo.dart';
 import 'package:deca_app/utility/format.dart';
@@ -40,6 +41,18 @@ class NotificationUIState extends State<NotificationUI> {
       itemCount: documents.length,
       itemBuilder: (context, i) {
         int index = documents.length - 1 - i;
+        String header;
+        String body;
+
+        if(Platform.isIOS)
+          {
+            header = documents[index]['header'];
+            body = documents[index]['body'];
+          }
+        else{
+          header = documents[index]['data']['header'];
+          body = documents[index]['data']['body'];
+        }
         //gives the dismiss animation, still working on the dismiss
         return Dismissible(
           background: Container(
@@ -67,11 +80,11 @@ class NotificationUIState extends State<NotificationUI> {
           child: Card(
             child: ListTile(
               title: Text(
-                documents[index]['data']['header'],
+                header.toString(),
                 style: TextStyle(fontFamily: 'Lato'),
               ),
               subtitle: Text(
-                documents[index]['data']['body'],
+                body.toString(),
                 style: TextStyle(fontFamily: 'Lato'),
               ),
             ),
