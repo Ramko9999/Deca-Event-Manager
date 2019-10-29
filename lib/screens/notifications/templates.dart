@@ -19,9 +19,11 @@ class NotificationUIState extends State<NotificationUI> {
   NotificationUIState();
 
   Widget build(BuildContext context) {
+    
     StateContainer.of(context).notificationCounter = 0;
     double screenHeight = MediaQuery.of(context).size.height;
     double screenWidth = MediaQuery.of(context).size.width;
+   
     return Container(
         height: screenHeight / 1.1,
         width: screenWidth,

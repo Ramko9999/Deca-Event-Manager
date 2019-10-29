@@ -667,6 +667,8 @@ class ForgotPasswordTemplateState extends State<ForgotPasswordTemplate> {
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
+    double pixelTwoWidth = 411.42857142857144;
+    double pixelTwoHeight = 683.4285714285714;
 
     return Container(
         width: screenWidth * 0.8,
@@ -705,7 +707,7 @@ class ForgotPasswordTemplateState extends State<ForgotPasswordTemplate> {
                   padding: EdgeInsets.only(top: screenHeight * 0.03),
                   child: Container(
                     child: Text(
-                      "Provide us your email address, so that we send you an email to reset your password.",
+                      "Provide us the email you registered with so we can send you an email to reset your password.",
                       textAlign: TextAlign.center,
                       style: TextStyle(
                           fontFamily: "Lato",
@@ -744,23 +746,32 @@ class ForgotPasswordTemplateState extends State<ForgotPasswordTemplate> {
                         ),
                       ],
                     )),
-                FlatButton(
-                  onPressed: () {
-                    if (_formKey.currentState.validate()) {
-                      sendEmail();
-                    }
-                  },
-                  child: Text(
-                    "Send Email",
-                    style: TextStyle(
-                        fontFamily: "Lato",
-                        fontSize:
-                            Sizer.getTextSize(screenWidth, screenHeight, 16)),
-                  ),
-                  textColor: Colors.blue,
-                )
-              ],
-            ),
+                Padding(
+                        padding: new EdgeInsets.all(screenHeight / 45),
+                        child: ButtonTheme(
+                            minWidth: 150.0,
+                            height: screenHeight * 0.07,
+                            child: RaisedButton(
+                              textColor: Colors.white,
+                              color: Colors.blue,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(30)),
+                              child: Container(
+                                child: Text(
+                                  "Send Email",
+                                  style: new TextStyle(
+                                      fontSize:
+                                          20 * screenWidth / pixelTwoWidth,
+                                      fontFamily: 'Lato'),
+                                ),
+                              ),
+                              onPressed: (){
+                                if(_formKey.currentState.validate()){
+                                  sendEmail();
+                                }
+                              })
+                            )),
+              ]),
         ]));
   }
 }

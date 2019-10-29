@@ -14,7 +14,6 @@ import 'package:deca_app/utility/notifiers.dart';
 import 'package:deca_app/utility/transition.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:path_provider/path_provider.dart';
@@ -78,16 +77,6 @@ class ProfileScreenState extends State<ProfileScreen> {
     initNotifications();
     startNetworkConnectionStream();
 
-    //put in our app logo here
-    AndroidInitializationSettings androidInitSettings =
-        AndroidInitializationSettings("@mipmap/ic_launcher");
-    IOSInitializationSettings iosInitSettings = IOSInitializationSettings();
-
-    FlutterLocalNotificationsPlugin().initialize(
-        InitializationSettings(androidInitSettings, iosInitSettings),
-        onSelectNotification: (String payload) =>
-            notificationOnSelect(payload));
-
     //listen for notifications on profile screen due to the fact profile screen will never be popped out of navigator
     final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
 
@@ -135,9 +124,7 @@ class ProfileScreenState extends State<ProfileScreen> {
     });
   }
 
-  Future notificationOnSelect(String payload) {
-    setState(() => _selectedIndex = 2);
-  }
+  
 
   void scheduleLocalNotification(Map notification) async {
     //used for scheduling as well as displaying notifications
@@ -145,27 +132,11 @@ class ProfileScreenState extends State<ProfileScreen> {
     Global.notificationDataFile.writeAsStringSync(
         json.encode(StateContainer.of(context).notifications));
 
-    //init settings
-    AndroidNotificationDetails androidSettings = AndroidNotificationDetails(
-        "channel id", "channel NAME", "CHANNEL DESCRIPTION");
-    IOSNotificationDetails iosSettings = IOSNotificationDetails();
-    NotificationDetails platformSettings =
-        NotificationDetails(androidSettings, iosSettings);
 
     //show the actual notification
     showSimpleNotification(Text(notification['data']['header']),
         subtitle: Text(notification['data']['body']));
     //schedule a notification for future
-
-    //not working right now on android
-    if (notification['data'].keys.contains("date")) {
-      await FlutterLocalNotificationsPlugin().schedule(
-          0,
-          notification['data']['header'],
-          notification['data']['body'],
-          DateTime.now().add(Duration(seconds: 10)),
-          platformSettings);
-    }
   }
 
   Widget changeScreen(int currentIndex) {

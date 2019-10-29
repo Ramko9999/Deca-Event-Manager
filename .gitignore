@@ -11,6 +11,7 @@
 *.py
 *.zip
 *.json
+test.dart
 
 # IntelliJ related
 *.iml

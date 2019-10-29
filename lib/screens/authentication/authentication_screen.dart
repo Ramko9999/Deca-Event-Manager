@@ -80,34 +80,39 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(30)),
                       )),
-                  Container(
-                    height: 15,
+                  
+                  Padding(
+                    padding: const EdgeInsets.only(top: 15),
+                    child: Container(
+                        width: screenWidth * 0.85,
+                        height: screenHeight * 0.08,
+                        child: new RaisedButton(
+                            child: Text('Sign Up',
+                                style: new TextStyle(
+                                  fontSize: Sizer.getTextSize(
+                                      screenWidth, screenHeight, 20),
+                                )),
+                            textColor: Colors.black,
+                            color: Colors.white,
+                            onPressed: createNewRegisterTemplate,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30)))),
                   ),
-                  Container(
-                      width: screenWidth * 0.85,
-                      height: screenHeight * 0.08,
-                      child: new RaisedButton(
-                          child: Text('Sign Up',
-                              style: new TextStyle(
-                                fontSize: Sizer.getTextSize(
-                                    screenWidth, screenHeight, 20),
-                              )),
-                          textColor: Colors.black,
-                          color: Colors.white,
-                          onPressed: createNewRegisterTemplate,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30)))),
-                  FlatButton(
-                    textColor: Colors.blue,
-                    child: Text(
-                      "Forgot Password?",
-                      style: TextStyle(
-                        fontFamily: 'Lato',
-                        fontSize:
-                            Sizer.getTextSize(screenWidth, screenHeight, 16),
+                    if(!(_isForgotPasswordClicked || _isLoginButtonClicked || _isRegisterButtonClicked))
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8.0),
+                    child: FlatButton(
+                      textColor: Colors.blue,
+                      child: Text(
+                        "Forgot Password?",
+                        style: TextStyle(
+                          fontFamily: 'Lato',
+                          fontSize:
+                              Sizer.getTextSize(screenWidth, screenHeight, 16),
+                        ),
                       ),
+                      onPressed: createNewForgotPasswordTemplate,
                     ),
-                    onPressed: createNewForgotPasswordTemplate,
                   )
                 ]))),
           ]),
@@ -130,21 +135,26 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
               Container(
                 child: Align(
                   alignment: Alignment.center,
-                  child: SingleChildScrollView(
-                    child: GestureDetector(
-                      child: Container(
-                        child: new LoginTemplate(),
-                        decoration: new BoxDecoration(
-                            borderRadius: BorderRadius.circular(15),
-                            color: Colors.white),
+                 
+                    
+                      child: SingleChildScrollView(
+                        child: GestureDetector(
+                          child: Container(
+                            
+                            child: new LoginTemplate(),
+                            decoration: new BoxDecoration(
+                                borderRadius: BorderRadius.circular(15),
+                                color: Colors.white),
+                          ),
+                          onTap: () {
+                            FocusScope.of(context).requestFocus(FocusNode());
+                          },
+                        ),
                       ),
-                      onTap: () {
-                        FocusScope.of(context).requestFocus(FocusNode());
-                      },
                     ),
                   ),
-                ),
-              )
+              
+              
             ]),
           if (_isRegisterButtonClicked)
             Stack(children: <Widget>[
