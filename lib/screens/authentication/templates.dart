@@ -691,7 +691,7 @@ class ForgotPasswordTemplateState extends State<ForgotPasswordTemplate> {
                   top: screenHeight * 0.03, bottom: screenHeight * 0.06),
               child: Container(
                 child: Text(
-                  "We have sent an email to ${email.text}. It should have intrsuctions on how to reset your password.",
+                  "We have sent an email to ${email.text}. It should have instructions on how to reset your password.",
                   textAlign: TextAlign.center,
                   style: TextStyle(
                       fontFamily: "Lato",
