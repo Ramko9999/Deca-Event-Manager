@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:connectivity/connectivity.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:deca_app/screens/admin/admin_main.dart';
 import 'package:deca_app/screens/code/qr_screen.dart';
 import 'package:deca_app/screens/notifications/templates.dart';
@@ -29,6 +30,8 @@ class ProfileScreen extends StatefulWidget {
 
 class ProfileScreenState extends State<ProfileScreen> {
   int _selectedIndex = 0;
+
+  bool isAdmin = false;
 
   ProfileScreenState();
 
@@ -73,6 +76,7 @@ class ProfileScreenState extends State<ProfileScreen> {
 
   //if the platfrom is IOS we will have to request for permissions
   void initState() {
+
     super.initState();
     initNotifications();
     startNetworkConnectionStream();
@@ -103,6 +107,25 @@ class ProfileScreenState extends State<ProfileScreen> {
     });
 
     startConnectionStream();
+
+    String name;
+    List adminList;
+    Firestore.instance.collection("Users").where("uid", isEqualTo: Global.uid).getDocuments().then((adminDocument) {
+      String name = adminDocument.documents[0].data['first_name'] + " " + adminDocument.documents[0].data['last_name'];
+      Firestore.instance.collection("Admin Users").getDocuments().then((adminDocument) {
+        print(name);
+        adminList = adminDocument.documents;
+        for(DocumentSnapshot snap in adminList)
+        {
+          print(snap.documentID == name);
+          if(snap.documentID == name)
+          {
+            isAdmin = true;
+            return;
+          }
+        }
+      });
+    });
   }
 
   //used to get the locally stored notifications
@@ -172,8 +195,10 @@ class ProfileScreenState extends State<ProfileScreen> {
     });
   }
 
+
   Widget build(BuildContext context) {
     int numOfNotifications = StateContainer.of(context).notificationCounter;
+
     return Scaffold(
       body: Stack(
         children: <Widget>[
@@ -188,10 +213,12 @@ class ProfileScreenState extends State<ProfileScreen> {
             : (_selectedIndex == 1)
                 ? Text("QR Code for Check-In")
                 : (_selectedIndex == 2) ? Text("Notifications") : Text("Chats"),
-        leading: IconButton(
-            icon: Icon(Icons.supervisor_account),
-            onPressed: () async => Navigator.push(context,
-                NoTransition(builder: (context) => new AdminScreen()))),
+        leading: (!isAdmin)?
+        Container():
+        IconButton(
+          icon: Icon(Icons.supervisor_account),
+        onPressed: () async => Navigator.push(context,
+            NoTransition(builder: (context) => new AdminScreen()))),
         actions: <Widget>[
           IconButton(
             icon: Icon(Icons.settings),

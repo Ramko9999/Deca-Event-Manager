@@ -1,4 +1,3 @@
-import 'package:deca_app/screens/authentication/test.dart';
 import 'package:deca_app/screens/settings/setting_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:deca_app/utility/InheritedInfo.dart';

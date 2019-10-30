@@ -98,7 +98,7 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(30)))),
                   ),
-                    if(!(_isForgotPasswordClicked || _isLoginButtonClicked || _isRegisterButtonClicked))
+                      if(!(_isForgotPasswordClicked || _isLoginButtonClicked || _isRegisterButtonClicked))
                   Padding(
                     padding: const EdgeInsets.only(bottom: 8.0),
                     child: FlatButton(
