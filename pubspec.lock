@@ -139,13 +139,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.7.3"
-  flutter_local_notifications:
-    dependency: "direct main"
-    description:
-      name: flutter_local_notifications
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.8.2"
   flutter_test:
     dependency: "direct dev"
     description: flutter
@@ -262,7 +255,7 @@ packages:
       name: qr_flutter
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.1.0+55"
+    version: "3.0.1"
   quiver:
     dependency: transitive
     description:

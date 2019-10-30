@@ -1,13 +1,10 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:deca_app/screens/admin/scanner.dart';
-import 'package:deca_app/screens/admin/searcher.dart';
-import 'package:deca_app/screens/admin/templates.dart';
 import 'package:deca_app/utility/InheritedInfo.dart';
 import 'package:deca_app/utility/format.dart';
 import 'package:deca_app/utility/notifiers.dart';
-import 'package:deca_app/utility/transistion.dart';
+import 'package:deca_app/utility/transition.dart';
 import 'package:flutter/material.dart';
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 import 'events.dart';
@@ -23,6 +20,7 @@ class FinderScreenState extends State<FinderScreen> {
   Map eventMetadata;
   bool isInfo = false;
   bool isManualEnter;
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   Widget build(BuildContext context) {
@@ -33,6 +31,7 @@ class FinderScreenState extends State<FinderScreen> {
     double sH = MediaQuery.of(context).size.height;
 
     return Scaffold(
+        key: _scaffoldKey,
         appBar: new AppBar(
           title: AutoSizeText(
             "Add Members to \'" + eventMetadata['event_name'] + "\'",
@@ -45,8 +44,8 @@ class FinderScreenState extends State<FinderScreen> {
                   Navigator.of(context).pop();
                 } else {
                   Navigator.of(context).pop();
-                  Navigator.of(context).push(NoTransition(
-                      builder: (context) => EditEventUI()));
+                  Navigator.of(context)
+                      .push(NoTransition(builder: (context) => EditEventUI()));
                 }
               }),
           actions: <Widget>[
@@ -72,8 +71,8 @@ class FinderScreenState extends State<FinderScreen> {
                         label: Text('Add with QR Code'),
                         onPressed: () {
                           Navigator.of(context).pop();
-                          Navigator.of(context).push(NoTransition(
-                            builder: (context) => Scanner()));
+                          Navigator.of(context).push(
+                              NoTransition(builder: (context) => Scanner()));
                         }),
                   ),
                 ),
@@ -87,13 +86,14 @@ class FinderScreenState extends State<FinderScreen> {
                       if (stateContainer.eventMetadata['enter_type'] == 'QE') {
                         stateContainer.updateGP(userInfo['uid']);
                         Scaffold.of(context).showSnackBar(SnackBar(
-                          duration: Duration(seconds: 1),
+                          duration: Duration(milliseconds: 300),
                           content: Text(
                             "Succesfully added ${stateContainer.eventMetadata['gold_points'].toString()} to ${userInfo['first_name']}",
                             style: TextStyle(
                                 fontFamily: 'Lato',
                                 fontSize: Sizer.getTextSize(sW, sH, 20),
                                 color: Colors.white),
+                            textAlign: TextAlign.center,
                           ),
                           backgroundColor: Colors.green,
                         ));
@@ -127,7 +127,10 @@ class FinderScreenState extends State<FinderScreen> {
                 height: sH,
                 decoration: new BoxDecoration(color: Colors.black45),
                 child: Align(
-                    alignment: Alignment.center, child: new EventInfoUI()),
+                    alignment: Alignment.center,
+                    child: new EventInfoUI(
+                      scaffoldKey: _scaffoldKey,
+                    )),
               ),
             )
         ]));
