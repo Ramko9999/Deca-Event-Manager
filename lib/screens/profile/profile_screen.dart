@@ -20,7 +20,6 @@ import 'package:overlay_support/overlay_support.dart';
 import 'package:path_provider/path_provider.dart';
 
 class ProfileScreen extends StatefulWidget {
-  ProfileScreen();
 
   @override
   State<ProfileScreen> createState() {
@@ -34,28 +33,6 @@ class ProfileScreenState extends State<ProfileScreen> {
   bool isAdmin = false;
 
   ProfileScreenState();
-
-  void startNetworkConnectionStream() {
-    print("Stream is started");
-    ConnectionStream networkStream = new ConnectionStream();
-    networkStream.startConnectionChecker().listen((onResponse) {
-      if (onResponse == 404) {
-        print(404);
-        /*
-          StateContainer.of(context).isThereANetworkConnectionError = true;
-          StateContainer.of(context).setConnectionErrorStatus(true);
-          */
-
-      } else {
-        print(200);
-
-        /*
-          StateContainer.of(context).isThereANetworkConnectionError = false;
-          StateContainer.of(context).setConnectionErrorStatus(false);
-          */
-      }
-    });
-  }
 
   //listens to and changes connection status
   void startConnectionStream() {
@@ -79,7 +56,6 @@ class ProfileScreenState extends State<ProfileScreen> {
 
     super.initState();
     initNotifications();
-    startNetworkConnectionStream();
 
     //listen for notifications on profile screen due to the fact profile screen will never be popped out of navigator
     final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
@@ -107,25 +83,6 @@ class ProfileScreenState extends State<ProfileScreen> {
     });
 
     startConnectionStream();
-
-    String name;
-    List adminList;
-    Firestore.instance.collection("Users").where("uid", isEqualTo: Global.uid).getDocuments().then((adminDocument) {
-      String name = adminDocument.documents[0].data['first_name'] + " " + adminDocument.documents[0].data['last_name'];
-      Firestore.instance.collection("Admin Users").getDocuments().then((adminDocument) {
-        print(name);
-        adminList = adminDocument.documents;
-        for(DocumentSnapshot snap in adminList)
-        {
-          print(snap.documentID == name);
-          if(snap.documentID == name)
-          {
-            isAdmin = true;
-            return;
-          }
-        }
-      });
-    });
   }
 
   //used to get the locally stored notifications
@@ -198,6 +155,9 @@ class ProfileScreenState extends State<ProfileScreen> {
 
   Widget build(BuildContext context) {
     int numOfNotifications = StateContainer.of(context).notificationCounter;
+    final container = StateContainer.of(context);
+    bool temp = container.isAdmin;
+    print('Line 160: container.isAdmin: $temp');
 
     return Scaffold(
       body: Stack(
@@ -213,7 +173,7 @@ class ProfileScreenState extends State<ProfileScreen> {
             : (_selectedIndex == 1)
                 ? Text("QR Code for Check-In")
                 : (_selectedIndex == 2) ? Text("Notifications") : Text("Chats"),
-        leading: (!isAdmin)?
+        leading: (!container.isAdmin)?
         Container():
         IconButton(
           icon: Icon(Icons.supervisor_account),

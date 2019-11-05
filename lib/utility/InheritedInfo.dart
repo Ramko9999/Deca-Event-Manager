@@ -11,6 +11,7 @@ class StateContainerState extends State<StateContainer> {
   bool isManualEnter = false;
   String group; //this is the group that might be created or edited
   int counter = 0;
+  bool isAdmin = false;
 
   /*Properties that will be persisted on the side of the user */
   List notifications = [];
@@ -36,6 +37,12 @@ class StateContainerState extends State<StateContainer> {
   void setEventMetadata(Map newMetadata) {
     setState(() {
       eventMetadata = newMetadata;
+    });
+  }
+
+  void setIsAdmin(bool newVal) {
+    setState(() {
+      isAdmin = newVal;
     });
   }
 
@@ -216,12 +223,14 @@ class StateContainer extends StatefulWidget {
   final Map eventMetadata;
   final Map userData;
   final bool isCardTapped;
+  final bool isAdmin;
   final String filterType;
   final bool isManualEnter;
 
   StateContainer(
       {@required this.child,
       this.uid,
+        this.isAdmin,
       this.eventMetadata,
       this.userData,
       this.isCardTapped,
