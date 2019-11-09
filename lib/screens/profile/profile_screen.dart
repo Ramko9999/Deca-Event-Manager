@@ -31,13 +31,14 @@ class ProfileScreen extends StatefulWidget {
 class ProfileScreenState extends State<ProfileScreen> {
   int _selectedIndex = 0;
 
-  bool isAdmin = false;
+  //listen for notifications on profile screen due to the fact profile screen will never be popped out of navigator
+  final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
 
   ProfileScreenState();
 
 
   void checkAdminStatus() async {
-    
+
     if(Global.isAdmin){
 
       print("Fetched");
@@ -67,46 +68,47 @@ class ProfileScreenState extends State<ProfileScreen> {
 
   //if the platfrom is IOS we will have to request for permissions
   void initState() {
-
     super.initState();
     initNotifications();
+    initFCMListeners();
+    startConnectionStream();
     checkAdminStatus();
+  }
 
-
-
-    //listen for notifications on profile screen due to the fact profile screen will never be popped out of navigator
-    final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
-
-
+  void initFCMListeners()
+  {
     _firebaseMessaging.configure(
-      
-      onLaunch: (Map<String, dynamic> notification) async {
-      //append notification
+        onLaunch: (Map<String, dynamic> notification) async {
+          StateContainer.of(context).addToNotifications(notification);
+          Global.notificationDataFile.writeAsStringSync(
+              json.encode(StateContainer.of(context).notifications));
+        },
+        onMessage: (Map<String, dynamic> notification) async {
       StateContainer.of(context).addToNotifications(notification);
       Global.notificationDataFile.writeAsStringSync(
           json.encode(StateContainer.of(context).notifications));
-    }, 
-    
-    onMessage: (Map<String, dynamic> notification) async {
-      
-      StateContainer.of(context).addToNotifications(notification);
-      Global.notificationDataFile.writeAsStringSync(
-          json.encode(StateContainer.of(context).notifications));
-      
-      
-      scheduleLocalNotification(notification);
-    },
-    
-     onResume: (Map<String, dynamic> notification) async {
-      
-      
-      //append notification
+      },
+        onResume: (Map<String, dynamic> notification) async {
       StateContainer.of(context).addToNotifications(notification);
       Global.notificationDataFile.writeAsStringSync(
           json.encode(StateContainer.of(context).notifications));
     });
+    if (Platform.isIOS) iosPermissions();
 
-    startConnectionStream();
+    _firebaseMessaging.getToken().then((token){
+      print(token);
+    });
+  }
+
+  void iosPermissions() {
+    _firebaseMessaging.requestNotificationPermissions(
+        IosNotificationSettings(sound: true, badge: true, alert: true)
+    );
+    _firebaseMessaging.onIosSettingsRegistered
+        .listen((IosNotificationSettings settings)
+    {
+      print("Settings registered: $settings");
+    });
   }
 
   //used to get the locally stored notifications
@@ -131,35 +133,6 @@ class ProfileScreenState extends State<ProfileScreen> {
     });
   }
 
-  
-
-  void scheduleLocalNotification(Map notification) async {
-    
-    
-    //used for scheduling as well as displaying notifications
-    StateContainer.of(context).addToNotifications(notification);
-    Global.notificationDataFile.writeAsStringSync(
-        json.encode(StateContainer.of(context).notifications));
-    String header;
-    String body;
-
-    if(Platform.isIOS)
-    {
-      header = notification['header'];
-      body = notification['body'];
-    }
-    else{
-      header = notification['data']['header'];
-      body = notification['data']['body'];
-    }
-
-
-    //show the actual notification
-    showSimpleNotification(Text(header),
-        subtitle: Text(body));
-    //schedule a notification for future
-  }
-
   Widget changeScreen(int currentIndex) {
     switch (currentIndex) {
       case 0:
@@ -181,8 +154,6 @@ class ProfileScreenState extends State<ProfileScreen> {
 
   Widget build(BuildContext context) {
     int numOfNotifications = StateContainer.of(context).notificationCounter;
-    final container = StateContainer.of(context);
- 
 
     return Scaffold(
       body: Stack(

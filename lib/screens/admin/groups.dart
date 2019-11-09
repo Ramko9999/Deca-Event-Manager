@@ -41,7 +41,7 @@ class _CreateGroupUIState extends State<CreateGroupUI> {
           ),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: Text("Add Users to Committee"),
+        title: Text("Add Users to a Group"),
       ),
       body: Stack(
         children: <Widget>[
@@ -145,7 +145,7 @@ class _CreateGroupUIState extends State<CreateGroupUI> {
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: <Widget>[
                                 Text(
-                                  "Add a New Committee",
+                                  "Add a New Group",
                                   style: TextStyle(
                                       fontSize: Sizer.getTextSize(sW, sH, 17),
                                       fontWeight: FontWeight.bold),
@@ -160,7 +160,7 @@ class _CreateGroupUIState extends State<CreateGroupUI> {
                                           fontSize:
                                               Sizer.getTextSize(sW, sH, 17)),
                                       decoration: InputDecoration(
-                                        labelText: "Committee Name",
+                                        labelText: "Group Name",
                                       ),
                                     ),
                                   ),
@@ -505,7 +505,7 @@ class _EditGroupUIState extends State<EditGroupUI> {
     return Scaffold(
         key: _scaffoldKey,
         appBar: new AppBar(
-          title: Text("Edit Committees"),
+          title: Text("Edit Groups"),
           leading: IconButton(
               icon: Icon(Icons.arrow_back_ios),
               onPressed: () => {Navigator.pop(context)}),

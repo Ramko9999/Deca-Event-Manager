@@ -160,14 +160,14 @@ class DynamicProfileUI extends StatelessWidget {
                         Card(
                           child: ListTile(
                             leading: Icon(Icons.group, color: Colors.lightBlue),
-                            title: Text('List of Committees',
+                            title: Text('List of Groups',
                                 textAlign: TextAlign.left,
                                 style: new TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize:
                                         20 * screenWidth / pixelTwoWidth)),
                             subtitle: Text(
-                              'Click to view committees!',
+                              'Click to view groups!',
                               style: TextStyle(
                                   fontSize: 16 * screenWidth / pixelTwoWidth),
                             ),
@@ -175,7 +175,7 @@ class DynamicProfileUI extends StatelessWidget {
                                 context,
                                 NoTransition(
                                     builder: (context) =>
-                                        new CommitteeInfoScreen(
+                                        new GroupInfoScreen(
                                           _uid,
                                           editable: _isEditable,
                                         ))),
@@ -206,10 +206,10 @@ class DynamicProfileUI extends StatelessWidget {
   }
 }
 
-class CommitteeInfoScreen extends StatefulWidget {
+class GroupInfoScreen extends StatefulWidget {
   String _uid;
   bool _isEditable;
-  CommitteeInfoScreen(String u, {bool editable}) {
+  GroupInfoScreen(String u, {bool editable}) {
     this._uid = u;
     if (editable != null) {
       this._isEditable = editable;
@@ -218,11 +218,11 @@ class CommitteeInfoScreen extends StatefulWidget {
   @override
   State<StatefulWidget> createState() {
     // TODO: implement createState
-    return CommitteeInfoScreenState();
+    return GroupInfoScreenState();
   }
 }
 
-class CommitteeInfoScreenState extends State<CommitteeInfoScreen> {
+class GroupInfoScreenState extends State<GroupInfoScreen> {
   List committeeList;
   final _scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -309,9 +309,9 @@ class CommitteeInfoScreenState extends State<CommitteeInfoScreen> {
       key: _scaffoldKey,
       appBar: AppBar(
         title: !widget._isEditable
-            ? Text('Committees')
+            ? Text('Groups')
             : AutoSizeText(
-                'Editing ${StateContainer.of(context).userData['first_name']}\'s Committees',
+                'Editing ${StateContainer.of(context).userData['first_name']}\'s Groups',
                 maxLines: 1),
       ),
       body: Column(
@@ -335,7 +335,7 @@ class CommitteeInfoScreenState extends State<CommitteeInfoScreen> {
                       width: screenWidth * 0.9,
                       child: (isEmpty)
                           ? Text(
-                              "Not In Any Committees!",
+                              "Not In Any Groups!",
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontFamily: "Lato",

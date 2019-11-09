@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class StateContainerState extends State<StateContainer> {
-  /* Properities that will be persisted on the side of the Admin */
+  /* Properties that will be persisted on the side of the Admin */
   String uid;
   Map eventMetadata;
   Map userData; //this is not the app user's UID, but the data of the person who is getting changed
@@ -73,8 +73,10 @@ class StateContainerState extends State<StateContainer> {
   //used to add to the notifications of the user
   void addToNotifications(Map notification) {
     setState(() {
+
       this.notifications.add(notification);
       this.notificationCounter += 1;
+
     });
   }
 
