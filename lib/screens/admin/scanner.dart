@@ -108,6 +108,7 @@ class _ScannerState extends State<Scanner> {
         PermissionGroup.camera, PermissionGroup.microphone);
 
     if (permList.length == 0) {
+      
       //get all the avaliable cameras
       availableCameras().then((allCameras) {
         _mainCamera = CameraController(allCameras[0], ResolutionPreset.low);

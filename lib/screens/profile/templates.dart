@@ -319,11 +319,12 @@ class CommitteeInfoScreenState extends State<CommitteeInfoScreen> {
           StreamBuilder(
               stream: Firestore.instance
                   .collection('Users')
-                  .where("uid", isEqualTo: widget._uid)
+                  .document(widget._uid)
                   .snapshots(),
               builder: (context, userSnapshot) {
                 if (userSnapshot.hasData) {
-                  DocumentSnapshot userSnap = userSnapshot.data.documents[0];
+                  
+                  DocumentSnapshot userSnap = userSnapshot.data;
                   List commList = userSnap.data['groups'];
                   committeeList = commList;
                   bool isEmpty = commList.isEmpty;
@@ -444,7 +445,7 @@ class GPInfoScreenState extends State<GPInfoScreen> {
             onDismissed: (dissmiss) {
               Map newMap = {};
               for (EventObject eventItem in eventList) {
-                print(eventItem.info.data);
+           
                 if (eventItem.info['event_name'] != event['event_name']) {
                   newMap.addAll({eventItem.info['event_name']: eventItem.gp});
                 }
@@ -569,18 +570,18 @@ class GPInfoScreenState extends State<GPInfoScreen> {
           StreamBuilder(
               stream: Firestore.instance.collection('Events').snapshots(),
               builder: (context, eventSnapshot) {
+                
                 if (eventSnapshot.hasData) {
                   List<DocumentSnapshot> eventSnap =
                       eventSnapshot.data.documents;
                   return StreamBuilder(
                       stream: Firestore.instance
-                          .collection('Users')
-                          .where("uid", isEqualTo: _uid)
+                          .collection('Users').document(_uid)
                           .snapshots(),
                       builder: (context, userSnapshot) {
                         if (userSnapshot.hasData) {
                           DocumentSnapshot userSnap =
-                              userSnapshot.data.documents[0];
+                              userSnapshot.data;
                           Map eventList = userSnap.data['events'] as Map;
                           bool isEmpty = eventList.isEmpty;
                           return Center(

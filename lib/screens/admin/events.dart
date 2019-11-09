@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:deca_app/screens/admin/scanner.dart';
+import 'package:deca_app/screens/db/databasemanager.dart';
 import 'package:deca_app/utility/InheritedInfo.dart';
 import 'package:deca_app/utility/format.dart';
 import 'package:deca_app/utility/notifiers.dart';
@@ -43,6 +44,7 @@ class _CreateEventUIState extends State<CreateEventUI> {
 
   _CreateEventUIState();
 
+  //execute the event creation
   void executeEventCreation(BuildContext context) async {
     final container = StateContainer.of(context);
 
@@ -55,13 +57,12 @@ class _CreateEventUIState extends State<CreateEventUI> {
         "enter_type": _enterType,
         "attendee_count": 0,
       } as Map;
+      
       await Firestore.instance
           .collection("Events")
           .document(_eventName.text)
           .setData(eventMetadata);
 
-      setState(() => _isTryingToCreateEvent = false);
-      container.setEventMetadata(eventMetadata);
     } else {
       eventMetadata = {
         "event_name": _eventName.text,
@@ -71,13 +72,18 @@ class _CreateEventUIState extends State<CreateEventUI> {
         'gold_points': int.parse(_goldPoints.text),
         "attendee_count": 0,
       } as Map;
+      
       await Firestore.instance
           .collection("Events")
           .document(_eventName.text)
           .setData(eventMetadata);
-
-      container.setEventMetadata(eventMetadata);
     }
+
+    //append to aggregator
+    await DataBaseManagement.eventAggregator.updateData({'event_list': FieldValue.arrayUnion([_eventName.text])});
+
+    setState(() => _isTryingToCreateEvent = false);
+    container.setEventMetadata(eventMetadata);
 
     Navigator.of(context).pop();
     if (eventMetadata['enter_type'] == 'ME') {
@@ -444,16 +450,23 @@ class _EditEventUIState extends State<EditEventUI> {
 
   final _scaffoldKey = GlobalKey<ScaffoldState>(); //used to show the snack bar
 
-  ListView _buildEventList(context, snapshot) {
+  Widget _buildEventList(context, snapshot) {
     double sW = MediaQuery.of(context).size.width;
     double sH = MediaQuery.of(context).size.height;
 
+
+    List events = snapshot.data['event_list'];
+
+    if(events.length == 0){
+      return Text("There are no current events");
+    }
+
     return ListView.builder(
       // Must have an item count equal to the number of items!
-      itemCount: snapshot.data.documents.length,
+      itemCount: events.length,
       // A callback that will return a widget.
       itemBuilder: (context, int) {
-        DocumentSnapshot eventInfo = snapshot.data.documents[int];
+       String event = events[int];
 
         return Dismissible(
           key: UniqueKey(),
@@ -469,19 +482,23 @@ class _EditEventUIState extends State<EditEventUI> {
           ),
           child: Card(
             child: ListTile(
-              title: Text(eventInfo['event_name'],
+              title: Text(event,
                   textAlign: TextAlign.left,
                   style: new TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: Sizer.getTextSize(sW, sH, 20))),
-              subtitle: Text(eventInfo['event_type']),
-              onTap: () {
+              onTap: () async {
+
+                //fetch the actual event
+
+                DocumentSnapshot eventData = await Firestore.instance.collection("Events").document(event).get();
+                
                 //set the eventMetadata to be have the Map of the event that will be edited
                 final container = StateContainer.of(context);
-                container.setEventMetadata(eventInfo.data);
+                container.setEventMetadata(eventData.data);
 
                 /* If the event is a manual enter event then there will be no scanner */
-                if (eventInfo.data['enter_type'] == 'ME') {
+                if (eventData.data['enter_type'] == 'ME') {
                   Navigator.of(context)
                       .push(NoTransition(builder: (context) => FinderScreen()));
                 } else {
@@ -508,7 +525,7 @@ class _EditEventUIState extends State<EditEventUI> {
               Map eventData = userDocument['events'];
 
               //remove the event name key as well the pair in the map
-              eventData.remove(eventInfo['event_name']);
+              eventData.remove(event);
 
               //recompute the gold points
               num goldPoints = 0;
@@ -532,7 +549,10 @@ class _EditEventUIState extends State<EditEventUI> {
             batch.commit().then((_) {
               //delete the actual document containing the event once all the batch commits are deleted
 
-              eventInfo.reference.delete().then((_) {
+              Firestore.instance.collection("Events").document(event).delete().then((_) async {
+
+               await DataBaseManagement.eventAggregator.updateData({"event_list": FieldValue.arrayRemove([event])});
+
                 //display a snackbar to show the user the event is deleted
                 _scaffoldKey.currentState.showSnackBar(SnackBar(
                   content: Text(
@@ -612,8 +632,8 @@ class _EditEventUIState extends State<EditEventUI> {
           SingleChildScrollView(
             child: Column(
               children: <Widget>[
-                StreamBuilder(
-                  stream: Firestore.instance.collection('Events').snapshots(),
+                FutureBuilder(
+                  future: DataBaseManagement.eventAggregator.get(),
                   builder: (context, snapshot) {
                     if (snapshot.hasData) {
                       return Center(
@@ -674,12 +694,15 @@ class _EventInfoUIState extends State<EventInfoUI> {
     return StreamBuilder(
       stream: Firestore.instance
           .collection('Events')
-          .where("event_name", isEqualTo: eventMetadata['event_name'])
-          .snapshots(),
+          .document(eventMetadata['event_name']).snapshots()
+          ,
       builder: (context, eventSnapshot) {
+        
         if (eventSnapshot.hasData) {
-          DocumentSnapshot eventSnap = eventSnapshot.data.documents[0];
+          
+          DocumentSnapshot eventSnap = eventSnapshot.data;
           eventMetadata = eventSnap.data;
+
           return Container(
             width: screenWidth * .9,
             height: screenHeight * 0.50,

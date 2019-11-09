@@ -5,6 +5,8 @@ class Searcher {
 
   Searcher(users, firstName, lastName) {
     this._users = users;
+
+ 
     this.firstQuery = firstName;
     this.lastQuery = lastName;
   }
@@ -13,9 +15,11 @@ class Searcher {
   MaxList search() {
     //relevance is based on the longest common substring shared between the query and values
     MaxList relevanceList = new MaxList();
+    
     for (int i = 0; i < _users.length; i++) {
       Map firstNameRelevance = {'Points': 0};
       Map lastNameRelevance = {'Points': 0};
+      
       if (firstQuery != "") {
         firstNameRelevance = findLongestCommonSubstring(
             firstQuery.toLowerCase(), _users[i]['first_name'].toLowerCase());
@@ -48,7 +52,7 @@ class Searcher {
     int total = 0;
     int tempCounter = 0;
     List tempList = [];
-    List finalList = [];
+  
     for (int i = 0; i < a.length; i++) {
       tempList = [];
       tempCounter = 0;
@@ -60,7 +64,6 @@ class Searcher {
           tempCounter++;
           if (tempCounter > total) {
             total = tempCounter;
-            finalList = tempList;
           }
           if (i == a.length) {
             break;

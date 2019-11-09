@@ -44,6 +44,7 @@ class _LoginTemplateState extends State<LoginTemplate> {
   void autoLogin() async {
     final appDirectory =
         await getApplicationDocumentsDirectory(); //get app directory
+    
     final container = StateContainer.of(context);
 
     //check whether the file exists
@@ -54,7 +55,6 @@ class _LoginTemplateState extends State<LoginTemplate> {
       //alter UI with the autofill information
       setState(() {
         _desiresAutoLogin = userInfo['auto'];
-        container.setIsAdmin(userInfo['isAdmin']);
 
         if (_desiresAutoLogin) {
           _username.text = userInfo['username'];
@@ -74,28 +74,26 @@ class _LoginTemplateState extends State<LoginTemplate> {
         .signInWithEmailAndPassword(
             email: _username.text, password: _password.text)
         .then((authResult) async /*sign in callback */ {
+      
       String userId =
           authResult.user.uid; //used to query for the user data in firestore
 
       Global.uid = userId;
 
-      Map userData;
 
-      await Firestore.instance.collection("Users").document(userId).get().then((doc) {
-        userData = doc.data;
-      });
-      QuerySnapshot adminSnapshot = await Firestore.instance.collection("Admin Users").getDocuments();
+
+      DocumentSnapshot userDocument = await Firestore.instance.collection("Users").document(userId).get();
+      DocumentSnapshot adminMeta = await Firestore.instance.collection("Aggregators").document("Admin").get();
+
       //Checks to see if member
 
-      List adminList = adminSnapshot.documents;
-      String name = userData['first_name'] + " " + userData['last_name'];
-      for(DocumentSnapshot snap in adminList)
-      {
-        if(snap.documentID == name)
-        {
-          isAdmin = true;
-          break;
-        }
+      List adminList = adminMeta.data['admins'];
+      String fullName = "${userDocument.data['first_name']} ${userDocument.data['last_name']}";
+
+      if(adminList.contains(fullName)){
+
+        isAdmin = true;
+        Global.isAdmin = true;
       }
 
 
@@ -122,11 +120,15 @@ class _LoginTemplateState extends State<LoginTemplate> {
           json.encode(jsonInformation)); //update file information
 
       container.setIsAdmin(isAdmin);
-
+        
       //changes screen to profile screen
       Navigator.push(context,
           MaterialPageRoute(builder: (context) => new ProfileScreen()));
+
     }).catchError((error) {
+     
+     print(error);
+     
       setState(() => _isLogginIn = false);
       //if credentials are invalid then throw the error
       if (error.toString().contains("INVALID") ||
@@ -335,9 +337,7 @@ class _LoginTemplateState extends State<LoginTemplate> {
                               //logging into firebase
                               if (_loginFormKey.currentState.validate() &&
                                   !_isLogginIn) {
-                                     ConnectionStream cs = new ConnectionStream();
-
-            cs.quickCheckConnection().then((status)=> print("Status is $status"));
+                                  
                                 tryToLogin();
                               }
                             },
@@ -381,115 +381,118 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
   final _registrationFormKey = GlobalKey<FormState>();
   FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
 
-  //executes the actual registration
-  void executeRegistration() async {
+
+
+  Future<String> authenticateUser(Map usersMap, String fullName) async{
+
+    String oldUid = usersMap[fullName];
+
+
+    AuthResult authRes = await FirebaseAuth.instance.createUserWithEmailAndPassword(email: _username, password: _password);
+    String newUid = authRes.user.uid;
+
+    //fetch the current document of the user from its inital user id
+    
+    DocumentSnapshot currentDoc = await Firestore.instance.collection("Users").document(oldUid).get();
+    Map documentData = currentDoc.data;
+
+
+    //cache results
+
+    //write to json file
     final appDirectory = await getApplicationDocumentsDirectory();
-    final container = StateContainer.of(context);
+    final userStorageFile = File(appDirectory.path + "/user.json");
 
-    QuerySnapshot querySnapshot = await Firestore.instance.collection("Users").getDocuments();
-    QuerySnapshot adminSnapshot = await Firestore.instance.collection("Admin Users").getDocuments();
-    //Checks to see if member
-    List memberlist = querySnapshot.documents;
-    List adminList = adminSnapshot.documents;
-    for(DocumentSnapshot snap in memberlist)
-    {
-      Map user = snap.data;
-      if(user['first_name'] == _firstName && user['last_name'] == _lastName)
-      {
-        isNameValid = true;
-        String name = user['first_name'] + " " + user['last_name'];
-        for(DocumentSnapshot admin in adminList)
-        {
-          print(admin.documentID);
-          print(name);
-          if(admin.documentID == name)
-          {
-            isAdmin = true;
-            container.setIsAdmin(isAdmin);
-            break;
-          }
-        }
-        break;
-      }
-    }
-    if(!isNameValid)
-    {
-      showDialog(
-          context: context,
-          builder: (context) {
-            return SingleActionPopup(
-                "Enter your first and last name as you did for DECA registration.", "User not Matched", Colors.red);
-          });
-      setState(() => _isTryingToRegister = false);
-      return;
-    }
-
-    FirebaseAuth.instance
-        .createUserWithEmailAndPassword(email: _username, password: _password)
-        .then((result) async /* create user callback */ {
-      String userId =
-          result.user.uid; //grabds user's unique id from Firebase Auth
-
-      Global.uid = userId;
-      //write to json file
-      final userStorageFile = File(appDirectory.path + "/user.json");
-
-      //create local storage map
-      print('isAdmin Line 436: $isAdmin');
-      Map jsonInformation = {
+    //basic user information
+     Map jsonInformation = {
         'auto': true,
         'username': _username,
         'password': _password,
         'isAdmin':isAdmin,
-      };
+      } as Map;
 
       userStorageFile
-          .writeAsStringSync(json.encode(jsonInformation)); //write to file
+          .writeAsStringSync(json.encode(jsonInformation)); //write to fie syncronolys
 
-      //persist file referenece
+      
+      //persist useful refrences like File Pointers
       Global.userDataFile = userStorageFile;
+      Global.uid = newUid;
 
-      assert(Global.userDataFile != null);
-
+      //grab FCM messaging token
       String messagingToken = await _firebaseMessaging.getToken();
 
-      QuerySnapshot querySnapshot = await Firestore.instance.collection("Users").getDocuments();
-      List list = querySnapshot.documents;
+      //create new document with data
 
-      Map<String, dynamic> userInfo;
+      Map<String, dynamic> updatedUserData = {
+        "first_name": _firstName,
+        "last_name": _lastName,
+        "gold_points": documentData['gold_points'],
+        "events": documentData['events'],
+        "groups": documentData['groups'],
+        "uid": newUid,
+        "device-token": messagingToken
+      } ;
 
-      //Updates user metadata and creates a map of all info
-      for(DocumentSnapshot snap in list)
-        {
-          Map user = snap.data;
+ 
+      await Firestore.instance.collection("Users").document(newUid).setData(updatedUserData);
+      usersMap[fullName] = newUid;
 
-          if(user['first_name'] == _firstName && user['last_name'] == _lastName)
-            {
-              print(user.toString());
-              userInfo = {
-                "first_name": _firstName,
-                "last_name": _lastName,
-                "gold_points": user['gold_points'],
-                "events": user['events'],
-                "groups": user['groups'],
-                "uid": userId,
-                "device-token": messagingToken
-              };
-              await Firestore.instance.collection('Users').document(user['uid']).delete();
-              break;
-            }
-        }
+      await Firestore.instance.collection("Aggregators").document("User").updateData({"users": usersMap as Map});
 
-      //Writes map to Firebase
-        Firestore.instance.collection("Users").document(userId).setData(userInfo.cast()).then((_) /* call back for creating a users document*/ {
+      await Firestore.instance.collection("Users").document(oldUid).delete();
+      
+      return "Finished";
+  
+  }
+
+  //executes the actual registration
+  void executeRegistration() async {
+   
+    final container = StateContainer.of(context);
+
+    //grab the data of the users and admins to enable admin privelges
+    DocumentSnapshot userMetadataSnapshot = await Firestore.instance.collection("Aggregators").document("User").get();
+
+    Map totalUsersMap = userMetadataSnapshot.data['users'];
+
+    DocumentSnapshot adminSnapshot = await Firestore.instance.collection("Aggregators").document("Admin").get();
+
+    List admins = adminSnapshot.data['admins'];
+
+
+    String fullName = "$_firstName $_lastName";
+
+    
+    //check whether the name of the user exists in the map
+    if(totalUsersMap.containsKey(fullName)){
+      
+
+      isNameValid = true;
+      isAdmin = false;
+
+      //check whether user may be an admin
+      if(admins.contains(fullName)){
+        isAdmin = true;
+        container.setIsAdmin(true);
+        Global.isAdmin = true;
+
+
+      }
+
+
+      
+      //truly authenticate the user to firebase
+        authenticateUser(totalUsersMap, fullName).then((_) /* call back for creating a users document*/ {
           setState(() => _isTryingToRegister = false);
 
           Navigator.of(context).push(MaterialPageRoute(
               builder: (context) => ProfileScreen())); //go to profile screen
-        });
+        
 
       //catching invalid email error
     }).catchError((error) {
+     
       setState(() => _isTryingToRegister = false);
 
       //if email already exists throw an error popup
@@ -518,6 +521,20 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
             });
       }
     });
+
+    
+    }
+    else{
+      showDialog(
+          context: context,
+          builder: (context) {
+            return SingleActionPopup(
+                "Enter your first and last name as you did for DECA registration.", "User not Matched", Colors.red);
+          });
+      setState(() => _isTryingToRegister = false);
+    }
+
+
   }
 
 
@@ -530,6 +547,8 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
 
       if (_registrationFormKey.currentState
           .validate()) /*check whether form is valid */ {
+       
+       
         Connectivity().checkConnectivity().then(
             (connectionState) /* check whether connection is established */ {
           if (connectionState == ConnectivityResult.none) {
@@ -734,6 +753,7 @@ class ForgotPasswordTemplate extends StatefulWidget {
 }
 
 class ForgotPasswordTemplateState extends State<ForgotPasswordTemplate> {
+  
   TextEditingController email = TextEditingController();
   GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   bool _isEmailSent = false;

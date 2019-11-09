@@ -110,9 +110,11 @@ class StateContainerState extends State<StateContainer> {
         .document(userUniqueId)
         .get()
         .then((userData) {
+      
       int totalGP = 0;
       Map eventsList = userData.data['events'];
       print(eventsList);
+      
       for (var gp in eventsList.keys) {
         totalGP += eventsList[gp];
       }
@@ -165,8 +167,10 @@ class StateContainerState extends State<StateContainer> {
 
   //adds the current event in eventMetadata state to events field for the user that is parameterized
   Future addToEvents(String userUniqueId, [int manualGP]) async {
+    
     int pointVal = eventMetadata['gold_points'];
     Map finalEvents = userData['events'];
+
 
     if (finalEvents != null) {
       if (eventMetadata['enter_type'] == 'QE') {
@@ -175,7 +179,16 @@ class StateContainerState extends State<StateContainer> {
         finalEvents.addAll({eventMetadata['event_name']: manualGP});
       }
     } else {
-      finalEvents = {eventMetadata['event_name']: pointVal};
+
+      if(eventMetadata['enter_type'] == 'QE'){
+        finalEvents = {eventMetadata['event_name']: pointVal};
+      }
+      else{
+        finalEvents = {eventMetadata['event_name'] : manualGP};
+      }
+
+
+
     }
     await Firestore.instance
         .collection('Users')

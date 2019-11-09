@@ -2,12 +2,14 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:deca_app/screens/admin/finder.dart';
+import 'package:deca_app/screens/db/databasemanager.dart';
 import 'package:deca_app/utility/InheritedInfo.dart';
 import 'package:deca_app/utility/format.dart';
 import 'package:deca_app/utility/notifiers.dart';
 import 'package:deca_app/utility/transition.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+
 
 //a scaffold where Admins can create groups
 class CreateGroupUI extends StatefulWidget {
@@ -43,15 +45,19 @@ class _CreateGroupUIState extends State<CreateGroupUI> {
       ),
       body: Stack(
         children: <Widget>[
+          
+          
           //add people to a group on callback
           Finder((BuildContext context, StateContainerState stateContainer,
               Map userData) async {
+            
             DocumentSnapshot document = await Firestore.instance
                 .collection("Users")
                 .document(userData['uid'])
                 .get();
 
             List data = document.data['groups'].toList();
+            
             //check if the person is already in the group
             if (data.contains(stateContainer.group)) {
               //display a scaffold snackbar to show the user that the user is already in the group
@@ -72,14 +78,13 @@ class _CreateGroupUIState extends State<CreateGroupUI> {
 
                       //choice to remove the user from the group
                       () {
-                    //remove the group
-                    data.remove(stateContainer.group);
+                  
 
                     //remove user from firestore and show confirmation
                     Firestore.instance
                         .collection("Users")
                         .document(userData['uid'])
-                        .updateData({'groups': data}).then((_) {
+                        .updateData({'groups': FieldValue.arrayRemove([stateContainer.group])}).then((_) {
                       _scaffoldKey.currentState.showSnackBar(
                         SnackBar(
                           content: Text(
@@ -99,8 +104,8 @@ class _CreateGroupUIState extends State<CreateGroupUI> {
             }
             //add the person to the group
             else {
-              data.add(stateContainer.group);
-              document.reference.updateData({'groups': data});
+      
+              document.reference.updateData({'groups': FieldValue.arrayUnion([stateContainer.group])});
 
               //show snackbar alerting the admin that the user has been added to the group
               _scaffoldKey.currentState.showSnackBar(SnackBar(
@@ -116,6 +121,7 @@ class _CreateGroupUIState extends State<CreateGroupUI> {
               ));
             }
           }),
+          
           if (!_hasCreatedGroup)
             Container(
                 color: Colors.black45,
@@ -168,21 +174,23 @@ class _CreateGroupUIState extends State<CreateGroupUI> {
                                   textColor: Colors.white,
                                   color: Color.fromRGBO(46, 204, 113, 1),
                                   onPressed: () async {
+                                    
                                     if (_groupName.text != null) {
-                                      QuerySnapshot groupSnap = await Firestore
-                                          .instance
-                                          .collection("Groups")
-                                          .getDocuments();
+                                     
+                                     DocumentSnapshot groupRef = await DataBaseManagement.groupAggregator.get();
+
 
                                       //create a map of the documents by the first name field
-                                      List groups = groupSnap.documents
-                                          .map((f) => f.data['name'])
-                                          .toList();
-
+                                      List groups = groupRef.data['group_list'];
+                                      
                                       if (!groups.contains(_groupName.text)) {
                                         Firestore.instance
-                                            .collection("Groups")
-                                            .add({'name': _groupName.text});
+                                            .collection("Groups").document(_groupName.text).setData({"name": _groupName.text});
+                                     
+
+                                        
+                                        await DataBaseManagement.groupAggregator.updateData({"group_list": FieldValue.arrayUnion([_groupName.text])});
+                                        
                                         StateContainer.of(context)
                                             .setGroup(_groupName.text);
 
@@ -246,78 +254,80 @@ class GroupEditorState extends State<GroupEditor> {
       ),
       body: Stack(
         children: <Widget>[
-          Finder(
-
-              //finder callback function
-              (BuildContext context, StateContainerState stateContainer,
-                  Map userData) {
-            Firestore.instance
+          Finder((BuildContext context, StateContainerState stateContainer,
+              Map userData) async {
+            
+            DocumentSnapshot document = await Firestore.instance
                 .collection("Users")
                 .document(userData['uid'])
-                .get()
-                .then((document) {
-              List data = document.data['groups'].toList();
-              //check if the person is already in the group
-              if (data.contains(stateContainer.group)) {
-                _scaffoldKey.currentState.showSnackBar(SnackBar(
-                  content: Text(
-                    "${userData['first_name']} is already in ${stateContainer.group}",
-                    style: TextStyle(
-                        fontFamily: 'Lato',
-                        fontSize: Sizer.getTextSize(sW, sH, 18),
-                        color: Colors.white),
-                  ),
-                  backgroundColor: Colors.red,
-                  duration: Duration(seconds: 3),
-                  action: SnackBarAction(
-                    label: "REMOVE",
-                    textColor: Colors.amber,
-                    onPressed: () {
-                      //remove the group
-                      data.remove(stateContainer.group);
+                .get();
 
-                      //remove user from firestore and show confirmation
-                      Firestore.instance
-                          .collection("Users")
-                          .document(userData['uid'])
-                          .updateData({'groups': data}).then((_) {
-                        print("Snack Bar should be displayed");
-                        //once data is updated display a snackbar
-                        _scaffoldKey.currentState.showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              "${userData['first_name']} removed from ${stateContainer.group}",
-                              style: TextStyle(
-                                  fontFamily: 'Lato',
-                                  fontSize: Sizer.getTextSize(sW, sH, 18),
-                                  color: Colors.white),
-                            ),
-                            duration: Duration(milliseconds: 250),
+            List data = document.data['groups'].toList();
+            
+            //check if the person is already in the group
+            if (data.contains(stateContainer.group)) {
+              //display a scaffold snackbar to show the user that the user is already in the group
+              _scaffoldKey.currentState.showSnackBar(
+                
+                SnackBar(
+                content: Text(
+                  "${userData['first_name']} is already in ${stateContainer.group}",
+                  style: TextStyle(
+                      fontFamily: 'Lato',
+                      fontSize: Sizer.getTextSize(sW, sH, 18),
+                      color: Colors.white),
+                ),
+                backgroundColor: Colors.red,
+                duration: Duration(seconds: 3),
+                action: SnackBarAction(
+                  label: "REMOVE",
+                  textColor: Colors.amber,
+                  onPressed:
+
+                      //choice to remove the user from the group
+                      () {
+                  
+
+                    //remove user from firestore and show confirmation
+                    Firestore.instance
+                        .collection("Users")
+                        .document(userData['uid'])
+                        .updateData({'groups': FieldValue.arrayRemove([stateContainer.group])}).then((_) {
+                      _scaffoldKey.currentState.showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            "${userData['first_name']} removed from ${stateContainer.group}",
+                            style: TextStyle(
+                                fontFamily: 'Lato',
+                                fontSize: Sizer.getTextSize(sW, sH, 18),
+                                color: Colors.white),
                           ),
-                        );
-                      });
-                    },
-                  ),
-                ));
-              }
-              //add the person to the group
-              else {
-                data.add(stateContainer.group);
+                          duration: Duration(milliseconds: 250),
+                        ),
+                      );
+                    });
+                  },
+                ),
+              ));
+            }
+            //add the person to the group
+            else {
+      
+              document.reference.updateData({'groups': FieldValue.arrayUnion([stateContainer.group])});
 
-                document.reference.updateData({'groups': data});
-                _scaffoldKey.currentState.showSnackBar(SnackBar(
-                  content: Text(
-                    "Added ${userData['first_name']} to ${stateContainer.group}",
-                    style: TextStyle(
-                        fontFamily: 'Lato',
-                        fontSize: Sizer.getTextSize(sW, sH, 18),
-                        color: Colors.white),
-                  ),
-                  backgroundColor: Colors.green,
-                  duration: Duration(milliseconds: 250),
-                ));
-              }
-            });
+              //show snackbar alerting the admin that the user has been added to the group
+              _scaffoldKey.currentState.showSnackBar(SnackBar(
+                content: Text(
+                  "Added ${userData['first_name']} to ${stateContainer.group}",
+                  style: TextStyle(
+                      fontFamily: 'Lato',
+                      fontSize: Sizer.getTextSize(sW, sH, 18),
+                      color: Colors.white),
+                ),
+                backgroundColor: Colors.green,
+                duration: Duration(milliseconds: 250),
+              ));
+            }
           }),
           if (StateContainer.of(context).isThereConnectionError)
             ConnectionError()
@@ -338,15 +348,24 @@ class EditGroupUI extends StatefulWidget {
 class _EditGroupUIState extends State<EditGroupUI> {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  ListView buildGroupList(context, snapshot) {
+  Widget buildGroupList(context, snapshot) {
+
     double sW = MediaQuery.of(context).size.width;
     double sH = MediaQuery.of(context).size.height;
+
+    
+    List groups = snapshot.data['group_list'];
+
+    if(groups.length == 0){
+      return Text("No Committees");
+    }
+
     return ListView.builder(
       // Must have an item count equal to the number of items!
-      itemCount: snapshot.data.documents.length,
+      itemCount: groups.length,
       // A callback that will return a widget.
       itemBuilder: (context, int) {
-        DocumentSnapshot groups = snapshot.data.documents[int];
+        String group = groups[int];
 
         return Dismissible(
           key: UniqueKey(),
@@ -363,7 +382,7 @@ class _EditGroupUIState extends State<EditGroupUI> {
 
           child: Card(
             child: ListTile(
-              title: Text(groups['name'],
+              title: Text(group,
                   textAlign: TextAlign.left,
                   style: new TextStyle(
                       fontWeight: FontWeight.bold,
@@ -373,7 +392,7 @@ class _EditGroupUIState extends State<EditGroupUI> {
                 correctly */
 
                 final container = StateContainer.of(context);
-                container.setGroup(groups['name']);
+                container.setGroup(group);
 
                 //push to the editor screen
                 Navigator.of(context)
@@ -396,7 +415,7 @@ class _EditGroupUIState extends State<EditGroupUI> {
               List groupList = userDoc['groups'];
 
               //remove the group
-              groupList = groupList.where((v) => v != groups['name']).toList();
+              groupList = groupList.where((v) => v != group).toList();
 
               //replace the "groups" key in the user data to the new groupList
               Map userData = userDoc.data;
@@ -408,8 +427,12 @@ class _EditGroupUIState extends State<EditGroupUI> {
 
             //commit batch and then delete the group from the groups collection
             batch.commit().then((_) {
-              groups.reference.delete().then((_) {
+              
+              Firestore.instance.collection("Groups").document(group).delete().then((_) async {
                 //display a snackbar alerting the user that the group has been deleted
+
+                //remove from group aggregator
+                await DataBaseManagement.groupAggregator.updateData({"group_list": FieldValue.arrayRemove([group])});
 
                 _scaffoldKey.currentState.showSnackBar(SnackBar(
                   content: Text(
@@ -492,8 +515,8 @@ class _EditGroupUIState extends State<EditGroupUI> {
             SingleChildScrollView(
               child: Column(
                 children: <Widget>[
-                  StreamBuilder(
-                    stream: Firestore.instance.collection('Groups').snapshots(),
+                  FutureBuilder(
+                    future: DataBaseManagement.groupAggregator.get(),
                     builder: (context, snapshot) {
                       if (snapshot.hasData) {
                         return Center(

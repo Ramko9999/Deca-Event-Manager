@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:deca_app/screens/db/databasemanager.dart';
 import 'package:deca_app/utility/InheritedInfo.dart';
 import 'package:deca_app/utility/format.dart';
 import 'package:deca_app/utility/global.dart';
@@ -30,11 +31,12 @@ class SenderState extends State<Sender> {
   void initState() {
     super.initState();
 
-    Firestore.instance.collection("Groups").getDocuments().then((documents) {
-      List<String> potentialGroups = [];
-      documents.documents.forEach((d) {
-        potentialGroups.add(d.data['name']);
-      });
+    DataBaseManagement.groupAggregator.get().then((document) {
+
+      List<String> potentialGroups= [];
+
+      document.data['group_list'].forEach((f)=> potentialGroups.add(f.toString()));
+    
       potentialGroups.add("All");
       setState(() {
         groups = potentialGroups;

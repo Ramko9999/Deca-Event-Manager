@@ -5,6 +5,7 @@ import 'package:connectivity/connectivity.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:deca_app/screens/admin/admin_main.dart';
 import 'package:deca_app/screens/code/qr_screen.dart';
+import 'package:deca_app/screens/db/databasemanager.dart';
 import 'package:deca_app/screens/notifications/templates.dart';
 import 'package:deca_app/screens/profile/templates.dart';
 import 'package:deca_app/screens/settings/setting_screen.dart';
@@ -34,6 +35,19 @@ class ProfileScreenState extends State<ProfileScreen> {
 
   ProfileScreenState();
 
+
+  void checkAdminStatus() async {
+    
+    if(Global.isAdmin){
+
+      print("Fetched");
+      DataBaseManagement.eventAggregator = Firestore.instance.collection("Aggregators").document("Event");
+      DataBaseManagement.groupAggregator =  Firestore.instance.collection("Aggregators").document("Group");
+      DataBaseManagement.userAggregator = Firestore.instance.collection("Aggregators").document("User");
+    }
+
+  }
+
   //listens to and changes connection status
   void startConnectionStream() {
     //check for connection, and notify different screens of connection issue
@@ -56,26 +70,36 @@ class ProfileScreenState extends State<ProfileScreen> {
 
     super.initState();
     initNotifications();
+    checkAdminStatus();
+
+
 
     //listen for notifications on profile screen due to the fact profile screen will never be popped out of navigator
     final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
 
 
-    _firebaseMessaging.configure(onLaunch: (Map<String, dynamic> notification) async {
+    _firebaseMessaging.configure(
+      
+      onLaunch: (Map<String, dynamic> notification) async {
       //append notification
       StateContainer.of(context).addToNotifications(notification);
       Global.notificationDataFile.writeAsStringSync(
           json.encode(StateContainer.of(context).notifications));
-    }, onMessage: (Map<String, dynamic> notification) async {
+    }, 
+    
+    onMessage: (Map<String, dynamic> notification) async {
+      
       StateContainer.of(context).addToNotifications(notification);
       Global.notificationDataFile.writeAsStringSync(
           json.encode(StateContainer.of(context).notifications));
+      
+      
       scheduleLocalNotification(notification);
-    }, onResume: (Map<String, dynamic> notification) async {
-      StateContainer.of(context).addToNotifications(notification);
-      Global.notificationDataFile.writeAsStringSync(
-          json.encode(StateContainer.of(context).notifications));
-
+    },
+    
+     onResume: (Map<String, dynamic> notification) async {
+      
+      
       //append notification
       StateContainer.of(context).addToNotifications(notification);
       Global.notificationDataFile.writeAsStringSync(
@@ -110,6 +134,8 @@ class ProfileScreenState extends State<ProfileScreen> {
   
 
   void scheduleLocalNotification(Map notification) async {
+    
+    
     //used for scheduling as well as displaying notifications
     StateContainer.of(context).addToNotifications(notification);
     Global.notificationDataFile.writeAsStringSync(
@@ -156,8 +182,7 @@ class ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     int numOfNotifications = StateContainer.of(context).notificationCounter;
     final container = StateContainer.of(context);
-    bool temp = container.isAdmin;
-    print('Line 160: container.isAdmin: $temp');
+ 
 
     return Scaffold(
       body: Stack(
@@ -173,7 +198,7 @@ class ProfileScreenState extends State<ProfileScreen> {
             : (_selectedIndex == 1)
                 ? Text("QR Code for Check-In")
                 : (_selectedIndex == 2) ? Text("Notifications") : Text("Chats"),
-        leading: (!container.isAdmin)?
+        leading: (!Global.isAdmin)?
         Container():
         IconButton(
           icon: Icon(Icons.supervisor_account),

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:deca_app/screens/admin/searcher.dart';
+import 'package:deca_app/screens/db/databasemanager.dart';
 import 'package:deca_app/utility/InheritedInfo.dart';
 import 'package:deca_app/utility/format.dart';
 import 'package:flutter/material.dart';
@@ -32,7 +33,7 @@ class FinderState extends State<Finder> {
   final _lastName = TextEditingController();
   bool hasSearched = false;
   Map recentCardInfo;
-  List<DocumentSnapshot> userDocs;
+  Map userDocs;
   ScrollController _listScroller = ScrollController();
 
   FinderState();
@@ -41,10 +42,11 @@ class FinderState extends State<Finder> {
   void initalizeDocuments() async {
     
     
-      QuerySnapshot data = await Firestore.instance.collection("Users").getDocuments();
-      setState(() => userDocs = data.documents);
-  }
+      DocumentSnapshot userData = await DataBaseManagement.userAggregator.get();
 
+      Map userNames = userData.data['users'] as Map;
+      setState(() => userDocs =  userNames);
+  }
 
   @override
   void initState() {
@@ -54,7 +56,14 @@ class FinderState extends State<Finder> {
     if(mounted){
 
       initalizeDocuments();
-      
+
+      _firstName.addListener((){
+        setState(()=> _listScroller.jumpTo(0.0));
+      });
+
+      _lastName.addListener((){
+        setState(()=> _listScroller.jumpTo(0.0));
+      });
     
     }
   }
@@ -66,19 +75,6 @@ class FinderState extends State<Finder> {
 
   Widget build(BuildContext context) {
     final container = StateContainer.of(context);
-
-    //query and update documents based on additions and deletions
-
-    
-    Firestore.instance.collection("Users").getDocuments().then((documents) {
-      if (this.mounted) {
-        setState(() => userDocs = documents.documents);
-      }
-    });
-    
-
-    //print("Building...");
-
 
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
@@ -97,8 +93,11 @@ class FinderState extends State<Finder> {
                       child: Container(
                         child: TextField(
                           controller: _firstName,
-                          onTap: ()=> _listScroller.jumpTo(0.0),
-                          onChanged: (value)=> _listScroller.jumpTo(0.0),
+                          onTap: (){
+                       
+                            _listScroller.jumpTo(0.0);
+                          },
+                         
                           decoration: InputDecoration(labelText: "First Name"),
                         ),
                       ),
@@ -107,7 +106,6 @@ class FinderState extends State<Finder> {
                       child: TextField(
                         controller: _lastName,
                         onTap: ()=> _listScroller.jumpTo(0.0),
-                        onChanged: (value)=> _listScroller.jumpTo(0.0),
                         decoration: InputDecoration(labelText: "Last Name"),
                       ),
                     ),
@@ -121,6 +119,7 @@ class FinderState extends State<Finder> {
             ]),
           ),
         ),
+        
         if (container.isCardTapped)
           //this will most likely execute for gold points and never will execute for adding groups
           if (widget.alert != null)
@@ -131,19 +130,34 @@ class FinderState extends State<Finder> {
 
   //fetches the users in an order relevant way
   MaxList getData() {
-    List<Map> userList = [];
-    //turn this into map with uid and names
-    for (int i = 0; i < userDocs.length; i++) {
-      Map userData = userDocs[i].data;
-      userList.add(userData);
-    }
-    Searcher searcher = new Searcher(userList, _firstName.text, _lastName.text);
+    
+    List<Map<dynamic, dynamic>> usersList = [];
+
+     userDocs.forEach(
+      (k,v){
+
+        List nameList = k.toString().split(" ").toList();
+        
+        Map<String, dynamic> userData = {
+          "first_name": nameList[0],
+          "last_name": nameList[1],
+          "uid": v.toString()
+        };
+
+        usersList.add(userData);
+
+    });
+
+   
+ 
+    Searcher searcher = new Searcher(usersList, _firstName.text, _lastName.text);
     MaxList relevanceList = searcher.search();
     return relevanceList;
   }
 
   //builds list
   Widget getList(BuildContext context) {
+    
     double sW = MediaQuery.of(context).size.width;
     double sH = MediaQuery.of(context).size.height;
     MaxList list = getData();
@@ -163,8 +177,9 @@ class FinderState extends State<Finder> {
             return CircularProgressIndicator();
           }
           Map userInfo = current.element['info'];
-          Card c = Card(
-            child: ListTile(
+          ListTile c = ListTile(
+
+           
               onTap: () {
                 FocusScope.of(context)
                     .requestFocus(FocusNode()); //remove the keyboard
@@ -181,15 +196,8 @@ class FinderState extends State<Finder> {
                     fontFamily: 'Lato',
                     fontSize: Sizer.getTextSize(sW, sH, 20)),
               ),
-              trailing: Text(
-                userInfo['gold_points'].toString(),
-                style: TextStyle(
-                    fontFamily: 'Lato',
-                    fontSize: Sizer.getTextSize(sW, sH, 20),
-                    color: Color.fromARGB(255, 249, 166, 22)),
-              ),
-            ),
-          );
+            );
+          
           current = current.next;
           return c;
         });
