@@ -41,7 +41,6 @@ class ProfileScreenState extends State<ProfileScreen> {
 
     if(Global.isAdmin){
 
-      print("Fetched");
       DataBaseManagement.eventAggregator = Firestore.instance.collection("Aggregators").document("Event");
       DataBaseManagement.groupAggregator =  Firestore.instance.collection("Aggregators").document("Group");
       DataBaseManagement.userAggregator = Firestore.instance.collection("Aggregators").document("User");
@@ -54,14 +53,13 @@ class ProfileScreenState extends State<ProfileScreen> {
     //check for connection, and notify different screens of connection issue
 
     Connectivity().onConnectivityChanged.listen((connectionResult) {
-      bool implictError =
-          StateContainer.of(context).isThereANetworkConnectionError;
+    
 
       if (connectionResult == ConnectivityResult.none) {
-        StateContainer.of(context).isThereAnExplicitConnectionError = true;
+  
         StateContainer.of(context).setConnectionErrorStatus(true);
       } else {
-        StateContainer.of(context).setConnectionErrorStatus(implictError);
+        StateContainer.of(context).setConnectionErrorStatus(false);
       }
     });
   }
@@ -84,9 +82,8 @@ class ProfileScreenState extends State<ProfileScreen> {
               json.encode(StateContainer.of(context).notifications));
         },
         onMessage: (Map<String, dynamic> notification) async {
-      StateContainer.of(context).addToNotifications(notification);
-      Global.notificationDataFile.writeAsStringSync(
-          json.encode(StateContainer.of(context).notifications));
+          scheduleLocalNotification(notification);
+
       },
         onResume: (Map<String, dynamic> notification) async {
       StateContainer.of(context).addToNotifications(notification);
@@ -95,9 +92,6 @@ class ProfileScreenState extends State<ProfileScreen> {
     });
     if (Platform.isIOS) iosPermissions();
 
-    _firebaseMessaging.getToken().then((token){
-      print(token);
-    });
   }
 
   void iosPermissions() {
@@ -109,6 +103,34 @@ class ProfileScreenState extends State<ProfileScreen> {
     {
       print("Settings registered: $settings");
     });
+  }
+
+
+   void scheduleLocalNotification(Map notification) async {
+
+    //used for scheduling as well as displaying notifications
+    StateContainer.of(context).addToNotifications(notification);
+    Global.notificationDataFile.writeAsStringSync(
+        json.encode(StateContainer.of(context).notifications));
+    
+    String header;
+    String body;
+
+    if(Platform.isIOS)
+    {
+      header = notification['header'];
+      body = notification['body'];
+    }
+    else{
+      header = notification['data']['header'];
+      body = notification['data']['body'];
+    }
+
+
+    //show the actual notification
+    showSimpleNotification(Text(header),
+        subtitle: Text(body));
+    //schedule a notification for future
   }
 
   //used to get the locally stored notifications
