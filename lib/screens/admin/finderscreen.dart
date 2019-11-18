@@ -1,4 +1,5 @@
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:deca_app/screens/admin/scanner.dart';
 import 'package:deca_app/utility/InheritedInfo.dart';
 import 'package:deca_app/utility/format.dart';
@@ -81,10 +82,18 @@ class FinderScreenState extends State<FinderScreen> {
                   child: Finder(
                     //call back function argument
                     (BuildContext context, StateContainerState stateContainer,
-                        Map userInfo) {
+                        Map userInfo)async {
+                     
+                     //call to database notifying user is added
                       stateContainer.setUserData(userInfo);
                       if (stateContainer.eventMetadata['enter_type'] == 'QE') {
+                       
                         stateContainer.updateGP(userInfo['uid']);
+                       
+                        await Firestore.instance.collection("Events").document(stateContainer.eventMetadata['event_name']).updateData({
+                          "attendees": FieldValue.arrayUnion(["${userInfo['first_name']} ${userInfo['last_name']}"])
+                        });
+
                         Scaffold.of(context).showSnackBar(SnackBar(
                           duration: Duration(milliseconds: 300),
                           content: Text(
@@ -97,7 +106,9 @@ class FinderScreenState extends State<FinderScreen> {
                           ),
                           backgroundColor: Colors.green,
                         ));
-                      } else {
+                      } 
+                      
+                      else {
                         stateContainer.setIsCardTapped(true);
                       }
                     },

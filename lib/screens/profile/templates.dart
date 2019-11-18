@@ -2,16 +2,18 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:deca_app/utility/InheritedInfo.dart';
 import 'package:deca_app/utility/format.dart';
+import 'package:deca_app/utility/global.dart';
 import 'package:deca_app/utility/transition.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 class DynamicProfileUI extends StatelessWidget {
   String _uid;
-  String _firstName;
   int _goldPoints;
   String _memberLevel;
   bool _isEditable = false;
+  String firstName;
+ 
 
   DynamicProfileUI(String uid, {bool editable}) {
     this._uid = uid;
@@ -29,15 +31,20 @@ class DynamicProfileUI extends StatelessWidget {
     return StreamBuilder(
         //connecting to firebase and gathering user data
         stream: Firestore.instance
-            .collection('Users')
-            .where("uid", isEqualTo: _uid)
+            .collection('Users').document(_uid)
             .snapshots(),
         builder: (context, snapshot) {
           //if data has been updated
           if (snapshot.hasData) {
+            
             //grab the data and populate the fields as such
-            DocumentSnapshot userInfo = snapshot.data.documents[0];
-            _firstName = userInfo.data['first_name'] as String;
+            DocumentSnapshot userInfo = snapshot.data;
+            
+            //there is only one case in which isEditable will be false and that will be the case when it is the actual user of the app
+
+              firstName = userInfo.data['first_name'];
+             
+
             _goldPoints = userInfo.data['gold_points'];
             //setting memberLevel based on gold points
             if (_goldPoints < 75) {
@@ -60,7 +67,7 @@ class DynamicProfileUI extends StatelessWidget {
                         screenHeight / 40, screenWidth / 20, screenHeight / 80),
                     width: double.infinity,
                     child: Text(
-                      "Hello " + _firstName + '.',
+                      "Hello " + firstName + '.',
                       textAlign: TextAlign.left,
                       style: new TextStyle(
                           fontSize: 36 * screenWidth / pixelTwoWidth,
@@ -101,6 +108,7 @@ class DynamicProfileUI extends StatelessWidget {
                         )),
                         Card(
                             child: ListTile(
+                          
                           leading: Icon(MdiIcons.accountBadge,
                               color: (_memberLevel == 'Member')
                                   ? Colors.blueAccent
@@ -237,11 +245,11 @@ class GroupInfoScreenState extends State<GroupInfoScreen> {
         itemCount: committeeList.length,
         // A callback that will return a widget.
         itemBuilder: (context, i) {
-          String name = committeeList[i];
+          String groupName = committeeList[i];
           Card group = Card(
             child: ListTile(
               leading: Icon(Icons.group, color: Colors.blue),
-              title: Text(name,
+              title: Text(groupName,
                   textAlign: TextAlign.left,
                   style: new TextStyle(
                       fontWeight: FontWeight.bold,
@@ -266,19 +274,27 @@ class GroupInfoScreenState extends State<GroupInfoScreen> {
                 onDismissed: (dismiss) {
                   List newList = [];
                   for (String comm in committeeList) {
-                    if (comm != name) {
+                    if (comm != groupName) {
                       newList.add(comm);
                     }
                   }
 
+                  String firstName = StateContainer.of(context).userData['first_name'];
+                  String lastName = StateContainer.of(context).userData['last_name'];
+                  String fullName = "$firstName $lastName";
+
+                  //remove group from users
                   Firestore.instance
                       .collection('Users')
                       .document(widget._uid)
-                      .updateData({'groups': newList}).whenComplete(() {
+                      .updateData({'groups': newList}).whenComplete(() async {
+
+                        //remove the users from the group
+                        await Firestore.instance.collection("Groups").document(groupName).updateData({"members": FieldValue.arrayRemove([fullName])});
                     _scaffoldKey.currentState.showSnackBar(
                       SnackBar(
                         content: Text(
-                          "${StateContainer.of(context).userData['first_name']} removed from ${name}",
+                          "$firstName removed from $groupName",
                           style: TextStyle(
                               fontFamily: 'Lato',
                               fontSize: Sizer.getTextSize(
@@ -407,6 +423,7 @@ class GPInfoScreenState extends State<GPInfoScreen> {
       itemCount: eventList.length,
       // A callback that will return a widget.
       itemBuilder: (context, i) {
+        
         DocumentSnapshot event = eventList[i].info;
 
         //event data
@@ -430,6 +447,7 @@ class GPInfoScreenState extends State<GPInfoScreen> {
 
         //used to in order to prevent user for deleting their own events
         if (widget._isEditable) {
+          
           return Dismissible(
             key: UniqueKey(),
             background: Container(
@@ -442,7 +460,7 @@ class GPInfoScreenState extends State<GPInfoScreen> {
               ),
             ),
             child: eventDataCard,
-            onDismissed: (dissmiss) {
+            onDismissed: (dissmiss) async {
               Map newMap = {};
               for (EventObject eventItem in eventList) {
            
@@ -451,8 +469,11 @@ class GPInfoScreenState extends State<GPInfoScreen> {
                 }
               }
 
-              Firestore.instance
-                  .collection('Users')
+            String fullName = "${StateContainer.of(context).userData['first_name']} ${StateContainer.of(context).userData['last_name']}";
+              //remove the attendees from the
+             await event.reference.updateData({'attendees': FieldValue.arrayRemove([fullName])});
+              
+              Firestore.instance.collection('Users')
                   .document(widget._uid)
                   .updateData({'events': newMap}).whenComplete(() {
                 infoContainer.syncGPWithEvents(widget._uid);

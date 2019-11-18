@@ -111,9 +111,15 @@ class EditMemberUIState extends State<EditMemberUI> {
             icon: Icon(Icons.arrow_back_ios),
             onPressed: () => {Navigator.of(context).pop()}),
       ),
-      body: Center(child: Finder((BuildContext context,
+      body: Center(child: 
+      Finder((BuildContext context,
           StateContainerState stateContainer, Map userInfo) {
+
         stateContainer.setUserData(userInfo);
+        
+        //remove focus of keyboard before shifting
+        FocusScope.of(context).requestFocus(FocusNode());
+
         Navigator.push(context,
             NoTransition(builder: (context) => new EditMemberProfileUI()));
       })),

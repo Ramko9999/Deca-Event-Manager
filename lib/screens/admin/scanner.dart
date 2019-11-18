@@ -131,12 +131,16 @@ class _ScannerState extends State<Scanner> {
                 .collection("Users")
                 .document(onData)
                 .get();
+            
+            String firstName = userSnapshot.data['first_name'];
+            String lastName = userSnapshot.data['last_name'];
+           
+           await Firestore.instance.collection("Events").document(gpContainer.eventMetadata['event_name']).updateData(
+             {'attendees': FieldValue.arrayUnion(["$firstName $lastName"])}
+           );
 
             gpContainer.setUserData(userSnapshot.data);
-
             gpContainer.updateGP(onData);
-
-            String firstName = gpContainer.userData['first_name'];
 
             //show scaffold here
             _scaffoldKey.currentState.showSnackBar(SnackBar(

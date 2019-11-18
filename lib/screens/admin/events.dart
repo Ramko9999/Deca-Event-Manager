@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:deca_app/screens/admin/scanner.dart';
+import 'package:deca_app/screens/admin/views.dart';
 import 'package:deca_app/screens/db/databasemanager.dart';
 import 'package:deca_app/utility/InheritedInfo.dart';
 import 'package:deca_app/utility/format.dart';
@@ -56,6 +57,7 @@ class _CreateEventUIState extends State<CreateEventUI> {
         "event_type": _eventType,
         "enter_type": _enterType,
         "attendee_count": 0,
+        "attendees": [],
       } as Map;
       
       await Firestore.instance
@@ -70,6 +72,7 @@ class _CreateEventUIState extends State<CreateEventUI> {
         "event_type": _eventType,
         "enter_type": _enterType,
         'gold_points': int.parse(_goldPoints.text),
+        "attendees": [],
         "attendee_count": 0,
       } as Map;
       
@@ -506,6 +509,20 @@ class _EditEventUIState extends State<EditEventUI> {
                       .push(NoTransition(builder: (context) => Scanner()));
                 }
               },
+
+              onLongPress: () async{
+
+                //fetch the actual event
+
+                DocumentSnapshot eventData = await Firestore.instance.collection("Events").document(event).get();
+                
+                //set the eventMetadata to be have the Map of the event that will be edited
+                final container = StateContainer.of(context);
+                container.setEventMetadata(eventData.data);
+
+                Navigator.of(context).push(NoTransition(builder: (context)=> EventView(eventData['event_name'],  eventData)));
+
+              },
             ),
           ),
 
@@ -518,7 +535,7 @@ class _EditEventUIState extends State<EditEventUI> {
             WriteBatch batch = Firestore.instance.batch();
 
             QuerySnapshot userDocs =
-                await Firestore.instance.collection("Users").getDocuments();
+                await Firestore.instance.collection("Events").getDocuments();
 
             //iterate through the users and remove instance of the event
             for (DocumentSnapshot userDocument in userDocs.documents) {

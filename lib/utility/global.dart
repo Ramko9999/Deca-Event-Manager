@@ -6,4 +6,6 @@ class Global {
   static File notificationDataFile;
   static String uid;
   static bool isAdmin  = false;
+  static String firstName;
+  static String lastName;
 }

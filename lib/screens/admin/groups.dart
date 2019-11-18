@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:deca_app/screens/admin/finder.dart';
+import 'package:deca_app/screens/admin/views.dart';
 import 'package:deca_app/screens/db/databasemanager.dart';
 import 'package:deca_app/utility/InheritedInfo.dart';
 import 'package:deca_app/utility/format.dart';
@@ -45,83 +46,6 @@ class _CreateGroupUIState extends State<CreateGroupUI> {
       ),
       body: Stack(
         children: <Widget>[
-          
-          
-          //add people to a group on callback
-          Finder((BuildContext context, StateContainerState stateContainer,
-              Map userData) async {
-            
-            DocumentSnapshot document = await Firestore.instance
-                .collection("Users")
-                .document(userData['uid'])
-                .get();
-
-            List data = document.data['groups'].toList();
-            
-            //check if the person is already in the group
-            if (data.contains(stateContainer.group)) {
-              //display a scaffold snackbar to show the user that the user is already in the group
-              _scaffoldKey.currentState.showSnackBar(SnackBar(
-                content: Text(
-                  "${userData['first_name']} is already in ${stateContainer.group}",
-                  style: TextStyle(
-                      fontFamily: 'Lato',
-                      fontSize: Sizer.getTextSize(sW, sH, 18),
-                      color: Colors.white),
-                ),
-                backgroundColor: Colors.red,
-                duration: Duration(seconds: 3),
-                action: SnackBarAction(
-                  label: "REMOVE",
-                  textColor: Colors.amber,
-                  onPressed:
-
-                      //choice to remove the user from the group
-                      () {
-                  
-
-                    //remove user from firestore and show confirmation
-                    Firestore.instance
-                        .collection("Users")
-                        .document(userData['uid'])
-                        .updateData({'groups': FieldValue.arrayRemove([stateContainer.group])}).then((_) {
-                      _scaffoldKey.currentState.showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            "${userData['first_name']} removed from ${stateContainer.group}",
-                            style: TextStyle(
-                                fontFamily: 'Lato',
-                                fontSize: Sizer.getTextSize(sW, sH, 18),
-                                color: Colors.white),
-                          ),
-                          duration: Duration(milliseconds: 250),
-                        ),
-                      );
-                    });
-                  },
-                ),
-              ));
-            }
-            //add the person to the group
-            else {
-      
-              document.reference.updateData({'groups': FieldValue.arrayUnion([stateContainer.group])});
-
-              //show snackbar alerting the admin that the user has been added to the group
-              _scaffoldKey.currentState.showSnackBar(SnackBar(
-                content: Text(
-                  "Added ${userData['first_name']} to ${stateContainer.group}",
-                  style: TextStyle(
-                      fontFamily: 'Lato',
-                      fontSize: Sizer.getTextSize(sW, sH, 18),
-                      color: Colors.white),
-                ),
-                backgroundColor: Colors.green,
-                duration: Duration(milliseconds: 250),
-              ));
-            }
-          }),
-          
           if (!_hasCreatedGroup)
             Container(
                 color: Colors.black45,
@@ -183,19 +107,27 @@ class _CreateGroupUIState extends State<CreateGroupUI> {
                                       //create a map of the documents by the first name field
                                       List groups = groupRef.data['group_list'];
                                       
+                                      //create group document and append to groupAggregator the group
                                       if (!groups.contains(_groupName.text)) {
+
+                                        //create a new document;
                                         Firestore.instance
                                             .collection("Groups").document(_groupName.text).setData({"name": _groupName.text});
-                                     
-
-                                        
+                                    
                                         await DataBaseManagement.groupAggregator.updateData({"group_list": FieldValue.arrayUnion([_groupName.text])});
                                         
                                         StateContainer.of(context)
                                             .setGroup(_groupName.text);
 
-                                        setState(() => _hasCreatedGroup = true);
+                                        //push the group editor UI if everything checks out
+                                        Navigator.of(context).pop();
+                                        Navigator.of(context).push(NoTransition(
+                                          builder: (context) => GroupEditor()
+                                        ));
+
                                       } else {
+
+                                        //show user that the group already exists
                                         _scaffoldKey.currentState
                                             .showSnackBar(SnackBar(
                                           content: Text(
@@ -262,6 +194,8 @@ class GroupEditorState extends State<GroupEditor> {
                 .document(userData['uid'])
                 .get();
 
+            String fullName = "${userData['first_name']} ${userData['last_name']}";
+
             List data = document.data['groups'].toList();
             
             //check if the person is already in the group
@@ -292,7 +226,15 @@ class GroupEditorState extends State<GroupEditor> {
                     Firestore.instance
                         .collection("Users")
                         .document(userData['uid'])
-                        .updateData({'groups': FieldValue.arrayRemove([stateContainer.group])}).then((_) {
+                        .updateData({'groups': FieldValue.arrayRemove([stateContainer.group])}).then((_) async {
+
+
+                         
+
+                          //remove user from group
+                          await Firestore.instance.collection("Groups").document(stateContainer.group).updateData({'members': FieldValue.arrayRemove([fullName])});
+
+                        //show confirmation user is removed
                       _scaffoldKey.currentState.showSnackBar(
                         SnackBar(
                           content: Text(
@@ -314,6 +256,9 @@ class GroupEditorState extends State<GroupEditor> {
             else {
       
               document.reference.updateData({'groups': FieldValue.arrayUnion([stateContainer.group])});
+
+
+              await Firestore.instance.collection("Groups").document(stateContainer.group).updateData({"members": FieldValue.arrayUnion([fullName])});
 
               //show snackbar alerting the admin that the user has been added to the group
               _scaffoldKey.currentState.showSnackBar(SnackBar(
@@ -398,8 +343,21 @@ class _EditGroupUIState extends State<EditGroupUI> {
                 Navigator.of(context)
                     .push(NoTransition(builder: (context) => GroupEditor()));
               },
+            onLongPress: () async {
+
+              
+                final container = StateContainer.of(context);
+                container.setGroup(group);
+
+                DocumentSnapshot groupSnap = await Firestore.instance.collection("Groups").document(group).get();
+
+                Navigator.of(context).push(NoTransition(builder: (context)=> GroupView(group, groupSnap)));
+            },
+            
             ),
           ),
+
+          
 
           //remove the group from Groups Collection as well remove all members of the group instantly
           onDismissed: (direction) async {

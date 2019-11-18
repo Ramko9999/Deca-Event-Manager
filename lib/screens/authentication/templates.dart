@@ -480,8 +480,6 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
 
       }
 
-
-      
       //truly authenticate the user to firebase
         authenticateUser(totalUsersMap, fullName).then((_) /* call back for creating a users document*/ {
           setState(() => _isTryingToRegister = false);

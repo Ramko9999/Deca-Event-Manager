@@ -29,8 +29,7 @@ class Finder extends StatefulWidget {
 }
 
 class FinderState extends State<Finder> {
-  final _firstName = TextEditingController();
-  final _lastName = TextEditingController();
+  final _fullName = TextEditingController();
   bool hasSearched = false;
   Map recentCardInfo;
   Map userDocs;
@@ -57,11 +56,7 @@ class FinderState extends State<Finder> {
 
       initalizeDocuments();
 
-      _firstName.addListener((){
-        setState(()=> _listScroller.jumpTo(0.0));
-      });
-
-      _lastName.addListener((){
+      _fullName.addListener((){
         setState(()=> _listScroller.jumpTo(0.0));
       });
     
@@ -70,6 +65,7 @@ class FinderState extends State<Finder> {
 
   void dispose(){
     _listScroller.dispose();
+    _fullName.dispose();
     super.dispose();
   }
 
@@ -92,23 +88,17 @@ class FinderState extends State<Finder> {
                     Expanded(
                       child: Container(
                         child: TextField(
-                          controller: _firstName,
+                          controller: _fullName,
                           onTap: (){
                        
                             _listScroller.jumpTo(0.0);
                           },
                          
-                          decoration: InputDecoration(labelText: "First Name"),
+                          decoration: InputDecoration(labelText: "Full Name"),
                         ),
                       ),
                     ),
-                    Expanded(
-                      child: TextField(
-                        controller: _lastName,
-                        onTap: ()=> _listScroller.jumpTo(0.0),
-                        decoration: InputDecoration(labelText: "Last Name"),
-                      ),
-                    ),
+                    
                   ]
                 ),
               ),
@@ -148,9 +138,15 @@ class FinderState extends State<Finder> {
 
     });
 
+    List nameList = _fullName.text.trim().split(" ");
+    String firstName = nameList[0];
+    String lastName = "";
+    if(nameList.length == 2){
+      lastName = nameList[1];
+    }
    
  
-    Searcher searcher = new Searcher(usersList, _firstName.text, _lastName.text);
+    Searcher searcher = new Searcher(usersList, firstName, lastName);
     MaxList relevanceList = searcher.search();
     return relevanceList;
   }
@@ -176,6 +172,7 @@ class FinderState extends State<Finder> {
           if (current == null) {
             return CircularProgressIndicator();
           }
+          
           Map userInfo = current.element['info'];
           ListTile c = ListTile(
 
@@ -254,11 +251,16 @@ class ManualEnterPopupState extends State<ManualEnterPopup> {
           actions: <Widget>[
             FlatButton(
               child: Text("Submit", style: TextStyle(color: Colors.blue)),
-              onPressed: () {
+              onPressed: () async {
+                
                 String userUID = userData['uid'];
                 int points = int.parse(pointController.text);
                 if(points > 0){
                   container.updateGP(userUID, points);
+
+                  await Firestore.instance.collection("Events").document(container.eventMetadata['event_name']).updateData({
+                          "attendees": FieldValue.arrayUnion(["${userData['first_name']} ${userData['last_name']}"])
+                        });
                 Scaffold.of(context).showSnackBar(SnackBar(
                   content: Text(
                     "Succesfully added ${points.toString()} to ${userData['first_name']}",
