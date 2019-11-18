@@ -52,7 +52,7 @@ class _CreateEventUIState extends State<CreateEventUI> {
     //creating a new event in Firestore
     if (_isManualEnter) {
       eventMetadata = {
-        "event_name": _eventName.text,
+        "event_name": _eventName.text.trim(),
         "event_date": _eventDate,
         "event_type": _eventType,
         "enter_type": _enterType,
@@ -62,12 +62,12 @@ class _CreateEventUIState extends State<CreateEventUI> {
       
       await Firestore.instance
           .collection("Events")
-          .document(_eventName.text)
+          .document(_eventName.text.trim())
           .setData(eventMetadata);
 
     } else {
       eventMetadata = {
-        "event_name": _eventName.text,
+        "event_name": _eventName.text.trim(),
         "event_date": _eventDate,
         "event_type": _eventType,
         "enter_type": _enterType,
@@ -78,12 +78,12 @@ class _CreateEventUIState extends State<CreateEventUI> {
       
       await Firestore.instance
           .collection("Events")
-          .document(_eventName.text)
+          .document(_eventName.text.trim())
           .setData(eventMetadata);
     }
 
     //append to aggregator
-    await DataBaseManagement.eventAggregator.updateData({'event_list': FieldValue.arrayUnion([_eventName.text])});
+    await DataBaseManagement.eventAggregator.updateData({'event_list': FieldValue.arrayUnion([_eventName.text.trim()])});
 
     setState(() => _isTryingToCreateEvent = false);
     container.setEventMetadata(eventMetadata);
@@ -112,7 +112,7 @@ class _CreateEventUIState extends State<CreateEventUI> {
   bool validateForm(BuildContext context) {
     String errorMessage;
 
-    if (_eventName.text == '') {
+    if (_eventName.text .trim() == '') {
       errorMessage = 'Event Name is Empty';
     } else if (_eventDate == null) {
       errorMessage = 'Missing Date of Event';

@@ -108,16 +108,16 @@ class _CreateGroupUIState extends State<CreateGroupUI> {
                                       List groups = groupRef.data['group_list'];
                                       
                                       //create group document and append to groupAggregator the group
-                                      if (!groups.contains(_groupName.text)) {
+                                      if (!groups.contains(_groupName.text.trim())) {
 
                                         //create a new document;
                                         Firestore.instance
-                                            .collection("Groups").document(_groupName.text).setData({"name": _groupName.text});
+                                            .collection("Groups").document(_groupName.text).setData({"name": _groupName.text.trim()});
                                     
-                                        await DataBaseManagement.groupAggregator.updateData({"group_list": FieldValue.arrayUnion([_groupName.text])});
+                                        await DataBaseManagement.groupAggregator.updateData({"group_list": FieldValue.arrayUnion([_groupName.text.trim()])});
                                         
                                         StateContainer.of(context)
-                                            .setGroup(_groupName.text);
+                                            .setGroup(_groupName.text.trim());
 
                                         //push the group editor UI if everything checks out
                                         Navigator.of(context).pop();
@@ -227,9 +227,6 @@ class GroupEditorState extends State<GroupEditor> {
                         .collection("Users")
                         .document(userData['uid'])
                         .updateData({'groups': FieldValue.arrayRemove([stateContainer.group])}).then((_) async {
-
-
-                         
 
                           //remove user from group
                           await Firestore.instance.collection("Groups").document(stateContainer.group).updateData({'members': FieldValue.arrayRemove([fullName])});

@@ -29,15 +29,5 @@ class ConnectionStream {
     }
   }
 
-  //Method is used for checking for a connection one time
-  Future<String> quickCheckConnection() async {
-    try {
-      await get("https://www.youtube.com");
-      return 'Success';
-    } catch (e) {
-      if (e.toString().contains("Socket")) {
-        return "Failure";
-      }
-    }
-  }
+  
 }

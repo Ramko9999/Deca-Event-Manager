@@ -388,7 +388,7 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
     String oldUid = usersMap[fullName];
 
 
-    AuthResult authRes = await FirebaseAuth.instance.createUserWithEmailAndPassword(email: _username, password: _password);
+    AuthResult authRes = await FirebaseAuth.instance.createUserWithEmailAndPassword(email: _username.trim(), password: _password.trim());
     String newUid = authRes.user.uid;
 
     //fetch the current document of the user from its inital user id
@@ -425,8 +425,8 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
       //create new document with data
 
       Map<String, dynamic> updatedUserData = {
-        "first_name": _firstName,
-        "last_name": _lastName,
+        "first_name": _firstName.trim(),
+        "last_name": _lastName.trim(),
         "gold_points": documentData['gold_points'],
         "events": documentData['events'],
         "groups": documentData['groups'],
@@ -461,7 +461,7 @@ class _RegisterTemplateState extends State<RegisterTemplate> {
     List admins = adminSnapshot.data['admins'];
 
 
-    String fullName = "$_firstName $_lastName";
+    String fullName = "${_firstName.trim()} ${_lastName.trim()}";
 
     
     //check whether the name of the user exists in the map
