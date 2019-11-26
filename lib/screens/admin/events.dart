@@ -535,7 +535,7 @@ class _EditEventUIState extends State<EditEventUI> {
             WriteBatch batch = Firestore.instance.batch();
 
             QuerySnapshot userDocs =
-                await Firestore.instance.collection("Events").getDocuments();
+                await Firestore.instance.collection("Users").getDocuments();
 
             //iterate through the users and remove instance of the event
             for (DocumentSnapshot userDocument in userDocs.documents) {
@@ -655,9 +655,9 @@ class _EditEventUIState extends State<EditEventUI> {
                     if (snapshot.hasData) {
                       return Center(
                         child: Container(
-                          height: screenHeight * 0.99,
+                          height: screenHeight * 0.9,
                           width: screenWidth,
-                          child: _buildEventList(context, snapshot),
+                          child:  _buildEventList(context, snapshot),
                         ),
                       );
                     } else {

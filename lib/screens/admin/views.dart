@@ -238,7 +238,7 @@ class GroupView extends StatelessWidget{
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
-        title: Text("$groupName's attendees"),
+        title: Text("$groupName's members"),
       ),
       
       body: FutureBuilder(

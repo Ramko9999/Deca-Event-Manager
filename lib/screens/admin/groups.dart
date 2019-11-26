@@ -476,7 +476,7 @@ class _EditGroupUIState extends State<EditGroupUI> {
                       if (snapshot.hasData) {
                         return Center(
                           child: Container(
-                            height: sH * 0.99,
+                            height: sH * 0.90,
                             width: sW,
                             child: buildGroupList(context, snapshot),
                           ),
