@@ -56,7 +56,6 @@ class _CreateEventUIState extends State<CreateEventUI> {
         "event_date": _eventDate,
         "event_type": _eventType,
         "enter_type": _enterType,
-        "attendee_count": 0,
         "attendees": [],
       } as Map;
       
@@ -705,7 +704,7 @@ class _EventInfoUIState extends State<EventInfoUI> {
     double pixelTwoWidth = 411.42857142857144;
     final container = StateContainer.of(context);
     eventMetadata = container.eventMetadata;
-    scanCount = eventMetadata['attendee_count'];
+    scanCount = eventMetadata['attendees'].length;
 
     // TODO: implement build
     return StreamBuilder(

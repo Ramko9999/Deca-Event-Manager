@@ -1,13 +1,10 @@
-import 'dart:async';
-
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:deca_app/screens/admin/searcher.dart';
 import 'package:deca_app/screens/db/databasemanager.dart';
 import 'package:deca_app/utility/InheritedInfo.dart';
 import 'package:deca_app/utility/format.dart';
 import 'package:flutter/material.dart';
-import 'package:auto_size_text/auto_size_text.dart';
-
 
 //Finder is a widget that will show search results of users based on names
 class Finder extends StatefulWidget {
@@ -16,7 +13,6 @@ class Finder extends StatefulWidget {
   Widget title;
   Widget subtitle;
   Widget trailing;
-  
 
   Finder(Function t, {Widget a}) {
     this.alert = a;
@@ -39,31 +35,25 @@ class FinderState extends State<Finder> {
 
   //get the user documents
   void initalizeDocuments() async {
-    
-    
-      DocumentSnapshot userData = await DataBaseManagement.userAggregator.get();
-
-      Map userNames = userData.data['users'] as Map;
-      setState(() => userDocs =  userNames);
+    DocumentSnapshot userData = await DataBaseManagement.userAggregator.get();
+    Map userNames = userData.data['users'] as Map;
+    setState(() => userDocs = userNames);
   }
 
   @override
   void initState() {
     super.initState();
 
-
-    if(mounted){
-
+    if (mounted) {
       initalizeDocuments();
 
-      _fullName.addListener((){
-        setState(()=> _listScroller.jumpTo(0.0));
+      _fullName.addListener(() {
+        setState(() => _listScroller.jumpTo(0.0));
       });
-    
     }
   }
 
-  void dispose(){
+  void dispose() {
     _listScroller.dispose();
     _fullName.dispose();
     super.dispose();
@@ -83,24 +73,19 @@ class FinderState extends State<Finder> {
             child: Column(children: <Widget>[
               Padding(
                 padding: const EdgeInsets.fromLTRB(0, 0, 0, 15),
-                child: Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: Container(
-                        child: TextField(
-                          controller: _fullName,
-                          onTap: (){
-                       
-                            _listScroller.jumpTo(0.0);
-                          },
-                         
-                          decoration: InputDecoration(labelText: "Full Name"),
-                        ),
+                child: Row(children: <Widget>[
+                  Expanded(
+                    child: Container(
+                      child: TextField(
+                        controller: _fullName,
+                        onTap: () {
+                          _listScroller.jumpTo(0.0);
+                        },
+                        decoration: InputDecoration(labelText: "Full Name"),
                       ),
                     ),
-                    
-                  ]
-                ),
+                  ),
+                ]),
               ),
               Flexible(
                   child: userDocs == null
@@ -109,7 +94,7 @@ class FinderState extends State<Finder> {
             ]),
           ),
         ),
-        
+
         if (container.isCardTapped)
           //this will most likely execute for gold points and never will execute for adding groups
           if (widget.alert != null)
@@ -120,32 +105,27 @@ class FinderState extends State<Finder> {
 
   //fetches the users in an order relevant way
   MaxList getData() {
-    
     List<Map<dynamic, dynamic>> usersList = [];
 
-     userDocs.forEach(
-      (k,v){
+    userDocs.forEach((k, v) {
+      List nameList = k.toString().split(" ").toList();
 
-        List nameList = k.toString().split(" ").toList();
-        
-        Map<String, dynamic> userData = {
-          "first_name": nameList[0],
-          "last_name": nameList[1],
-          "uid": v.toString()
-        };
+      Map<String, dynamic> userData = {
+        "first_name": nameList[0],
+        "last_name": nameList[1],
+        "uid": v.toString()
+      };
 
-        usersList.add(userData);
-
+      usersList.add(userData);
     });
 
     List nameList = _fullName.text.trim().split(" ");
     String firstName = nameList[0];
     String lastName = "";
-    if(nameList.length == 2){
+    if (nameList.length == 2) {
       lastName = nameList[1];
     }
-   
- 
+
     Searcher searcher = new Searcher(usersList, firstName, lastName);
     MaxList relevanceList = searcher.search();
     return relevanceList;
@@ -153,14 +133,13 @@ class FinderState extends State<Finder> {
 
   //builds list
   Widget getList(BuildContext context) {
-    
     double sW = MediaQuery.of(context).size.width;
     double sH = MediaQuery.of(context).size.height;
     MaxList list = getData();
     final infoContainer = StateContainer.of(context);
-    
+
     Node current = list.head;
-    
+
     return ListView.builder(
         controller: _listScroller,
         shrinkWrap: true,
@@ -172,29 +151,26 @@ class FinderState extends State<Finder> {
           if (current == null) {
             return CircularProgressIndicator();
           }
-          
+
           Map userInfo = current.element['info'];
           ListTile c = ListTile(
+            onTap: () {
+              FocusScope.of(context)
+                  .requestFocus(FocusNode()); //remove the keyboard
 
-           
-              onTap: () {
-                FocusScope.of(context)
-                    .requestFocus(FocusNode()); //remove the keyboard
+              //checking what the purpose of the finder is
+              widget.tapCallback(context, infoContainer, userInfo);
+            },
+            leading: Icon(Icons.person, color: Colors.black),
+            title: Text(
+              userInfo['first_name'].toString() +
+                  " " +
+                  userInfo['last_name'].toString(),
+              style: TextStyle(
+                  fontFamily: 'Lato', fontSize: Sizer.getTextSize(sW, sH, 20)),
+            ),
+          );
 
-                //checking what the purpose of the finder is
-                widget.tapCallback(context, infoContainer, userInfo);
-              },
-              leading: Icon(Icons.person, color: Colors.black),
-              title: Text(
-                userInfo['first_name'].toString() +
-                    " " +
-                    userInfo['last_name'].toString(),
-                style: TextStyle(
-                    fontFamily: 'Lato',
-                    fontSize: Sizer.getTextSize(sW, sH, 20)),
-              ),
-            );
-          
           current = current.next;
           return c;
         });
@@ -215,8 +191,6 @@ class ManualEnterPopupState extends State<ManualEnterPopup> {
   ManualEnterPopupState() {
     pointController.text = 0.toString();
   }
-
-
 
   Widget build(BuildContext context) {
     final container = StateContainer.of(context);
@@ -252,39 +226,45 @@ class ManualEnterPopupState extends State<ManualEnterPopup> {
             FlatButton(
               child: Text("Submit", style: TextStyle(color: Colors.blue)),
               onPressed: () async {
-                
                 String userUID = userData['uid'];
                 int points = int.parse(pointController.text);
-                if(points > 0){
+                if (points > 0) {
                   container.updateGP(userUID, points);
 
-                  await Firestore.instance.collection("Events").document(container.eventMetadata['event_name']).updateData({
-                          "attendees": FieldValue.arrayUnion(["${userData['first_name']} ${userData['last_name']}"])
-                        });
-                Scaffold.of(context).showSnackBar(SnackBar(
-                  content: Text(
-                    "Succesfully added ${points.toString()} to ${userData['first_name']}",
-                    style: TextStyle(
-                        fontFamily: 'Lato', fontSize: Sizer.getTextSize(screenWidth, screenHeight, 20), color: Colors.white),
-                  ),
-                  backgroundColor: Colors.green,
-                ));
-                container.setIsCardTapped(false);
-                container.setIsManualEnter(false);
-                }
-                else{
-                  
+                  await Firestore.instance
+                      .collection("Events")
+                      .document(container.eventMetadata['event_name'])
+                      .updateData({
+                    "attendees": FieldValue.arrayUnion(
+                        ["${userData['first_name']} ${userData['last_name']}"])
+                  });
+                  Scaffold.of(context).showSnackBar(SnackBar(
+                    content: Text(
+                      "Succesfully added ${points.toString()} to ${userData['first_name']}",
+                      style: TextStyle(
+                          fontFamily: 'Lato',
+                          fontSize:
+                              Sizer.getTextSize(screenWidth, screenHeight, 20),
+                          color: Colors.white),
+                    ),
+                    backgroundColor: Colors.green,
+                  ));
+                  container.setIsCardTapped(false);
+                  container.setIsManualEnter(false);
+                } else {
                   pointController.text = 0.toString();
                   //alert the user to enter a non negative value
                   Scaffold.of(context).showSnackBar(SnackBar(
-                  content: Text(
-                    "Enter a non negative value",
-                    style: TextStyle(
-                        fontFamily: 'Lato', fontSize: Sizer.getTextSize(screenWidth, screenHeight, 20), color: Colors.white),
-                  ),
-                  backgroundColor: Colors.red,
-                ));
-
+                    content: Text(
+                      "Enter a non negative value",
+                      style: TextStyle(
+                          fontFamily: 'Lato',
+                          fontSize:
+                              Sizer.getTextSize(screenWidth, screenHeight, 20),
+                          color: Colors.white),
+                    ),
+                    backgroundColor: Colors.red,
+                  ));
                 }
               },
             )

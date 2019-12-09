@@ -9,7 +9,7 @@
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
-	<string>edu.ephs2019.deca</string>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
@@ -17,23 +17,38 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0</string>
+	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>1</string>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>FirebaseAppDelegateProxyEnabled</key>
 	<false/>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSAppleMusicUsageDescription</key>
+	<string>Music access is for having music at DECA events to increase the collaborative atmosphere at events using the application</string>
+	<key>NSCalendarsUsageDescription</key>
+	<string>Calendars are used to schedule events and meetings and can be shown to members of committees and groups, ensuring the flow of information between teams.</string>
 	<key>NSCameraUsageDescription</key>
-	<string>Can I use the camera please?</string>
+	<string>Camera is used for scanning DECA member QR Codes to check into events such as socials, competition events, and general meetings</string>
+	<key>NSContactsUsageDescription</key>
+	<string>Contacts are used to create contacts for members to create easy contact access for DECA officers for giving individual contact information</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Location is used for creating a location tag for an event, which can be beneficial information for the user to know about where an event is to make it easy to reach</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>Location is used for creating a location tag for an event, which can be beneficial information for the user to know about where an event is to make it easy to reach while using maps and navigations to an event or social.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Location is used for creating a location tag for an event, which is beneficial information for the use to know inside the app what address and location an event is at.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Can I use the mic please?</string>
+	<string>Microphone is used for analyzing the member and automatically adding gold point values to the user based on microphone commands</string>
+	<key>NSMotionUsageDescription</key>
+	<string>Motion access is for allowing quick enter of events to occur and generate gold point values</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Speech recognition is for understanding the speech of a member allowing for easy enter of gold points for the user</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>
-		<string>processing</string>
 		<string>remote-notification</string>
 	</array>
 	<key>UILaunchStoryboardName</key>

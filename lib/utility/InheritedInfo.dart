@@ -73,10 +73,8 @@ class StateContainerState extends State<StateContainer> {
   //used to add to the notifications of the user
   void addToNotifications(Map notification) {
     setState(() {
-
       this.notifications.add(notification);
       this.notificationCounter += 1;
-
     });
   }
 
@@ -112,11 +110,10 @@ class StateContainerState extends State<StateContainer> {
         .document(userUniqueId)
         .get()
         .then((userData) {
-      
       int totalGP = 0;
       Map eventsList = userData.data['events'];
       print(eventsList);
-      
+
       for (var gp in eventsList.keys) {
         totalGP += eventsList[gp];
       }
@@ -169,28 +166,26 @@ class StateContainerState extends State<StateContainer> {
 
   //adds the current event in eventMetadata state to events field for the user that is parameterized
   Future addToEvents(String userUniqueId, [int manualGP]) async {
-    
     int pointVal = eventMetadata['gold_points'];
-    Map finalEvents = userData['events'];
-
+    DocumentSnapshot userDoc = await Firestore.instance
+        .collection("Users")
+        .document(userUniqueId)
+        .get();
+    Map finalEvents = userDoc.data['events'];
+    print(finalEvents);
 
     if (finalEvents != null) {
       if (eventMetadata['enter_type'] == 'QE') {
-        finalEvents.addAll({eventMetadata['event_name']: pointVal});
+        finalEvents[eventMetadata['event_name']] = pointVal;
       } else if (manualGP != null) {
-        finalEvents.addAll({eventMetadata['event_name']: manualGP});
+        finalEvents[eventMetadata['event_name']] = manualGP;
       }
     } else {
-
-      if(eventMetadata['enter_type'] == 'QE'){
-        finalEvents = {eventMetadata['event_name']: pointVal};
+      if (eventMetadata['enter_type'] == 'QE') {
+        finalEvents[eventMetadata['event_name']] = pointVal;
+      } else {
+        finalEvents[eventMetadata['event_name']] = manualGP;
       }
-      else{
-        finalEvents = {eventMetadata['event_name'] : manualGP};
-      }
-
-
-
     }
     await Firestore.instance
         .collection('Users')
@@ -245,7 +240,7 @@ class StateContainer extends StatefulWidget {
   StateContainer(
       {@required this.child,
       this.uid,
-        this.isAdmin,
+      this.isAdmin,
       this.eventMetadata,
       this.userData,
       this.isCardTapped,

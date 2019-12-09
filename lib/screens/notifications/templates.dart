@@ -20,11 +20,10 @@ class NotificationUIState extends State<NotificationUI> {
   NotificationUIState();
 
   Widget build(BuildContext context) {
-    
     StateContainer.of(context).notificationCounter = 0;
     double screenHeight = MediaQuery.of(context).size.height;
     double screenWidth = MediaQuery.of(context).size.width;
-   
+
     return Container(
         height: screenHeight / 1.1,
         width: screenWidth,
@@ -46,12 +45,10 @@ class NotificationUIState extends State<NotificationUI> {
         String header;
         String body;
 
-        if(Platform.isIOS)
-          {
-            header = documents[index]['header'];
-            body = documents[index]['body'];
-          }
-        else{
+        if (Platform.isIOS) {
+          header = documents[index]['header'];
+          body = documents[index]['body'];
+        } else {
           header = documents[index]['data']['header'];
           body = documents[index]['data']['body'];
         }

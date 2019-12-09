@@ -226,8 +226,6 @@ class _ScannerState extends State<Scanner> {
     double screenWidth = MediaQuery.of(context).size.width;
 
     pointVal = eventMetadata['gold_points'];
-    scanCount = eventMetadata['attendee_count'];
-
     return Scaffold(
         key: _scaffoldKey,
         appBar: new AppBar(
